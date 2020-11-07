@@ -8,7 +8,7 @@ class MapperFactory:
 
     @classmethod
     def create(cls, mapper_type: str) -> _Mapper:
-        mapper_type = mapper_type.lower()
+        mapper_type = str(mapper_type).lower()
 
         if mapper_type == cls.BWA_MAPPER:
             mapper = BWAMapper
