@@ -16,8 +16,12 @@ class _Mappable:
         return glob.glob(os.path.join(file_path, "*fastq.gz"))
 
     @classmethod
-    def _get_file_information(cls, fastq_list: List, sample_type: str, trimmed: bool = False) -> Dict:
-        splitted_files = list(map(lambda x: x.replace(".fastq.gz", "").split("_"), fastq_list))
+    def _get_file_information(
+        cls, fastq_list: List, sample_type: str, trimmed: bool = False
+    ) -> Dict:
+        splitted_files = list(
+            map(lambda x: x.replace(".fastq.gz", "").split("_"), fastq_list)
+        )
 
         # Picks the correct dict keys in order
         if sample_type == "tumor":
@@ -29,14 +33,15 @@ class _Mappable:
 
         # converts True to 1 and visa versa
         i = int(trimmed)
-        
+
         # Cleans filename string into pieces
-        values = [list(set(items[i:len(keys)])) for items in zip(*splitted_files)]
+        values = [list(set(items[i : len(keys)])) for items in zip(*splitted_files)]
 
         # creates a dict by the order
         info_dict = dict(zip(keys, values))
 
         return info_dict
+
 
 class BWAMapper(_Mapper, _Mappable):
     @classmethod
@@ -55,7 +60,3 @@ class NovoalignMapper(_Mapper, _Mappable):
     @classmethod
     def map(cls, pipeline_config: Dict):
         pass
-
-
-
-
