@@ -15,3 +15,8 @@ class BWAMapper(_Mapper):
 class Bowtie2Mapper(_Mapper):
     def map(self):
         pass
+
+class NovoalignMapper(_Mapper):
+    def map(self):
+        pass
+
