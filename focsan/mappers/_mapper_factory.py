@@ -1,4 +1,4 @@
-from ._mappers import _Mapper, BWAMapper, Bowtie2Mapper, NovoalignMapper
+from ._mappers import Bowtie2Mapper, BWAMapper, NovoalignMapper, _Mapper
 
 
 class MapperFactory:
