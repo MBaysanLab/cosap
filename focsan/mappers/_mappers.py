@@ -17,6 +17,12 @@ class _Mapper(ABC):
 
 
 class _Mappable:
+    RG_ID = "RG_ID"
+    RG_SM = "RG_SM"
+    RG_LB = "RG_LB"
+    RG_PL = "RG_PL"
+    RG_PU = "RG_PU"
+
     @classmethod
     def _list_fastq_files(cls, file_path: str) -> List:
         return glob.glob(os.path.join(file_path, "*fastq.gz"))
@@ -85,19 +91,43 @@ class _Mappable:
     ) -> str:
         return f"""{pipeline_config.MAPPER_TYPE}_{fastq_info["Sample_ID"]}_{fastq_info["Index"]}_{fastq_info["Lanes"]}_{fastq_info["Number_of_seq"]}.bam"""
 
+    @classmethod
+    def _get_rg_flags(cls, fastq_info: Dict, pipeline_config: PipelineConfig) -> Dict:
+        flags = {
+            cls.RG_ID: f"""{fastq_info["Flowcell"]}.{fastq_info["Lanes"][-1]}""",
+            cls.RG_SM: fastq_info["Sample_ID"],
+            cls.RG_LB: pipeline_config.PATIENT_ID,
+            cls.RG_PL: "Illumina",
+            cls.RG_PU: f"""{fastq_info["Flowcell"]}.{fastq_info["Index"]}.{fastq_info["Lanes"][-1]}""",
+        }
+        return flags
+
 
 class BWAMapper(_Mapper, _Mappable):
     @classmethod
     def _create_read_group(
         cls, fastq_info: Dict, pipeline_config: PipelineConfig
     ) -> str:
-        RG_ID = f"""{fastq_info["Flowcell"]}.{fastq_info["Lanes"][-1]}"""
-        RG_SM = fastq_info["Sample_ID"]
-        RG_LB = pipeline_config.PATIENT_ID
-        RG_PL = "Illumina"
-        RG_PU = f"""{fastq_info["Flowcell"]}.{fastq_info["Index"]}.{fastq_info["Lanes"][-1]}"""
-
-        return f'''"@RG\\tID:{RG_ID}\\tSM:{RG_SM}\\tLB:{RG_LB}\\tPL:{RG_PL}\\tPU:{RG_PU}"'''
+        flags = cls._get_rg_flags(
+            fastq_info=fastq_info, pipeline_config=pipeline_config
+        )
+        read_arguments = "".join(
+            (
+                '"',
+                r"@RG\tID",
+                flags[cls.RG_ID],
+                r"\tSM:",
+                flags[cls.RG_SM],
+                r"\tLB",
+                flags[cls.RG_LB],
+                r"\tPL",
+                flags[cls.RG_PL],
+                r"\tPU",
+                flags[cls.RG_PU],
+                '"',
+            )
+        )
+        return read_arguments
 
     @classmethod
     def _create_command(
@@ -155,25 +185,22 @@ class Bowtie2Mapper(_Mapper, _Mappable):
     def _create_read_group(
         cls, fastq_info: Dict, pipeline_config: PipelineConfig
     ) -> List:
-        RG_ID = f"""{fastq_info["Flowcell"]}.{fastq_info["Lanes"][-1]}"""
-        RG_SM = fastq_info["Sample_ID"]
-        RG_LB = pipeline_config.PATIENT_ID
-        RG_PL = "Illumina"
-        RG_PU = f"""{fastq_info["Flowcell"]}.{fastq_info["Index"]}.{fastq_info["Lanes"][-1]}"""
-
-        flags = [
+        flags = cls._get_rg_flags(
+            fastq_info=fastq_info, pipeline_config=pipeline_config
+        )
+        read_arguments = [
             "--rg-id",
-            RG_ID,
+            flags[cls.RG_ID],
             "--rg",
-            f"SM:{RG_SM}",
+            f"SM:{flags[cls.RG_SM]}",
             "--rg",
-            f"LB:{RG_LB}",
+            f"LB:{flags[cls.RG_LB]}",
             "--rg",
-            f"PL:{RG_PL}",
+            f"PL:{flags[cls.RG_PL]}",
             "--rg",
-            f"PU:{RG_PU}",
+            f"PU:{flags[cls.RG_PU]}",
         ]
-        return flags
+        return read_arguments
 
     @classmethod
     def _create_command(
@@ -229,5 +256,82 @@ class Bowtie2Mapper(_Mapper, _Mappable):
 
 class NovoalignMapper(_Mapper, _Mappable):
     @classmethod
+    def _create_read_group(
+        cls, fastq_info: Dict, pipeline_config: PipelineConfig
+    ) -> str:
+        flags = cls._get_rg_flags(
+            fastq_info=fastq_info, pipeline_config=pipeline_config
+        )
+        read_arguments = "".join(
+            (
+                '"',
+                r"@RG\tID",
+                flags[cls.RG_ID],
+                r"\tSM:",
+                flags[cls.RG_SM],
+                r"\tLB",
+                flags[cls.RG_LB],
+                r"\tPL",
+                flags[cls.RG_PL],
+                r"\tPU",
+                flags[cls.RG_PU],
+                '"',
+            )
+        )
+        return read_arguments
+
+    @classmethod
+    def _create_command(
+        cls,
+        pipeline_config: PipelineConfig,
+        fastq_info: Dict,
+        library_paths: LibraryPaths,
+    ) -> List:
+        output_filename = cls._create_output_filename(
+            fastq_info=fastq_info, pipeline_config=pipeline_config
+        )
+        read_group = cls._create_read_group(
+            fastq_info=fastq_info, pipeline_config=pipeline_config
+        )
+        stats_filename = f"{os.path.splitext(output_filename)[0]}_stats.txt"
+        command = [
+            "novoalign",
+            "-k",
+            "-d",
+            library_paths.REF_DIR,
+            os.path.normpath("Bowtie2/Homo_sapiens_assembly38"),
+            "-f",
+            fastq_info["R1"],
+            fastq_info["R2"],
+            "-a",
+            "-c",
+            pipeline_config.MAPPER_THREADS,
+            "-o",
+            "SAM",
+            *read_group,
+            "2>",
+            stats_filename,
+            "|",
+            "samtools",
+            "view",
+            "-@",
+            pipeline_config.MAPPER_THREADS,
+            "-bS",
+            "-",
+            ">",
+            output_filename,
+        ]
+        return command
+
+    @classmethod
     def map(cls, pipeline_config: PipelineConfig):
-        pass
+        library_paths = LibraryPaths()
+        fastq_info_list = cls._get_file_information(pipeline_config=pipeline_config)
+
+        for fastq_info in fastq_info_list:
+            command = cls._create_command(
+                pipeline_config=pipeline_config,
+                fastq_info=fastq_info,
+                library_paths=library_paths,
+            )
+            run(command, cwd=pipeline_config.FASTQ_DIR)
