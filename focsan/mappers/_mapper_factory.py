@@ -1,4 +1,7 @@
-from ._mappers import _Mapper, BWAMapper, Bowtie2Mapper, NovoalignMapper
+from ._bowtie_mapper import Bowtie2Mapper
+from ._bwa_mapper import BWAMapper
+from ._mappers import _Mapper
+from ._novoalign_mapper import NovoalignMapper
 
 
 class MapperFactory:
@@ -8,7 +11,7 @@ class MapperFactory:
 
     @classmethod
     def create(cls, mapper_type: str) -> _Mapper:
-        mapper_type = mapper_type.lower()
+        mapper_type = str(mapper_type).lower()
 
         if mapper_type == cls.BWA_MAPPER:
             mapper = BWAMapper

@@ -4,7 +4,7 @@ import os
 from dataclasses import dataclass
 from threading import Lock
 
-from _config import AppConfig
+from ._config import AppConfig
 
 
 class _LibraryMeta(type):
