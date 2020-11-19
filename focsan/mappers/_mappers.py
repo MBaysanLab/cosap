@@ -120,6 +120,7 @@ class BWAMapper(_Mapper, _Mappable):
             "-R",
             read_group,
             library_paths.REF_DIR,
+            # TODO: This needs to go somewhere else
             os.path.normpath("Bwa/Homo_sapiens_assembly38.fasta"),
             fastq_info["R1"],
             fastq_info["R2"],
@@ -151,8 +152,79 @@ class BWAMapper(_Mapper, _Mappable):
 
 class Bowtie2Mapper(_Mapper, _Mappable):
     @classmethod
+    def _create_read_group(
+        cls, fastq_info: Dict, pipeline_config: PipelineConfig
+    ) -> List:
+        RG_ID = f"""{fastq_info["Flowcell"]}.{fastq_info["Lanes"][-1]}"""
+        RG_SM = fastq_info["Sample_ID"]
+        RG_LB = pipeline_config.PATIENT_ID
+        RG_PL = "Illumina"
+        RG_PU = f"""{fastq_info["Flowcell"]}.{fastq_info["Index"]}.{fastq_info["Lanes"][-1]}"""
+
+        flags = [
+            "--rg-id",
+            RG_ID,
+            "--rg",
+            f"SM:{RG_SM}",
+            "--rg",
+            f"LB:{RG_LB}",
+            "--rg",
+            f"PL:{RG_PL}",
+            "--rg",
+            f"PU:{RG_PU}",
+        ]
+        return flags
+
+    @classmethod
+    def _create_command(
+        cls,
+        pipeline_config: PipelineConfig,
+        fastq_info: Dict,
+        library_paths: LibraryPaths,
+    ) -> List:
+        output_filename = cls._create_output_filename(
+            fastq_info=fastq_info, pipeline_config=pipeline_config
+        )
+        read_group = cls._create_read_group(
+            fastq_info=fastq_info, pipeline_config=pipeline_config
+        )
+        command = [
+            "bowtie2",
+            "-p",
+            pipeline_config.MAPPER_THREADS,
+            *read_group,
+            "-x",
+            library_paths.REF_DIR,
+            # TODO: This needs to go somewhere else
+            os.path.normpath("Bowtie2/Homo_sapiens_assembly38"),
+            "-1",
+            fastq_info["R1"],
+            "-2",
+            fastq_info["R2"],
+            "|",
+            "samtools",
+            "view",
+            "-@",
+            pipeline_config.MAPPER_THREADS,
+            "-bS",
+            "-",
+            ">",
+            output_filename,
+        ]
+        return command
+
+    @classmethod
     def map(cls, pipeline_config: PipelineConfig):
-        pass
+        library_paths = LibraryPaths()
+        fastq_info_list = cls._get_file_information(pipeline_config=pipeline_config)
+
+        for fastq_info in fastq_info_list:
+            command = cls._create_command(
+                pipeline_config=pipeline_config,
+                fastq_info=fastq_info,
+                library_paths=library_paths,
+            )
+            run(command, cwd=pipeline_config.FASTQ_DIR)
 
 
 class NovoalignMapper(_Mapper, _Mappable):
