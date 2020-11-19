@@ -1,11 +1,11 @@
 import glob
-import itertools as it
+import gzip
+import os
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from parser import Parser
-from subprocess import run
 from typing import Dict, List
 
-from .._library_paths import LibraryPaths
 from .._pipeline_config import PipelineConfig
 from .._utils import join_paths
 
@@ -74,11 +74,13 @@ class _Mappable:
         flowcell_info = cls._read_flowcell_info(fastq_list[0])
         for file_path in fastq_list:
             filename = os.path.basename(file_path)
-            file_info = {
-                **fastq_filename_parser.parse(filename).named,
-                file_info["Pair"]: file_path,
-                "Flowcell": flowcell_info,
-            }
+            file_info = fastq_filename_parser.parse(filename).named
+            file_info.update(
+                {
+                    file_info["Pair"]: file_path,
+                    "Flowcell": flowcell_info,
+                }
+            )
             info_dict[(file_info["Lanes"], file_info["Number_of_seq"])].update(
                 file_info
             )
@@ -89,7 +91,7 @@ class _Mappable:
     def _create_output_filename(
         cls, file_info: Dict, pipeline_config: PipelineConfig
     ) -> str:
-        return f"""{pipeline_config.MAPPER_TYPE}_{fastq_info["Sample_ID"]}_{fastq_info["Index"]}_{fastq_info["Lanes"]}_{fastq_info["Number_of_seq"]}.bam"""
+        return f"""{pipeline_config.MAPPER_TYPE}_{file_info["Sample_ID"]}_{file_info["Index"]}_{file_info["Lanes"]}_{file_info["Number_of_seq"]}.bam"""
 
     @classmethod
     def _get_rg_flags(cls, fastq_info: Dict, pipeline_config: PipelineConfig) -> Dict:
@@ -101,237 +103,3 @@ class _Mappable:
             cls.RG_PU: f"""{fastq_info["Flowcell"]}.{fastq_info["Index"]}.{fastq_info["Lanes"][-1]}""",
         }
         return flags
-
-
-class BWAMapper(_Mapper, _Mappable):
-    @classmethod
-    def _create_read_group(
-        cls, fastq_info: Dict, pipeline_config: PipelineConfig
-    ) -> str:
-        flags = cls._get_rg_flags(
-            fastq_info=fastq_info, pipeline_config=pipeline_config
-        )
-        read_arguments = "".join(
-            (
-                '"',
-                r"@RG\tID",
-                flags[cls.RG_ID],
-                r"\tSM:",
-                flags[cls.RG_SM],
-                r"\tLB",
-                flags[cls.RG_LB],
-                r"\tPL",
-                flags[cls.RG_PL],
-                r"\tPU",
-                flags[cls.RG_PU],
-                '"',
-            )
-        )
-        return read_arguments
-
-    @classmethod
-    def _create_command(
-        cls,
-        pipeline_config: PipelineConfig,
-        fastq_info: Dict,
-        library_paths: LibraryPaths,
-    ) -> List:
-        output_filename = cls._create_output_filename(
-            fastq_info=fastq_info, pipeline_config=pipeline_config
-        )
-        read_group = cls._create_read_group(
-            fastq_info=fastq_info, pipeline_config=pipeline_config
-        )
-        command = [
-            "bwa",
-            "mem",
-            "-t",
-            pipeline_config.MAPPER_THREADS,
-            "-R",
-            read_group,
-            library_paths.REF_DIR,
-            # TODO: This needs to go somewhere else
-            os.path.normpath("Bwa/Homo_sapiens_assembly38.fasta"),
-            fastq_info["R1"],
-            fastq_info["R2"],
-            "|",
-            "samtools",
-            "view",
-            "-@",
-            pipeline_config.MAPPER_THREADS,
-            "-bS",
-            "-",
-            ">",
-            output_filename,
-        ]
-        return command
-
-    @classmethod
-    def map(cls, pipeline_config: PipelineConfig):
-        library_paths = LibraryPaths()
-        fastq_info_list = cls._get_file_information(pipeline_config=pipeline_config)
-
-        for fastq_info in fastq_info_list:
-            command = cls._create_command(
-                pipeline_config=pipeline_config,
-                fastq_info=fastq_info,
-                library_paths=library_paths,
-            )
-            run(command, cwd=pipeline_config.FASTQ_DIR)
-
-
-class Bowtie2Mapper(_Mapper, _Mappable):
-    @classmethod
-    def _create_read_group(
-        cls, fastq_info: Dict, pipeline_config: PipelineConfig
-    ) -> List:
-        flags = cls._get_rg_flags(
-            fastq_info=fastq_info, pipeline_config=pipeline_config
-        )
-        read_arguments = [
-            "--rg-id",
-            flags[cls.RG_ID],
-            "--rg",
-            f"SM:{flags[cls.RG_SM]}",
-            "--rg",
-            f"LB:{flags[cls.RG_LB]}",
-            "--rg",
-            f"PL:{flags[cls.RG_PL]}",
-            "--rg",
-            f"PU:{flags[cls.RG_PU]}",
-        ]
-        return read_arguments
-
-    @classmethod
-    def _create_command(
-        cls,
-        pipeline_config: PipelineConfig,
-        fastq_info: Dict,
-        library_paths: LibraryPaths,
-    ) -> List:
-        output_filename = cls._create_output_filename(
-            fastq_info=fastq_info, pipeline_config=pipeline_config
-        )
-        read_group = cls._create_read_group(
-            fastq_info=fastq_info, pipeline_config=pipeline_config
-        )
-        command = [
-            "bowtie2",
-            "-p",
-            pipeline_config.MAPPER_THREADS,
-            *read_group,
-            "-x",
-            library_paths.REF_DIR,
-            # TODO: This needs to go somewhere else
-            os.path.normpath("Bowtie2/Homo_sapiens_assembly38"),
-            "-1",
-            fastq_info["R1"],
-            "-2",
-            fastq_info["R2"],
-            "|",
-            "samtools",
-            "view",
-            "-@",
-            pipeline_config.MAPPER_THREADS,
-            "-bS",
-            "-",
-            ">",
-            output_filename,
-        ]
-        return command
-
-    @classmethod
-    def map(cls, pipeline_config: PipelineConfig):
-        library_paths = LibraryPaths()
-        fastq_info_list = cls._get_file_information(pipeline_config=pipeline_config)
-
-        for fastq_info in fastq_info_list:
-            command = cls._create_command(
-                pipeline_config=pipeline_config,
-                fastq_info=fastq_info,
-                library_paths=library_paths,
-            )
-            run(command, cwd=pipeline_config.FASTQ_DIR)
-
-
-class NovoalignMapper(_Mapper, _Mappable):
-    @classmethod
-    def _create_read_group(
-        cls, fastq_info: Dict, pipeline_config: PipelineConfig
-    ) -> str:
-        flags = cls._get_rg_flags(
-            fastq_info=fastq_info, pipeline_config=pipeline_config
-        )
-        read_arguments = "".join(
-            (
-                '"',
-                r"@RG\tID",
-                flags[cls.RG_ID],
-                r"\tSM:",
-                flags[cls.RG_SM],
-                r"\tLB",
-                flags[cls.RG_LB],
-                r"\tPL",
-                flags[cls.RG_PL],
-                r"\tPU",
-                flags[cls.RG_PU],
-                '"',
-            )
-        )
-        return read_arguments
-
-    @classmethod
-    def _create_command(
-        cls,
-        pipeline_config: PipelineConfig,
-        fastq_info: Dict,
-        library_paths: LibraryPaths,
-    ) -> List:
-        output_filename = cls._create_output_filename(
-            fastq_info=fastq_info, pipeline_config=pipeline_config
-        )
-        read_group = cls._create_read_group(
-            fastq_info=fastq_info, pipeline_config=pipeline_config
-        )
-        stats_filename = f"{os.path.splitext(output_filename)[0]}_stats.txt"
-        command = [
-            "novoalign",
-            "-k",
-            "-d",
-            library_paths.REF_DIR,
-            os.path.normpath("Bowtie2/Homo_sapiens_assembly38"),
-            "-f",
-            fastq_info["R1"],
-            fastq_info["R2"],
-            "-a",
-            "-c",
-            pipeline_config.MAPPER_THREADS,
-            "-o",
-            "SAM",
-            *read_group,
-            "2>",
-            stats_filename,
-            "|",
-            "samtools",
-            "view",
-            "-@",
-            pipeline_config.MAPPER_THREADS,
-            "-bS",
-            "-",
-            ">",
-            output_filename,
-        ]
-        return command
-
-    @classmethod
-    def map(cls, pipeline_config: PipelineConfig):
-        library_paths = LibraryPaths()
-        fastq_info_list = cls._get_file_information(pipeline_config=pipeline_config)
-
-        for fastq_info in fastq_info_list:
-            command = cls._create_command(
-                pipeline_config=pipeline_config,
-                fastq_info=fastq_info,
-                library_paths=library_paths,
-            )
-            run(command, cwd=pipeline_config.FASTQ_DIR)
