@@ -10,4 +10,7 @@ class PipelineConfig:
     FASTQ_DIR: str
     PATIENT_ID: str
 
+    VARIANT_CALLER_TYPE: str
+
     BAM_DIR: str
+
