@@ -1,0 +1,26 @@
+{
+	"creation-date": "2020-11-22 16:25:42.442644",
+	"version": "1.0.0",
+	"mapping": {
+		"perform": true,
+		"type": "bwa",
+		"data-dir": "tests/data/fastq/sample_1/",
+		"params": {
+			"sample-type": "tumor",
+			"patient-id": "",
+			"trimmed": true
+		} 
+	},
+	"sorting": {
+		"perform": true,
+		"type": "bwa",
+		"data-dir": "tests/data/bam/unprocessed/sample_1/",
+		"params": {}
+	},
+	"variant-calling": {
+		"perform": true,
+		"type": "mutect2",
+		"data-dir": "/tests/data/bam/processed/sample_1/",
+		"params": {}
+	}
+}
