@@ -13,4 +13,7 @@ class PipelineConfig:
     VARIANT_CALLER_TYPE: str
 
     BAM_DIR: str
+    VCF_OUTPUT_DIR: str
+
+    USER_CONFIG: str
 
