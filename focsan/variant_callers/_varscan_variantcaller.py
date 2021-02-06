@@ -6,7 +6,7 @@ from typing import Dict, List, Union
 
 from .._library_paths import LibraryPaths
 from .._pipeline_config import PipelineConfig
-from ._variantCallers import _Callable, _VariantCaller
+from ._variantcallers import _Callable, _VariantCaller
 
 class VarScanVariantCaller(_Callable, _VariantCaller):
     

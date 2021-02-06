@@ -4,7 +4,7 @@ from typing import Dict, List
 
 from .._library_paths import LibraryPaths
 from .._pipeline_config import PipelineConfig
-from ._variantCallers import _Callable, _VariantCaller
+from ._variantcallers import _Callable, _VariantCaller
 
 
 class Strelka2VariantCaller(_Callable, _VariantCaller):
