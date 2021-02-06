@@ -56,7 +56,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
 
         command = [
             library_paths.GATK4,
-            "SeleckVariants",
+            "SelectVariants",
             "-R",
             library_paths.REF_DIR,
             "-V",
