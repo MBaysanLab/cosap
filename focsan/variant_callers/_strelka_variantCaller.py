@@ -9,13 +9,9 @@ from ._variantCallers import _Callable, _VariantCaller
 
 class Strelka2VariantCaller(_Callable, _VariantCaller):
     @classmethod
-<<<<<<< HEAD
     def _create_strelka_command(
         cls, pipeline_config=PipelineConfig, library_paths=LibraryPaths
     ) -> List:
-=======
-    def _create_strelka_command(cls, pipeline_config=PipelineConfig, library_paths=LibraryPaths) -> List:
->>>>>>> 55f6e9fd8145ae365b07eea60a3395f9cb216f5a
         bam_paths = cls._get_bam_paths(pipeline_config)
         command = [
             library_paths.STRELKA,
@@ -28,34 +24,16 @@ class Strelka2VariantCaller(_Callable, _VariantCaller):
             "--runDir",
             pipeline_config.VCF_OUTPUT_DIR,
             "--exome",
-<<<<<<< HEAD
             "--disableEVS",
         ]
 
         return command
 
-=======
-            "--disableEVS"
-        ]
-
-        return command
-    
->>>>>>> 55f6e9fd8145ae365b07eea60a3395f9cb216f5a
     @classmethod
     def call_variants(cls, pipeline_config=PipelineConfig):
         library_paths = LibraryPaths()
         strelka_command = cls._create_strelka_command(
-<<<<<<< HEAD
             pipeline_config=pipeline_config, library_paths=library_paths
         )
 
         run(strelka_command, cwd=pipeline_config.VCF_OUTPUT_DIR)
-=======
-            pipeline_config=pipeline_config,
-            library_paths=library_paths
-        )
-
-        run(strelka_command, cwd=pipeline_config.VCF_OUTPUT_DIR)
-    
-    
->>>>>>> 55f6e9fd8145ae365b07eea60a3395f9cb216f5a

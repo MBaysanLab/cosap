@@ -9,10 +9,7 @@ from .._pipeline_config import PipelineConfig
 from ._variantCallers import _Callable, _VariantCaller
 
 class VarScanVariantCaller(_Callable, _VariantCaller):
-<<<<<<< HEAD
     
-=======
->>>>>>> 55f6e9fd8145ae365b07eea60a3395f9cb216f5a
     @classmethod
     def _create_samtools_mpileup_command(cls, pipeline_config=PipelineConfig, library_paths=LibraryPaths) -> list:
         bam_paths = cls._get_bam_paths(pipeline_config)
