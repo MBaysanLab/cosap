@@ -1,2 +1,2 @@
-# focsan
-Flexible Open-source Cancer Sequencing ANalaysis tool a.k.a FOCSAN
+# CoSAP
+Comparative Sequencing Analysis Platform
