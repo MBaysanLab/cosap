@@ -1,26 +1,65 @@
 {
 	"creation-date": "2020-11-22 16:25:42.442644",
 	"version": "1.0.0",
-	"mapping": {
-		"perform": true,
-		"type": "bwa",
-		"data-dir": "tests/data/fastq/sample_1/",
-		"params": {
+	"mapping": [
+		{
+			"type": "bwa",
+			"data-dir": "tests/data/fastq/sample_1/germline.fastq",
+			"sample-type": "germline",
+			"params": {
+				"patient-id": "asd1",
+				"trimmed": true
+			} 
+		},
+		{
+			"type": "bwa",
+			"data-dir": "tests/data/fastq/sample_1/tumor.fastq",
 			"sample-type": "tumor",
-			"patient-id": "",
-			"trimmed": true
-		} 
-	},
-	"sorting": {
-		"perform": true,
-		"type": "bwa",
-		"data-dir": "tests/data/bam/unprocessed/sample_1/",
-		"params": {}
-	},
-	"variant-calling": {
-		"perform": true,
-		"type": "mutect2",
-		"data-dir": "/tests/data/bam/processed/sample_1/",
-		"params": {}
-	}
+			"params": {
+				"patient-id": "asd1",
+				"trimmed": true
+			} 
+		}
+	],
+	"sorting": [
+		{
+			"type": "bwa",
+			"data-dir": "tests/data/bam/unprocessed/sample_1/",
+			"params": {}
+		},
+		{
+			"type": "bwa",
+			"data-dir": "tests/data/bam/unprocessed/sample_1/",
+			"params": {}
+		}
+	],
+	"variant-calling": [
+		{
+			"type": "mutect2",
+			"normal_path": "/tests/data/bam/processed/sample_1/",
+			"tumor_path": "/tests/data/bam/processed/sample_1/",
+			"params": {
+				"sample-type": "germline",
+				"patient-id": "asd1",
+			}
+		},
+		{
+			"type": "mutect2",
+			"normal_path": "/tests/data/bam/processed/sample_1/",
+			"tumor_path": "/tests/data/bam/processed/sample_2/",
+			"params": {
+				"sample-type": "germline",
+				"patient-id": "asd1",
+			}
+		},
+		{
+			"type": "mutect2",
+			"normal_path": "/tests/data/bam/processed/sample_1/",
+			"tumor_path": "/tests/data/bam/processed/sample_3/",
+			"params": {
+				"sample-type": "germline",
+				"patient-id": "asd1",
+			}
+		}
+	]
 }
