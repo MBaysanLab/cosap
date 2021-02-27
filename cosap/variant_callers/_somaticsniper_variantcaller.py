@@ -10,13 +10,13 @@ from ._variantcallers import _Callable, _VariantCaller
 class SomaticSniperVariantCaller(_Callable, _VariantCaller):
     @classmethod
     def _create_somaticSniper_command(
-        cls, pipeline_config=PipelineConfig, library_paths=LibraryPaths
+        cls, caller_config=Dict, library_paths=LibraryPaths
     ) -> List:
-        bam_paths = cls._get_bam_paths(pipeline_config)
+        bam_paths = cls._get_bam_paths(caller_config)
 
         sample_name = cls._get_sample_name(bam_paths["tumor_bam_path"])
         output_name = cls._create_output_filename(
-            pipeline_config, sample_name=sample_name
+            caller_config, sample_name=sample_name
         )
 
         command = [
@@ -51,10 +51,10 @@ class SomaticSniperVariantCaller(_Callable, _VariantCaller):
         return command
 
     @classmethod
-    def call_variants(cls, pipeline_config=PipelineConfig):
+    def call_variants(cls, caller_config=Dict):
         library_paths = LibraryPaths()
 
         somatic_sniper_command = cls._create_somaticSniper_command(
-            pipeline_config=pipeline_config, library_paths=library_paths
+            caller_config=caller_config, library_paths=library_paths
         )
-        run(somatic_sniper_command, cwd=pipeline_config.VCF_OUTPUT_DIR)
+        run(somatic_sniper_command, cwd=caller_config.VCF_OUTPUT_DIR)

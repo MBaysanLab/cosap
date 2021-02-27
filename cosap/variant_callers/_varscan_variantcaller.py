@@ -12,17 +12,17 @@ from ._variantcallers import _Callable, _VariantCaller
 class VarScanVariantCaller(_Callable, _VariantCaller):
     @classmethod
     def _create_samtools_mpileup_command(
-        cls, pipeline_config=PipelineConfig, library_paths=LibraryPaths
+        cls, caller_config=Dict, library_paths=LibraryPaths
     ) -> List:
-        bam_paths = cls._get_bam_paths(pipeline_config)
+        bam_paths = cls._get_bam_paths(caller_config)
 
         tumor_sample_name = cls._get_sample_name(bam_paths["tumor_bam_path"])
 
         snp_output_name = cls._create_output_filename(
-            pipeline_config, sample_name=os.path.join("SNP", tumor_sample_name)
+            caller_config, sample_name=os.path.join("SNP", tumor_sample_name)
         )
         indel_output_name = cls._create_output_filename(
-            pipeline_config, sample_name=os.path.join("INDEL", tumor_sample_name)
+            caller_config, sample_name=os.path.join("INDEL", tumor_sample_name)
         )
 
         command = [
@@ -53,7 +53,7 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
     @classmethod
     def _create_process_somatic_command(
         cls,
-        pipeline_config=PipelineConfig,
+        caller_config=Dict,
         library_paths=LibraryPaths,
         mpileup_object=Union[str, Path],
     ) -> List:
@@ -73,21 +73,21 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
         return command
 
     @classmethod
-    def call_variants(cls, pipeline_config: PipelineConfig):
+    def call_variants(cls, caller_config: Dict):
         library_paths = LibraryPaths()
 
         samtools_mpileup = cls._create_samtools_mpileup_command(
-            pipeline_config=pipeline_config, library_paths=library_paths
+            caller_config=caller_config, library_paths=library_paths
         )
 
-        run(samtools_mpileup, cwd=pipeline_config.VCF_OUTPUT_DIR)
+        run(samtools_mpileup, cwd=caller_config.VCF_OUTPUT_DIR)
 
-        samtools_pileups = glob.glob(f"*{pipeline_config.VCF_OUTPUT_DIR}*vcf*")
+        samtools_pileups = glob.glob(f"*{caller_config.VCF_OUTPUT_DIR}*vcf*")
 
         for vcf_file in samtools_pileups:
             process_somatic_command = cls._create_process_somatic_command(
-                pipeline_config=pipeline_config,
+                caller_config=caller_config,
                 library_paths=library_paths,
                 mpileup_object=vcf_file,
             )
-            run(process_somatic_command, cwd=pipeline_config.VCF_OUTPUT_DIR)
+            run(process_somatic_command, cwd=caller_config.VCF_OUTPUT_DIR)

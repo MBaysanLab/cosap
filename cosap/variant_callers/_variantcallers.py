@@ -35,27 +35,30 @@ class _Callable:
     @classmethod
     def _get_sample_name(cls, sample_path: str) -> str:
 
-        # This command is not taken from original pipeline code and based on https://github.com/IARCbioinfo/BAM-tricks#extract-sample-name
-        command = [
-            "samtools",
-            "view",
-            "-H",
-            sample_path,
-            "|",
-            "grep",
-            "^@RG",
-            "|",
-            "sed",
-            r"s/.*SM:\([^\t]*\).*/\1/g",
-            "|",
-            "uniq",
-        ]
+        #todo: get samplename from config
 
-        sample_name = run(command, capture_output=True).stdout
-        return sample_name
+        # # This command is not taken from original pipeline code and based on https://github.com/IARCbioinfo/BAM-tricks#extract-sample-name
+        # command = [
+        #     "samtools",
+        #     "view",
+        #     "-H",
+        #     sample_path,
+        #     "|",
+        #     "grep",
+        #     "^@RG",
+        #     "|",
+        #     "sed",
+        #     r"s/.*SM:\([^\t]*\).*/\1/g",
+        #     "|",
+        #     "uniq",
+        # ]
+
+        # sample_name = run(command, capture_output=True).stdout
+        # return sample_name
+        pass
 
     @classmethod
     def _create_output_filename(
-        cls, pipeline_config: PipelineConfig, sample_name: str
+        cls, caller_config: Dict, sample_name: str
     ) -> str:
-        return f"{pipeline_config.MAPPER_TYPE}_{pipeline_config.VARIANT_CALLER_TYPE}_{sample_name}.vcf"
+        return f"{caller_config.MAPPER_TYPE}_{caller_config.VARIANT_CALLER_TYPE}_{sample_name}.vcf"

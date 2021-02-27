@@ -10,15 +10,15 @@ from ._variantcallers import _Callable, _VariantCaller
 class Mutect2VariantCaller(_Callable, _VariantCaller):
     @classmethod
     def _create_run_command(
-        cls, pipeline_config: PipelineConfig, library_paths: LibraryPaths
+        cls, caller_config: PipelineConfig, library_paths: LibraryPaths
     ) -> list:
-        bam_paths = cls._get_bam_paths(pipeline_config)
+        bam_paths = cls._get_bam_paths(caller_config)
 
         germline_sample_name = cls._get_sample_name(bam_paths["germline_bam_path"])
         tumor_sample_name = cls._get_sample_name(bam_paths["tumor_bam_path"])
 
         output_name = cls._create_output_filename(
-            pipeline_config, sample_name=tumor_sample_name
+            caller_config, sample_name=tumor_sample_name
         )
 
         command = [
@@ -41,17 +41,17 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
 
     @classmethod
     def _create_get_snp_variants_command(
-        cls, pipeline_config: PipelineConfig, library_paths: LibraryPaths
+        cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> str:
-        bam_paths = cls._get_bam_paths(pipeline_config)
+        bam_paths = cls._get_bam_paths(caller_config)
 
         tumor_sample_name = cls._get_sample_name(bam_paths["tumor_bam_path"])
 
         input_name = cls._create_output_filename(
-            pipeline_config, sample_name=tumor_sample_name
+            caller_config, sample_name=tumor_sample_name
         )
         output_name = cls._create_output_filename(
-            pipeline_config, sample_name=f"SNP_{tumor_sample_name}"
+            caller_config, sample_name=f"SNP_{tumor_sample_name}"
         )
 
         command = [
@@ -71,17 +71,17 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
 
     @classmethod
     def _create_get_indel_variants_command(
-        cls, pipeline_config: PipelineConfig, library_paths: LibraryPaths
+        cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> str:
-        bam_paths = cls._get_bam_paths(pipeline_config)
+        bam_paths = cls._get_bam_paths(caller_config)
 
         tumor_sample_name = cls._get_sample_name(bam_paths["tumor_bam_path"])
 
         input_name = cls._create_output_filename(
-            pipeline_config, sample_name=tumor_sample_name
+            caller_config, sample_name=tumor_sample_name
         )
         output_name = cls._create_output_filename(
-            pipeline_config, sample_name=f"SNP_{tumor_sample_name}"
+            caller_config, sample_name=f"SNP_{tumor_sample_name}"
         )
 
         command = [
@@ -101,17 +101,17 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
 
     @classmethod
     def _create_get_other_variants_command(
-        cls, pipeline_config: PipelineConfig, library_paths: LibraryPaths
+        cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> str:
-        bam_paths = cls._get_bam_paths(pipeline_config)
+        bam_paths = cls._get_bam_paths(caller_config)
 
         tumor_sample_name = cls._get_sample_name(bam_paths["tumor_bam_path"])
 
         input_name = cls._create_output_filename(
-            pipeline_config, sample_name=tumor_sample_name
+            caller_config, sample_name=tumor_sample_name
         )
         output_name = cls._create_output_filename(
-            pipeline_config, sample_name=f"SNP_{tumor_sample_name}"
+            caller_config, sample_name=f"SNP_{tumor_sample_name}"
         )
 
         command = [
@@ -132,23 +132,23 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         return command
 
     @classmethod
-    def call_variants(cls, pipeline_config: PipelineConfig):
+    def call_variants(cls, caller_config: Dict):
         library_paths = LibraryPaths()
 
         mutect_command = cls._create_run_command(
-            pipeline_config=pipeline_config, library_paths=library_paths
+            caller_config=caller_config, library_paths=library_paths
         )
         get_snp_command = cls._create_get_snp_variants_command(
-            pipeline_config=pipeline_config, library_paths=library_paths
+            caller_config=caller_config, library_paths=library_paths
         )
         get_indel_command = cls._create_get_indel_variants_command(
-            pipeline_config=pipeline_config, library_paths=library_paths
+            caller_config=caller_config, library_paths=library_paths
         )
         get_other_variants_command = cls._create_get_other_variants_command(
-            pipeline_config=pipeline_config, library_paths=library_paths
+            caller_config=caller_config, library_paths=library_paths
         )
 
-        run(mutect_command, cwd=pipeline_config.VCF_OUTPUT_DIR)
-        run(get_snp_command, cwd=pipeline_config.VCF_OUTPUT_DIR)
-        run(get_indel_command, cwd=pipeline_config.VCF_OUTPUT_DIR)
-        run(get_other_variants_command, cwd=pipeline_config.VCF_OUTPUT_DIR)
+        run(mutect_command, cwd=caller_config.VCF_OUTPUT_DIR)
+        run(get_snp_command, cwd=caller_config.VCF_OUTPUT_DIR)
+        run(get_indel_command, cwd=caller_config.VCF_OUTPUT_DIR)
+        run(get_other_variants_command, cwd=caller_config.VCF_OUTPUT_DIR)
