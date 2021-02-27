@@ -10,9 +10,9 @@ from ._variantcallers import _Callable, _VariantCaller
 class Strelka2VariantCaller(_Callable, _VariantCaller):
     @classmethod
     def _create_strelka_command(
-        cls, pipeline_config=PipelineConfig, library_paths=LibraryPaths
+        cls, caller_config=Dict, library_paths=LibraryPaths
     ) -> List:
-        bam_paths = cls._get_bam_paths(pipeline_config)
+        bam_paths = cls._get_bam_paths(caller_config)
         command = [
             library_paths.STRELKA,
             "--normalBam",
@@ -22,7 +22,7 @@ class Strelka2VariantCaller(_Callable, _VariantCaller):
             "--referenceFasta",
             library_paths.REF_DIR,
             "--runDir",
-            pipeline_config.VCF_OUTPUT_DIR,
+            caller_config.VCF_OUTPUT_DIR,
             "--exome",
             "--disableEVS",
         ]
@@ -30,10 +30,10 @@ class Strelka2VariantCaller(_Callable, _VariantCaller):
         return command
 
     @classmethod
-    def call_variants(cls, pipeline_config=PipelineConfig):
+    def call_variants(cls, caller_config=Dict):
         library_paths = LibraryPaths()
         strelka_command = cls._create_strelka_command(
-            pipeline_config=pipeline_config, library_paths=library_paths
+            caller_config=caller_config, library_paths=library_paths
         )
 
-        run(strelka_command, cwd=pipeline_config.VCF_OUTPUT_DIR)
+        run(strelka_command, cwd=caller_config.VCF_OUTPUT_DIR)
