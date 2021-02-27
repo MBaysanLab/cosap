@@ -5,6 +5,7 @@ from typing import Dict, List
 from .._library_paths import LibraryPaths
 from .._pipeline_config import PipelineConfig
 from ._mappers import _Mappable, _Mapper
+from .._config import AppConfig
 
 
 class BWAMapper(_Mapper, _Mappable):
@@ -36,21 +37,22 @@ class BWAMapper(_Mapper, _Mappable):
     @classmethod
     def _create_command(
         cls,
-        pipeline_config: PipelineConfig,
+        mapper_config: Dict,
         fastq_info: Dict,
         library_paths: LibraryPaths,
+        app_config: AppConfig,
     ) -> List:
         output_filename = cls._create_output_filename(
-            fastq_info=fastq_info, pipeline_config=pipeline_config
+            fastq_info=fastq_info, mapper_config=mapper_config
         )
         read_group = cls._create_read_group(
-            fastq_info=fastq_info, pipeline_config=pipeline_config
+            fastq_info=fastq_info, mapper_config=mapper_config
         )
         command = [
             "bwa",
             "mem",
             "-t",
-            pipeline_config.MAPPER_THREADS,
+            app_config.THREADS,
             "-R",
             read_group,
             library_paths.REF_DIR,
@@ -62,7 +64,7 @@ class BWAMapper(_Mapper, _Mappable):
             "samtools",
             "view",
             "-@",
-            pipeline_config.MAPPER_THREADS,
+            app_config.THREADS,
             "-bS",
             "-",
             ">",
@@ -71,14 +73,15 @@ class BWAMapper(_Mapper, _Mappable):
         return command
 
     @classmethod
-    def map(cls, pipeline_config: PipelineConfig):
+    def map(cls, mapper_config: PipelineConfig):
         library_paths = LibraryPaths()
-        fastq_info_list = cls._get_file_information(pipeline_config=pipeline_config)
+        app_config = AppConfig()
 
-        for fastq_info in fastq_info_list:
+        for fastq_info in mapping_config[MappingKeys.DATA]:
             command = cls._create_command(
-                pipeline_config=pipeline_config,
+                mapper_config=mapper_config,
                 fastq_info=fastq_info,
                 library_paths=library_paths,
+                app_config=app_config,
             )
-            run(command, cwd=pipeline_config.FASTQ_DIR)
+            run(command, cwd=mapper_config.FASTQ_DIR)
