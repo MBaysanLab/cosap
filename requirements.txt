@@ -1,0 +1,13 @@
+bowtie2
+Bwa-mem2
+fastp
+fastqc
+gatk
+gatk4
+qualimap
+somatic-sniper
+strelka
+picard
+qualimap
+varscan
+samtools
