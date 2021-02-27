@@ -11,24 +11,22 @@ from ._mappers import _Mappable, _Mapper
 class BWAMapper(_Mapper, _Mappable):
     @classmethod
     def _create_read_group(
-        cls, fastq_info: Dict, pipeline_config: PipelineConfig
+        cls, fastq_info: Dict, mapper_config: Dict
     ) -> str:
-        flags = cls._get_rg_flags(
-            fastq_info=fastq_info, pipeline_config=pipeline_config
-        )
+        flags = mapper_config[MappingKeys.PARAMS]
         read_arguments = "".join(
             (
                 '"',
                 r"@RG\tID",
-                flags[cls.RG_ID],
+                flags[MappingKeys.RG_ID],
                 r"\tSM:",
-                flags[cls.RG_SM],
+                flags[MappingKeys.RG_SM],
                 r"\tLB",
-                flags[cls.RG_LB],
+                flags[MappingKeys.RG_LB],
                 r"\tPL",
-                flags[cls.RG_PL],
+                flags[MappingKeys.RG_PL],
                 r"\tPU",
-                flags[cls.RG_PU],
+                flags[MappingKeys.RG_PU],
                 '"',
             )
         )

@@ -2,10 +2,9 @@ FROM continuumio/miniconda3
 
 RUN apt-get update
 
-MKDIR /app
+RUN mkdir /app
 COPY . /app/.
 
 WORKDIR /app
 
-RUN conda install -c bioconda --file requirements.txt
-
+RUN conda env create -f environment.yml

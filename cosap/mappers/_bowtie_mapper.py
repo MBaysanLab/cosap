@@ -11,22 +11,20 @@ from ._mappers import _Mappable, _Mapper
 class Bowtie2Mapper(_Mapper, _Mappable):
     @classmethod
     def _create_read_group(
-        cls, fastq_info: Dict, pipeline_config: PipelineConfig
+        cls, fastq_info: Dict, mapper_config: Dict
     ) -> List:
-        flags = cls._get_rg_flags(
-            fastq_info=fastq_info, pipeline_config=pipeline_config
-        )
+        flags = mapper_config[MappingKeys.PARAMS]
         read_arguments = [
             "--rg-id",
-            flags[cls.RG_ID],
+            flags[MappingKeys.RG_ID],
             "--rg",
-            f"SM:{flags[cls.RG_SM]}",
+            f"SM:{flags[MappingKeys.RG_SM]}",
             "--rg",
-            f"LB:{flags[cls.RG_LB]}",
+            f"LB:{flags[MappingKeys.RG_LB]}",
             "--rg",
-            f"PL:{flags[cls.RG_PL]}",
+            f"PL:{flags[MappingKeys.RG_PL]}",
             "--rg",
-            f"PU:{flags[cls.RG_PU]}",
+            f"PU:{flags[MappingKeys.RG_PU]}",
         ]
         return read_arguments
 

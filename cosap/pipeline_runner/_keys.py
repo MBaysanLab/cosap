@@ -19,6 +19,11 @@ class PipelineBaseKeys:
 @dataclass
 class MappingKeys(PipelineBaseKeys):
     SAMPLE_TYPE: str = "sample-type"
+    RG_ID: str = "rg_id"
+    RG_SM: str = "rg_sm"
+    RG_LB: str = "rg_lb"
+    RG_PL: str = "rg_pl"
+    RG_PU: str = "rg_pu"
 
 
 @dataclass
