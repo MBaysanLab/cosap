@@ -1,4 +1,4 @@
-name: default
+https://github.com/MBaysanLab/cosap/tree/pair_codingname: default
 channels:
   - defaults
   - bioconda
@@ -13,8 +13,10 @@ dependencies:
   - qualimap
   - somatic-sniper
   - strelka
+  - picard
   - qualimap
   - varscan
   - samtools
 
 
+https://github.com/MBaysanLab/cosap/tree/pair_coding
