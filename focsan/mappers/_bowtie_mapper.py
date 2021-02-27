@@ -2,10 +2,10 @@ import os
 from subprocess import run
 from typing import Dict, List
 
+from .._config import AppConfig
 from .._library_paths import LibraryPaths
 from .._pipeline_config import PipelineConfig
 from ._mappers import _Mappable, _Mapper
-from .._config import AppConfig
 
 
 class Bowtie2Mapper(_Mapper, _Mappable):
@@ -71,7 +71,7 @@ class Bowtie2Mapper(_Mapper, _Mappable):
     def map(cls, mapping_config: Dict):
         library_paths = LibraryPaths()
         app_config = AppConfig()
-        
+
         for fastq_info in mapping_config[MappingKeys.DATA]:
             command = cls._create_command(
                 mapping_config=mapping_config,

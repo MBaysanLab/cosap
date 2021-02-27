@@ -1,23 +1,29 @@
-import os
-from subprocess import run
-from pathlib import Path
 import glob
+import os
+from pathlib import Path
+from subprocess import run
 from typing import Dict, List, Union
 
 from .._library_paths import LibraryPaths
 from .._pipeline_config import PipelineConfig
 from ._variantcallers import _Callable, _VariantCaller
 
+
 class VarScanVariantCaller(_Callable, _VariantCaller):
-    
     @classmethod
-    def _create_samtools_mpileup_command(cls, pipeline_config=PipelineConfig, library_paths=LibraryPaths) -> List:
+    def _create_samtools_mpileup_command(
+        cls, pipeline_config=PipelineConfig, library_paths=LibraryPaths
+    ) -> List:
         bam_paths = cls._get_bam_paths(pipeline_config)
 
         tumor_sample_name = cls._get_sample_name(bam_paths["tumor_bam_path"])
 
-        snp_output_name = cls._create_output_filename(pipeline_config, sample_name = os.path.join("SNP", tumor_sample_name))
-        indel_output_name = cls._create_output_filename(pipeline_config, sample_name = os.path.join("INDEL", tumor_sample_name))
+        snp_output_name = cls._create_output_filename(
+            pipeline_config, sample_name=os.path.join("SNP", tumor_sample_name)
+        )
+        indel_output_name = cls._create_output_filename(
+            pipeline_config, sample_name=os.path.join("INDEL", tumor_sample_name)
+        )
 
         command = [
             "samtools",
@@ -40,12 +46,17 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
             "--mpileup",
             "1",
             "--strand-filter",
-            "0"
+            "0",
         ]
         return command
 
     @classmethod
-    def _create_process_somatic_command(cls, pipeline_config=PipelineConfig, library_paths=LibraryPaths, mpileup_object=Union[str, Path]) -> List:
+    def _create_process_somatic_command(
+        cls,
+        pipeline_config=PipelineConfig,
+        library_paths=LibraryPaths,
+        mpileup_object=Union[str, Path],
+    ) -> List:
         command = [
             "java",
             "-jar",
@@ -57,28 +68,26 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
             "--max-tumor-freq",
             "0.05",
             "--p-value",
-            "0.07"
+            "0.07",
         ]
         return command
-    
+
     @classmethod
     def call_variants(cls, pipeline_config: PipelineConfig):
         library_paths = LibraryPaths()
 
         samtools_mpileup = cls._create_samtools_mpileup_command(
-            pipeline_config=pipeline_config,
-            library_paths=library_paths
+            pipeline_config=pipeline_config, library_paths=library_paths
         )
 
         run(samtools_mpileup, cwd=pipeline_config.VCF_OUTPUT_DIR)
 
         samtools_pileups = glob.glob(f"*{pipeline_config.VCF_OUTPUT_DIR}*vcf*")
 
-
         for vcf_file in samtools_pileups:
             process_somatic_command = cls._create_process_somatic_command(
                 pipeline_config=pipeline_config,
                 library_paths=library_paths,
-                mpileup_object=vcf_file
+                mpileup_object=vcf_file,
             )
             run(process_somatic_command, cwd=pipeline_config.VCF_OUTPUT_DIR)

@@ -1,7 +1,8 @@
 from typing import Dict, List
-from ._keys import PipelineKeys, MappingKeys
+
 from ..mappers import MapperFactory
 from ..variant_callers import VariantCallerFactory
+from ._keys import MappingKeys, PipelineKeys
 
 
 class PipelineRunner:

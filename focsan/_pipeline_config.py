@@ -16,4 +16,3 @@ class PipelineConfig:
     VCF_OUTPUT_DIR: str
 
     USER_CONFIG: str
-

@@ -2,6 +2,7 @@ from ._bowtie_mapper import Bowtie2Mapper
 from ._bwa_mapper import BWAMapper
 from ._mappers import _Mapper
 
+
 class MapperFactory:
     BWA_MAPPER = "bwa"
     BOWTIE2_MAPPER = "bowtie2"

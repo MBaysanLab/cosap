@@ -2,10 +2,10 @@ import os
 from subprocess import run
 from typing import Dict, List
 
+from .._config import AppConfig
 from .._library_paths import LibraryPaths
 from .._pipeline_config import PipelineConfig
 from ._mappers import _Mappable, _Mapper
-from .._config import AppConfig
 
 
 class BWAMapper(_Mapper, _Mappable):

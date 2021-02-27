@@ -1,12 +1,12 @@
 from ._mutect2_variantcaller import Mutect2VariantCaller
 from ._somaticsniper_variantcaller import SomaticSniperVariantCaller
 from ._strelka_variantcaller import Strelka2VariantCaller
-from ._varscan_variantcaller import VarScanVariantCaller
 from ._variantcallers import _VariantCallable
+from ._varscan_variantcaller import VarScanVariantCaller
 
 
 class VariantCallerFactory:
-    MUTECT2_CALLER = "mutect2" 
+    MUTECT2_CALLER = "mutect2"
     SOMATICSNIPER_CALLER = "somaticsniper"
     STRELKA2_CALLER = "strelka2"
     VARSCAN_CALLER = "varscan"
