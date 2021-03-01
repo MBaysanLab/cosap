@@ -2,17 +2,38 @@ from dataclasses import dataclass
 
 
 @dataclass
-class PipelineConfig:
-    MAPPER_TYPE: str
-    MAPPER_THREADS: str
-    SAMPLE_TYPE: str
-    FASTQ_TRIMMED: bool
-    FASTQ_DIR: str
-    PATIENT_ID: str
+class PipelineKeys:
+    CREATION_DATE: str = "creation-date"
+    VERSION: str = "version"
+    MAPPING: str = "mapping"
+    SORTING: str = "sorting"
+    VARIANT_CALLING: str = "variant-calling"
 
-    VARIANT_CALLER_TYPE: str
 
-    BAM_DIR: str
-    VCF_OUTPUT_DIR: str
+@dataclass
+class PipelineBaseKeys:
+    LIBRARY: str = "library"
+    PARAMS: str = "params"
 
-    USER_CONFIG: str
+
+@dataclass
+class MappingKeys(PipelineBaseKeys):
+    SAMPLE_TYPE: str = "sample-type"
+    INPUTS: str = "inputs"
+    OUTPUT: str = "output"
+    RG_ID: str = "rg-id"
+    RG_SM: str = "rg-sm"
+    RG_LB: str = "rg-lb"
+    RG_PL: str = "rg-pl"
+    RG_PU: str = "rg-pu"
+
+
+@dataclass
+class SortingKeys(PipelineBaseKeys):
+    pass
+
+
+@dataclass
+class VariantCallingKeys(PipelineBaseKeys):
+    NORMAL_SRC: str = "normal-path"
+    TUMOR_SRC: str = "tumor-path"

@@ -4,11 +4,20 @@
 	"mapping": [
 		{
 			"library": "bwa",
-			"data-dir": "tests/data/fastq/sample_1/germline.fastq",
+			"inputs": [
+				"tests/data/sample_1/fastq/germline_1.fastq",
+				"tests/data/sample_1/fastq/germline_2.fastq",
+			],
+			"output": "tests/data/sample_1/bam/germline.bam",
 			"sample-type": "germline",
 			"params": {
 				"patient-id": "asd1",
-				"trimmed": true
+				"trimmed": true,
+				"rg-id": 1,
+				"rg-sm": 1,
+				"rg-lb": 1,
+				"rg-pl": 1,
+				"rg-pu": 1,
 			} 
 		},
 		{
