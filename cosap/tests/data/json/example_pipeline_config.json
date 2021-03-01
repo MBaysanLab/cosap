@@ -4,32 +4,26 @@
 	"mapping": [
 		{
 			"library": "bwa",
-			"data-dir": "tests/data/fastq/sample_1/germline.fastq",
+			"inputs": [
+				"tests/data/sample_1/fastq/germline_1.fastq",
+				"tests/data/sample_1/fastq/germline_2.fastq",
+			],
+			"output": "tests/data/sample_1/bam/germline.bam",
 			"sample-type": "germline",
 			"params": {
-				"patient-id": "asd1",
-				"trimmed": true
-			} 
-		},
-		{
-			"library": "bwa",
-			"data-dir": "tests/data/fastq/sample_1/tumor.fastq",
-			"sample-type": "tumor",
-			"params": {
-				"patient-id": "asd1",
-				"trimmed": true
+				"rg-id": 1,
+				"rg-sm": 1,
+				"rg-lb": 1,
+				"rg-pl": 1,
+				"rg-pu": 1,
 			} 
 		}
 	],
 	"sorting": [
 		{
-			"library": "bwa",
-			"data-dir": "tests/data/bam/unprocessed/sample_1/",
-			"params": {}
-		},
-		{
-			"library": "bwa",
-			"data-dir": "tests/data/bam/unprocessed/sample_1/",
+			"library": "samtools",
+			"input": "tests/data/sample_1/bam/germline.bam",
+			"output": "tests/data/sample_1/bam/sorted_germline.bam",
 			"params": {}
 		}
 	],

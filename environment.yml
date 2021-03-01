@@ -1,0 +1,20 @@
+name: default
+channels:
+  - defaults
+  - bioconda
+  - conda-forge
+dependencies:
+  - bowtie2
+  - bwa-mem2
+  - fastp
+  - fastqc
+  - gatk
+  - gatk4
+  - qualimap
+  - somatic-sniper
+  - strelka
+  - qualimap
+  - varscan
+  - samtools
+
+

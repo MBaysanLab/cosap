@@ -1,6 +1,9 @@
 from typing import Dict, List
-from ._keys import PipelineKeys, MappingKeys
+
+from .._pipeline_config import MappingKeys, PipelineKeys, VariantCallingKeys
 from ..mappers import MapperFactory
+from ..preprocessors import SorterFactory
+from ..variant_callers import VariantCallerFactory
 
 
 class PipelineRunner:
@@ -10,10 +13,14 @@ class PipelineRunner:
             mapper.map(config)
 
     def sort(self, sorting_configs: List):
-        pass
+        for config in sorting_configs:
+            sorter = SorterFactory.create(config[SortingKeys.LIBRARY])
+            sorter.sort(config)
 
     def call_variants(self, variant_configs: List):
-        pass
+        for config in variant_configs:
+            caller = VariantCallerFactory.create(config[VariantCallingKeys.LIBRARY])
+            caller.call_variants(config)
 
     def run_pipeline(self, pipeline_config: Dict):
         self.validate_pipeline_config(pipeline_config)
