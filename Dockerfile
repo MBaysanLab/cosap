@@ -1,6 +1,6 @@
 FROM continuumio/miniconda3
 
-RUN apt-get update
+RUN apt-get update && apt-get -y upgrade
 
 RUN mkdir /app
 COPY . /app/.

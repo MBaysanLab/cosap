@@ -35,7 +35,7 @@ class _Callable:
     @classmethod
     def _get_sample_name(cls, sample_path: str) -> str:
 
-        #todo: get samplename from config
+        # todo: get samplename from config
 
         # # This command is not taken from original pipeline code and based on https://github.com/IARCbioinfo/BAM-tricks#extract-sample-name
         # command = [
@@ -58,7 +58,5 @@ class _Callable:
         pass
 
     @classmethod
-    def _create_output_filename(
-        cls, caller_config: Dict, sample_name: str
-    ) -> str:
+    def _create_output_filename(cls, caller_config: Dict, sample_name: str) -> str:
         return f"{caller_config.MAPPER_TYPE}_{caller_config.VARIANT_CALLER_TYPE}_{sample_name}.vcf"

@@ -18,8 +18,3 @@ class _Mapper(ABC):
 
 class _Mappable:
     pass
-
-    
-
-    
-    

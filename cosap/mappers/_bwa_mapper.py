@@ -10,9 +10,7 @@ from ._mappers import _Mappable, _Mapper
 
 class BWAMapper(_Mapper, _Mappable):
     @classmethod
-    def _create_read_group(
-        cls, fastq_info: Dict, mapper_config: Dict
-    ) -> str:
+    def _create_read_group(cls, fastq_info: Dict, mapper_config: Dict) -> str:
         flags = mapper_config[MappingKeys.PARAMS]
         read_arguments = "".join(
             (

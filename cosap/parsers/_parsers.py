@@ -92,4 +92,3 @@ class FastqParser(_Parser, _Parsable):
             raise Exception(f"Missing header on file {file_path}.")
 
         return header.split(":")[2]
-
