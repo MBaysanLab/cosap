@@ -30,7 +30,8 @@ class MappingKeys(PipelineBaseKeys):
 
 @dataclass
 class SortingKeys(PipelineBaseKeys):
-    pass
+    INPUT: str = "input"
+    OUTPUT: str = "output"
 
 
 @dataclass
