@@ -13,36 +13,31 @@ class _Indexer(ABC):
     def create_index():
         pass
 
+
 class _Indexable(ABC):
     pass
 
+
 class BamIndexer(_Indexer, _Indexable):
     @classmethod
-    def _create_command(cls, library_paths:LibraryPaths, bam_file: Path) -> List:
+    def _create_command(cls, library_paths: LibraryPaths, bam_file: Path) -> List:
         command = [
             "java",
             "-jar",
             library_paths.PICARD,
             "BuildBamIndex",
             "-I=",
-            bam_file
+            bam_file,
         ]
         return command
-    
+
     @classmethod
     def _check_is_sorted(cls, bam_file: Path) -> List:
-        command = [
-            "samtools",
-            "stats",
-            bam_file,
-            "|",
-            "grep",
-            "is sorted:"
-        ]
+        command = ["samtools", "stats", bam_file, "|", "grep", "is sorted:"]
 
         return command
 
-    #TODO: Preprocessing config instead of sorting config? 
+    # TODO: Preprocessing config instead of sorting config?
     @classmethod
     def create_index(cls, sorting_config: Dict, bam_file: Path):
         library_paths = LibraryPaths()
@@ -52,9 +47,5 @@ class BamIndexer(_Indexer, _Indexable):
         if not is_sorted == "1":
             raise Exception("BAM file must be sorted before indexing")
 
-
-        command = cls._create_command(
-            library_paths=library_paths, 
-            bam_file=bam_file
-        )
+        command = cls._create_command(library_paths=library_paths, bam_file=bam_file)
         run(command, cwd=sorting_config.BAM_DIR)
