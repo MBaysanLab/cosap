@@ -41,6 +41,7 @@ class _LibraryPaths:
     # )
     pass
 
+
 @dataclass
 class _LibraryPaths38(_LibraryPaths):
     REF_DIR: str = os.path.join(
