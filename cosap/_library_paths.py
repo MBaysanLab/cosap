@@ -39,7 +39,7 @@ class _LibraryPaths:
     # SOMATICSNIPER: str = os.path.join(
     #     AppConfig.LIBRARY_PATH, "somatic-sniper", "build", "bin", "bam-somaticsniper"
     # )
-
+    pass
 
 @dataclass
 class _LibraryPaths38(_LibraryPaths):
