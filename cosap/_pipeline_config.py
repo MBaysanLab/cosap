@@ -35,6 +35,12 @@ class SortingKeys(PipelineBaseKeys):
 
 
 @dataclass
+class IndexingKeys(PipelineBaseKeys):
+    INPUT: str = "input"
+    OUTPUT: str = "output"
+
+
+@dataclass
 class VariantCallingKeys(PipelineBaseKeys):
     NORMAL_SRC: str = "normal-path"
     TUMOR_SRC: str = "tumor-path"
