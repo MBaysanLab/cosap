@@ -6,7 +6,7 @@ from typing import Dict, List
 
 from .._config import AppConfig
 from .._library_paths import LibraryPaths
-from .._sorting_config import SortingKeys
+from .._pipeline_config import SortingKeys
 from .._utils import join_paths
 
 

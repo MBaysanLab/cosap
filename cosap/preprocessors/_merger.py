@@ -3,18 +3,18 @@ from typing import Dict, List
 
 from .._config import AppConfig
 from .._library_paths import LibraryPaths
-from .._sorting_config import MergingKeys
+from .._pipeline_config import MergingKeys
 
 class BamMerger:
     @classmethod
-    def _create_command(cls, merging_config:Dict, app_config: AppConfig, library_path:LibraryPaths) -> List:
+    def _create_command(cls, merging_config:Dict, app_config: AppConfig, library_paths:LibraryPaths) -> List:
         bam_files = merging_config[MergingKeys.Inputs]
         command = [
             "java",
             "-XX:ParallelGCThreads=",
             app_config.THREADS,
             "-jar",
-            library_path.PICARD,
+            library_paths.PICARD,
             "MergeSamFiles"]
 
         command+=[f"I={bam_file} " for bam_file in bam_files]
