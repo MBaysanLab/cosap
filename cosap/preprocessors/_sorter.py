@@ -10,17 +10,7 @@ from .._pipeline_config import SortingKeys
 from .._utils import join_paths
 
 
-class _Sorter(ABC):
-    @abstractmethod
-    def sort(self):
-        pass
-
-
-class _Sortable:
-    pass
-
-
-class SamtoolsSorter(_Sorter, _Sortable):
+class SamtoolsSorter:
     @classmethod
     def _create_command(
         cls, sorting_config: Dict, app_config: AppConfig, library_paths: LibraryPaths
