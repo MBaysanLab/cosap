@@ -67,7 +67,6 @@ class BaseRecalibratorKeys(PipelineBaseKeys):
     TABLE: str = "table"
 
 
-
 @dataclass
 class VariantCallingKeys(PipelineBaseKeys):
     NORMAL_SRC: str = "normal-path"
