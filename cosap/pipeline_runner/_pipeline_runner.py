@@ -28,7 +28,7 @@ class PipelineRunner:
 
     def calibrate(self, calibrate_config: List):
         for config in calibrate_config:
-            pass
+            BaseRecalibrator.calibrate(config)
 
     def mark_duplicates(self, duplicates_config: List):
         for config in duplicates_config:
