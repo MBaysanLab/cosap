@@ -9,7 +9,11 @@ from .._pipeline_config import SplitKeys
 class SplitbyCHR:
     @classmethod
     def _create_command(
-        cls, library_paths: LibraryPaths, bam_filename: Path, chromosome: str, output_filename: str
+        cls,
+        library_paths: LibraryPaths,
+        bam_filename: Path,
+        chromosome: str,
+        output_filename: str,
     ) -> List:
         command = [
             "samtools",
@@ -31,6 +35,9 @@ class SplitbyCHR:
         for bam_filename, output_filename in zip(bam_files, output_files):
             for chromosome in chromosomes:
                 command = cls._create_command(
-                    library_paths=library_paths, bam_filename=bam_filename, chromosome=chromosome, output_filename=output_filename
+                    library_paths=library_paths,
+                    bam_filename=bam_filename,
+                    chromosome=chromosome,
+                    output_filename=output_filename,
                 )
                 run(command, cwd=split_config[SplitKeys.OUTPUT_DIR])
