@@ -2,6 +2,10 @@ version: '3'
 
 services:
   cosap:
-     container_name: cosap
-     restart: always
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: cosap
+    restart: always
+    command: tail -F anything
 
