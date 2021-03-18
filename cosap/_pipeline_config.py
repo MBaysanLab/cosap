@@ -49,6 +49,14 @@ class SplitKeys(PipelineBaseKeys):
 
 
 @dataclass
+class MDUPKeys(PipelineKeys):
+    INPUT: str = "input"
+    OUTPUT: str = "output"
+    METRICS: str = "metrics"
+    OUTPUT_DIR: str = "output-dir"
+
+
+@dataclass
 class VariantCallingKeys(PipelineBaseKeys):
     NORMAL_SRC: str = "normal-path"
     TUMOR_SRC: str = "tumor-path"

@@ -14,21 +14,15 @@ class MarkDuplicate:
 
         command = [
             "java",
-            "-XX:ParallelGCThreads=",
-            app_config.THREADS,
+            f"-XX:ParallelGCThreads={app_config.THREADS}",
             "-jar",
             library_paths.PICARD,
             "MarkDuplicates",
-            "-I=",
-            mdup_config[MDUPKeys.Input],
-            "-O=",
-            mdup_config[MDUPKeys.Output],
-            "-M=",
-            mdup_config[MDUPKeys.Metrics],
-            "REMOVE_DUPLICATES=",
-            "true",
-            "CREATE_INDEX=",
-            "true",
+            f"-I={mdup_config[MDUPKeys.INPUT]}",
+            f"-O={mdup_config[MDUPKeys.OUTPUT]}",
+            f"-M={mdup_config[MDUPKeys.METRICS]}",
+            "REMOVE_DUPLICATES=true",
+            "CREATE_INDEX=true",
         ]
         return command
 
@@ -40,4 +34,4 @@ class MarkDuplicate:
         command = cls._create_command(
             library_paths=library_paths, app_config=app_config, mdup_config=mdup_config
         )
-        run(command, cwd=mdup_config.OUTPUT_DIR)
+        run(command, cwd=mdup_config[MDUPKeys.OUTPUT_DIR])
