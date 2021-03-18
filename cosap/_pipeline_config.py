@@ -32,12 +32,29 @@ class MappingKeys(PipelineBaseKeys):
 class SortingKeys(PipelineBaseKeys):
     INPUT: str = "input"
     OUTPUT: str = "output"
+    BAM_DIR: str = "bam-dir"
 
 
 @dataclass
 class IndexingKeys(PipelineBaseKeys):
     INPUT: str = "input"
     OUTPUT: str = "output"
+    BAM_DIR: str = "bam-dir"
+
+
+@dataclass
+class SplitKeys(PipelineBaseKeys):
+    INPUT: str = "inputs"
+    OUTPUT: str = "outputs"
+    OUTPUT_DIR: str = "output-dir"
+
+
+@dataclass
+class MDUPKeys(PipelineKeys):
+    INPUT: str = "input"
+    OUTPUT: str = "output"
+    METRICS: str = "metrics"
+    OUTPUT_DIR: str = "output-dir"
 
 
 @dataclass

@@ -1,5 +1,3 @@
-import glob
-import os
 from subprocess import run
 from typing import Dict, List
 
@@ -42,4 +40,4 @@ class SamtoolsSorter:
             library_paths=library_paths,
         )
 
-        run(command, cwd=sorting_config.BAM_DIR)
+        run(command, cwd=sorting_config[SortingKeys.BAM_DIR])
