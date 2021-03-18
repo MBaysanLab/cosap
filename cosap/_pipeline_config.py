@@ -39,6 +39,7 @@ class SortingKeys(PipelineBaseKeys):
 class IndexingKeys(PipelineBaseKeys):
     INPUT: str = "input"
     OUTPUT: str = "output"
+    BAM_DIR: str = "bam-dir"
 
 
 @dataclass

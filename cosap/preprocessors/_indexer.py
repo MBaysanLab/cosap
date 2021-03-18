@@ -1,11 +1,9 @@
-import glob
-import os
 from pathlib import Path
 from subprocess import run
 from typing import Dict, List
 
 from .._library_paths import LibraryPaths
-from .._pipeline_config import SortingKeys
+from .._pipeline_config import IndexingKeys
 
 
 class BamIndexer:
@@ -17,8 +15,7 @@ class BamIndexer:
             "-jar",
             library_paths.PICARD,
             "BuildBamIndex",
-            "-I=",
-            bam_file,
+            f"-I={bam_file}",
         ]
         return command
 
@@ -27,12 +24,11 @@ class BamIndexer:
         command = ["samtools", "stats", bam_file, "|", "grep", "is sorted:"]
         return command
 
-    # TODO: Preprocessing config instead of sorting config?
     @classmethod
     def create_index(cls, indexing_config: Dict):
         library_paths = LibraryPaths()
 
-        bam_file = indexing_config[SortingKeys.INPUT]
+        bam_file = indexing_config[IndexingKeys.INPUT]
 
         check_is_sorted_command = cls._check_is_sorted(bam_file=bam_file)
         # TODO: exception handling
@@ -41,4 +37,4 @@ class BamIndexer:
             raise Exception("BAM file must be sorted before indexing")
 
         command = cls._create_command(library_paths=library_paths, bam_file=bam_file)
-        run(command, cwd=indexing_config.BAM_DIR)
+        run(command, cwd=indexing_config[IndexingKeys.BAM_DIR])

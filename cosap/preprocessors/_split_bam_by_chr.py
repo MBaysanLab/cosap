@@ -1,6 +1,6 @@
+from pathlib import Path
 from subprocess import run
 from typing import Dict, List
-from pathlib import Path
 
 from .._library_paths import LibraryPaths
 from .._pipeline_config import SplitKeys
