@@ -41,6 +41,13 @@ class IndexingKeys(PipelineBaseKeys):
 
 
 @dataclass
+class SplitKeys(PipelineBaseKeys):
+    INPUT: str = "inputs"
+    OUTPUT: str = "outputs"
+    OUTPUT_DIR: str = "output-dir"
+
+
+@dataclass
 class VariantCallingKeys(PipelineBaseKeys):
     NORMAL_SRC: str = "normal-path"
     TUMOR_SRC: str = "tumor-path"
