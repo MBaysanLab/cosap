@@ -5,7 +5,7 @@ from uuid import uuid4
 from ._formats import FileFormats
 from ._version import version
 from .pipeline_config import (BaseRecalibratorKeys, IndexingKeys, MappingKeys,
-                              MergingKeys, PipelineKeys, SortingKeys)
+                              MergingKeys, PipelineKeys, SortingKeys, VariantCallingKeys)
 
 
 class ConfigBuilder:
@@ -138,11 +138,30 @@ class ConfigBuilder:
         self._config[PipelineKeys.MERGE].append(merge_config)
         self._config[PipelineKeys.CALIBRATE].append(calibrate_config)
 
-        return self
+        return identification
 
-    def add_variant_calling_step(self, config: Dict):
+    def add_variant_calling_step(
+        self,
+        library: str,
+        normal_filename: str,
+        tumor_filename: str,
+        library_params: Dict,
+        identification: str = None,
+    ):
+        if identification is None:
+            # TODO: this id should most likely be regenratable from
+            # the inputs, like hash or just str concatenation
+            identification = self._get_new_id()
+
+        config = {
+            VariantCallingKeys.LIBRARY: library,
+            VariantCallingKeys.NORMAL_SRC: normal_filename,
+            VariantCallingKeys.TUMOR_SRC: tumor_filename,
+            VariantCallingKeys.PARAMS: library_params,
+        }
+
         self._config[PipelineKeys.VARIANT_CALLING].append(config)
-        return self
+        return identification
 
     def build_config(self):
         self._config[PipelineKeys.CREATION_DATE] = datetime.now().strftime(
