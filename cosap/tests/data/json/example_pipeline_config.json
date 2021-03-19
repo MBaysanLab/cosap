@@ -21,7 +21,6 @@
 	],
 	"sorting": [
 		{
-			"library": "samtools",
 			"input": "tests/data/sample_1/bam/germline.bam",
 			"output": "tests/data/sample_1/bam/sorted_germline.bam",
 			"params": {}

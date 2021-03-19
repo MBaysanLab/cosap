@@ -9,7 +9,7 @@ from ..variant_callers import VariantCallerFactory
 
 class PipelineRunner:
     def validate_pipeline_config(self, pipeline_config: Dict):
-        pass
+        raise NotImplementedError()
 
     def map(self, mapping_configs: List):
         for config in mapping_configs:

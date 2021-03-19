@@ -53,6 +53,12 @@ class SplitKeys(PipelineBaseKeys):
 
 
 @dataclass
+class MergingKeys(PipelineBaseKeys):
+    INPUTS: str = "inputs"
+    OUTPUT: str = "output"
+
+
+@dataclass
 class MDUPKeys(PipelineBaseKeys):
     INPUT: str = "input"
     OUTPUT: str = "output"

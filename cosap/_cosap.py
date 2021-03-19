@@ -1,3 +1,4 @@
+from typing import Dict
 from .pipeline_runner import PipelineRunner
 
 
@@ -7,4 +8,4 @@ class Cosap:
 
     def mock_run_pipeline(self, pipeline_config: Dict):
         # TODO: should this be here?
-        pass
+        raise NotImplementedError()
