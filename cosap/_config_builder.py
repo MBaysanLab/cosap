@@ -42,10 +42,10 @@ class ConfigBuilder:
         library_params: Dict,
         identification: str,
     ) -> Dict:
-        # TODO: if there are only two options, convert this to boolean
         output_filename = FileFormats.MAPPING_OUTPUT.format(
             identification=identification
         )
+        # TODO: if there are only two options, convert this to boolean
         sample_type = "germline"
         if is_tumor:
             sample_type = "tumor"
@@ -126,6 +126,7 @@ class ConfigBuilder:
             library_params=library_params,
             identification=identification,
         )
+        # TODO: indexing is done multiple times, this isnt final
         sorting_config = self._create_sorting_config(mapping_config, identification)
         index_config = self._create_index_config(sorting_config, identification)
         merge_config = self._create_merge_config(index_config, identification)
