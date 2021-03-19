@@ -4,7 +4,8 @@ from uuid import uuid4
 
 from ._formats import FileFormats
 from ._version import version
-from .pipeline_config import MappingKeys, PipelineKeys, SortingKeys, IndexingKeys, MergingKeys, BaseRecalibratorKeys
+from .pipeline_config import (BaseRecalibratorKeys, IndexingKeys, MappingKeys,
+                              MergingKeys, PipelineKeys, SortingKeys)
 
 
 class ConfigBuilder:
@@ -59,7 +60,9 @@ class ConfigBuilder:
         return config
 
     def _create_sorting_config(self, mapping_config: Dict, identification: str) -> Dict:
-        output_filename = FileFormats.SORTING_OUTPUT.format(identification=identification)
+        output_filename = FileFormats.SORTING_OUTPUT.format(
+            identification=identification
+        )
         config = {
             SortingKeys.INPUT: mapping_config[MappingKeys.OUTPUT],
             SortingKeys.OUTPUT: output_filename,
@@ -68,7 +71,9 @@ class ConfigBuilder:
         return config
 
     def _create_index_config(self, sorting_config: Dict, identification: str) -> Dict:
-        output_filename = FileFormats.INDEXING_OUTPUT.format(identification=identification)
+        output_filename = FileFormats.INDEXING_OUTPUT.format(
+            identification=identification
+        )
         config = {
             IndexingKeys.INPUT: sorting_config[SortingKeys.OUTPUT],
             IndexingKeys.OUTPUT: output_filename,
@@ -77,18 +82,24 @@ class ConfigBuilder:
         return config
 
     def _create_merge_config(self, index_config: Dict, identification: str) -> Dict:
-        output_filename = FileFormats.MERGING_OUTPUT.format(identification=identification)
+        output_filename = FileFormats.MERGING_OUTPUT.format(
+            identification=identification
+        )
         # TODO: this is probably gonna be multiple files
         input_files = []
         config = {
-            MergingKeys.INPUTS: input_files
+            MergingKeys.INPUTS: input_files,
             MergingKeys.OUTPUT: output_filename,
         }
         return config
 
     def _create_calibrate_config(self, merge_config: Dict, identification: str) -> Dict:
-        output_filename = FileFormats.MERGING_OUTPUT.format(identification=identification)
-        table_filename = FileFormats.CALIBRATION_TABLE.format(identification=identification)
+        output_filename = FileFormats.MERGING_OUTPUT.format(
+            identification=identification
+        )
+        table_filename = FileFormats.CALIBRATION_TABLE.format(
+            identification=identification
+        )
         config = {
             BaseRecalibratorKeys.INPUT: merge_config[MergingKeys.OUTPUT],
             BaseRecalibratorKeys.TABLE: table_filename,
