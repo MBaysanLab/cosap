@@ -14,8 +14,7 @@ class BamMerger:
         bam_files = [f"I={bam_file}" for bam_file in merging_config[MergingKeys.INPUTS]]
         command = [
             "java",
-            "-XX:ParallelGCThreads=",
-            app_config.THREADS,
+            f"-XX:ParallelGCThreads={app_config.THREADS}",
             "-jar",
             library_paths.PICARD,
             "MergeSamFiles",
