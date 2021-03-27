@@ -7,6 +7,9 @@ class PipelineKeys:
     VERSION: str = "version"
     MAPPING: str = "mapping"
     SORTING: str = "sorting"
+    INDEX: str = "index"
+    MERGE: str = "merge"
+    CALIBRATE: str = "calibrate"
     VARIANT_CALLING: str = "variant-calling"
 
 
@@ -50,7 +53,13 @@ class SplitKeys(PipelineBaseKeys):
 
 
 @dataclass
-class MDUPKeys(PipelineKeys):
+class MergingKeys(PipelineBaseKeys):
+    INPUTS: str = "inputs"
+    OUTPUT: str = "output"
+
+
+@dataclass
+class MDUPKeys(PipelineBaseKeys):
     INPUT: str = "input"
     OUTPUT: str = "output"
     METRICS: str = "metrics"
@@ -58,6 +67,15 @@ class MDUPKeys(PipelineKeys):
 
 
 @dataclass
+class BaseRecalibratorKeys(PipelineBaseKeys):
+    INPUT: str = "input"
+    OUTPUT: str = "output"
+    TABLE: str = "table"
+
+
+@dataclass
 class VariantCallingKeys(PipelineBaseKeys):
     NORMAL_SRC: str = "normal-path"
     TUMOR_SRC: str = "tumor-path"
+    OUTPUT_DIR: str = "output-dir"
+    PILEUPS: str = "pileups"

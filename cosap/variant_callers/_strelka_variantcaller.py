@@ -3,7 +3,7 @@ from subprocess import run
 from typing import Dict, List
 
 from .._library_paths import LibraryPaths
-from .._pipeline_config import PipelineConfig
+from .._pipeline_config import VariantCallingKeys
 from ._variantcallers import _Callable, _VariantCaller
 
 
@@ -36,4 +36,4 @@ class Strelka2VariantCaller(_Callable, _VariantCaller):
             caller_config=caller_config, library_paths=library_paths
         )
 
-        run(strelka_command, cwd=caller_config.VCF_OUTPUT_DIR)
+        run(strelka_command, cwd=caller_config[VariantCallingKeys.OUTPUT_DIR])

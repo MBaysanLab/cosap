@@ -73,6 +73,12 @@ class _LibraryPaths38(_LibraryPaths):
         "hg38_bundle",
         "1000G_phase1.snps.high_confidence.hg38.vcf.gz",
     )
+    BWA_ASSEMBLY: str = os.path.join(
+        AppConfig.LIBRARY_PATH, "Bwa", "Homo_sapiens_assembly38.fasta"
+    )
+    BOWTIE2_ASSEMBLY: str = os.path.join(
+        AppConfig.LIBRARY_PATH, "Bowtie2", "Homo_sapiens_assembly38"
+    )
 
 
 @dataclass

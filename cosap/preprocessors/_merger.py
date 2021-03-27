@@ -11,16 +11,15 @@ class BamMerger:
     def _create_command(
         cls, merging_config: Dict, app_config: AppConfig, library_paths: LibraryPaths
     ) -> List:
-        bam_files = [f"I={bam_file}" for bam_file in merging_config[MergingKeys.Inputs]]
+        bam_files = [f"I={bam_file}" for bam_file in merging_config[MergingKeys.INPUTS]]
         command = [
             "java",
-            "-XX:ParallelGCThreads=",
-            app_config.THREADS,
+            f"-XX:ParallelGCThreads={app_config.THREADS}",
             "-jar",
             library_paths.PICARD,
             "MergeSamFiles",
             *bam_files,
-            f"O={merging_config[MergingKeys.Output]}",
+            f"O={merging_config[MergingKeys.OUTPUT]}",
         ]
 
         return command
