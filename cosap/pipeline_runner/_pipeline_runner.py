@@ -2,8 +2,7 @@ from typing import Dict, List
 
 from .._pipeline_config import MappingKeys, PipelineKeys, VariantCallingKeys
 from ..mappers import MapperFactory
-from ..preprocessors import (BamIndexer, BamMerger, MarkDuplicate,
-                             SamtoolsSorter)
+from ..preprocessors import BamIndexer, BamMerger, MarkDuplicate, SamtoolsSorter
 from ..variant_callers import VariantCallerFactory
 
 

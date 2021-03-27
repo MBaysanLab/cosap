@@ -4,8 +4,15 @@ from uuid import uuid4
 
 from ._formats import FileFormats
 from ._version import version
-from .pipeline_config import (BaseRecalibratorKeys, IndexingKeys, MappingKeys,
-                              MergingKeys, PipelineKeys, SortingKeys, VariantCallingKeys)
+from .pipeline_config import (
+    BaseRecalibratorKeys,
+    IndexingKeys,
+    MappingKeys,
+    MergingKeys,
+    PipelineKeys,
+    SortingKeys,
+    VariantCallingKeys,
+)
 
 
 class ConfigBuilder:

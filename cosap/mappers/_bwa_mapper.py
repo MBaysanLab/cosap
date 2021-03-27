@@ -47,8 +47,8 @@ class BWAMapper(_Mapper, _Mappable):
             read_group,
             library_paths.REF_DIR,
             # TODO: This needs to go somewhere else
-            os.path.normpath("Bwa/Homo_sapiens_assembly38.fasta"),
-            *mapping_config[MappingKeys.INPUTS],
+            library_paths.BWA_ASSEMBLY,
+            *mapper_config[MappingKeys.INPUTS],
             "|",
             "samtools",
             "view",
@@ -62,7 +62,7 @@ class BWAMapper(_Mapper, _Mappable):
         return command
 
     @classmethod
-    def map(cls, mapper_config: PipelineConfig):
+    def map(cls, mapper_config: Dict):
         library_paths = LibraryPaths()
         app_config = AppConfig()
 
@@ -75,4 +75,4 @@ class BWAMapper(_Mapper, _Mappable):
             app_config=app_config,
         )
 
-        run(command, cwd=os.path.dirname(pipeline_config[MappingKeys.INPUTS][0]))
+        run(command, cwd=os.path.dirname(mapper_config[MappingKeys.INPUTS][0]))
