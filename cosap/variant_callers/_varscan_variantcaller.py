@@ -90,4 +90,7 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
                 library_paths=library_paths,
                 mpileup_object=vcf_file,
             )
-            run(process_somatic_command, cwd=caller_config[VariantCallingKeys.OUTPUT_DIR])
+            run(
+                process_somatic_command,
+                cwd=caller_config[VariantCallingKeys.OUTPUT_DIR],
+            )
