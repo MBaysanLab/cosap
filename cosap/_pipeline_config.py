@@ -77,3 +77,5 @@ class BaseRecalibratorKeys(PipelineBaseKeys):
 class VariantCallingKeys(PipelineBaseKeys):
     NORMAL_SRC: str = "normal-path"
     TUMOR_SRC: str = "tumor-path"
+    OUTPUT_DIR: str = "output-dir"
+    PILEUPS: str = "pileups"

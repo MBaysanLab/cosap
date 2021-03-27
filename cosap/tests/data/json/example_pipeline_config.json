@@ -46,12 +46,15 @@
 			}
 		},
 		{
-			"library": "mutect2",
+			"library": "varscan",
 			"normal-path": "/tests/data/bam/processed/sample_1/",
 			"tumor-path": "/tests/data/bam/processed/sample_3/",
 			"params": {
 				"sample-type": "germline",
 				"patient-id": "asd1",
+				"pileups": [
+					"/tests/data/vcf/sample_2/"
+				]
 			}
 		}
 	]

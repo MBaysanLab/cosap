@@ -3,7 +3,7 @@ from subprocess import run
 from typing import Dict, List
 
 from .._library_paths import LibraryPaths
-from .._pipeline_config import PipelineConfig
+from .._pipeline_config import VariantCallingKeys
 from ._variantcallers import _Callable, _VariantCaller
 
 
@@ -57,4 +57,4 @@ class SomaticSniperVariantCaller(_Callable, _VariantCaller):
         somatic_sniper_command = cls._create_somaticSniper_command(
             caller_config=caller_config, library_paths=library_paths
         )
-        run(somatic_sniper_command, cwd=caller_config.VCF_OUTPUT_DIR)
+        run(somatic_sniper_command, cwd=caller_config[VariantCallingKeys.OUTPUT_DIR])

@@ -3,14 +3,14 @@ from subprocess import run
 from typing import Dict, List
 
 from .._library_paths import LibraryPaths
-from .._pipeline_config import PipelineConfig
+from .._pipeline_config import VariantCallingKeys
 from ._variantcallers import _Callable, _VariantCaller
 
 
 class Mutect2VariantCaller(_Callable, _VariantCaller):
     @classmethod
     def _create_run_command(
-        cls, caller_config: PipelineConfig, library_paths: LibraryPaths
+        cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> list:
         bam_paths = cls._get_bam_paths(caller_config)
 
@@ -148,7 +148,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             caller_config=caller_config, library_paths=library_paths
         )
 
-        run(mutect_command, cwd=caller_config.VCF_OUTPUT_DIR)
-        run(get_snp_command, cwd=caller_config.VCF_OUTPUT_DIR)
-        run(get_indel_command, cwd=caller_config.VCF_OUTPUT_DIR)
-        run(get_other_variants_command, cwd=caller_config.VCF_OUTPUT_DIR)
+        run(mutect_command, cwd=caller_config[VariantCallingKeys.VCF_OUTPUT_DIR])
+        run(get_snp_command, cwd=caller_config[VariantCallingKeys.VCF_OUTPUT_DIR])
+        run(get_indel_command, cwd=caller_config[VariantCallingKeys.VCF_OUTPUT_DIR])
+        run(get_other_variants_command, cwd=caller_config[VariantCallingKeys.VCF_OUTPUT_DIR])
