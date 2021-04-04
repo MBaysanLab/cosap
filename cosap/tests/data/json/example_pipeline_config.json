@@ -9,8 +9,8 @@
 				"tests/data/sample_1/fastq/germline_2.fastq",
 			],
 			"output": "tests/data/sample_1/bam/germline.bam",
-			"sample-type": "germline",
 			"params": {
+				"sample-type": "germline",
 				"rg-id": 1,
 				"rg-sm": 1,
 				"rg-lb": 1,

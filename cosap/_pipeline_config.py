@@ -17,13 +17,15 @@ class PipelineKeys:
 class PipelineBaseKeys:
     LIBRARY: str = "library"
     PARAMS: str = "params"
+    INPUT: str = "input"
+    OUTPUT: str = "output"
 
 
 @dataclass
 class MappingKeys(PipelineBaseKeys):
     SAMPLE_TYPE: str = "sample-type"
-    INPUTS: str = "inputs"
-    OUTPUT: str = "output"
+    READ1: str = "read-1"
+    READ2: str = "read-2"
     RG_ID: str = "rg-id"
     RG_SM: str = "rg-sm"
     RG_LB: str = "rg-lb"

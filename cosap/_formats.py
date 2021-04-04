@@ -10,4 +10,5 @@ class FileFormats:
     CALIBRATION_OUTPUT: str = "calibrated_{identification}.bam"
     CALIBRATION_TABLE: str = "calibration_table_{identification}.table"
     CALIBRATED_INDEXING_OUTPUT: str = "calibrated_indexed_{identification}.bam"
-    SAMTOOLS_PILEUP_OUTPUT: str "pileup_{identification}.vcf"
+    SAMTOOLS_PILEUP_OUTPUT: str = "pileup_{identification}.vcf"
+    GATK_SNP_OUTPUT: str = "snp_{identification}.vcf"

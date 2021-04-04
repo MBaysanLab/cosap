@@ -1,4 +1,5 @@
 from ._formats import FileFormats
+from typing import List, Dict
 from .pipeline_config import (
     BaseRecalibratorKeys,
     IndexingKeys,
@@ -9,64 +10,32 @@ from .pipeline_config import (
 )
 
 from ._pipeline_steps import _PipelineStep
+from dataclasses import dataclass
+from copy import copy
 
 
+@dataclass
 class Mapper(_PipelineStep):
-    _GERMLINE = "germline"
-    _TUMOR = "tumor"
+    library: str
+    read1: str
+    read2: str
+    params: Dict
+    output: str
 
-    def __init__(
-        self,
-        library: str,
-        input_files: List,
-        is_tumor: bool,
-        library_params: Dict,
-        name: str = None,
-    ):
-        self.name = name
-        mapping_config = self._create_mapping_config(
-            library=library,
-            input_files=input_files,
-            library_params=library_params,
-        )
-        # TODO: indexing is done multiple times, this isnt final
-        sorting_config = self._create_sorting_config(mapping_config)
-        index_config = self._create_index_config(sorting_config)
-        merge_config = self._create_merge_config(index_config)
-        calibrate_config = self._create_calibrate_config(merge_config)
-
-        self.steps = {
-            PipelineKeys.MAPPING: mapping_config,
-            PipelineKeys.SORTING: sorting_config,
-            PipelineKeys.INDEX: index_config,
-            PipelineKeys.MERGE: merge_config,
-            PipelineKeys.CALIBRATE: calibrate_config,
-        }
-
-    def _create_mapping_config(
-        self,
-        library: str,
-        input_files: List,
-        is_tumor: bool,
-        library_params: Dict,
-    ) -> Dict:
-        output_filename = FileFormats.MAPPING_OUTPUT.format(identification=name)
-        # TODO: if there are only two options, convert this to boolean
-        sample_type = self._GERMLINE
-        if is_tumor:
-            sample_type = self._TUMOR
+    def _create_mapping_config(self) -> Dict:
+        output_filename = FileFormats.MAPPING_OUTPUT.format(identification=self.name)
 
         config = {
-            MappingKeys.LIBRARY: library,
-            MappingKeys.INPUTS: input_files,
+            MappingKeys.LIBRARY: self.library,
+            MappingKeys.READ1: self.read1,
+            MappingKeys.READ2: self.read2
             MappingKeys.OUTPUT: output_filename,
-            MappingKeys.SAMPLE_TYPE: sample_type,
-            MappingKeys.PARAMS: library_params,
+            MappingKeys.PARAMS: self.params,
         }
         return config
 
     def _create_sorting_config(self, mapping_config: Dict) -> Dict:
-        output_filename = FileFormats.SORTING_OUTPUT.format(name=name)
+        output_filename = FileFormats.SORTING_OUTPUT.format(identification=self.name)
         config = {
             SortingKeys.INPUT: mapping_config[MappingKeys.OUTPUT],
             SortingKeys.OUTPUT: output_filename,
@@ -74,17 +43,17 @@ class Mapper(_PipelineStep):
         }
         return config
 
-    def _create_index_config(self, sorting_config: Dict) -> Dict:
-        output_filename = FileFormats.INDEXING_OUTPUT.format(name=name)
+    def _create_index_config(self, config: Dict) -> Dict:
+        output_filename = FileFormats.INDEXING_OUTPUT.format(identification=self.name)
         config = {
-            IndexingKeys.INPUT: sorting_config[SortingKeys.OUTPUT],
+            IndexingKeys.INPUT: config[SortingKeys.OUTPUT],
             IndexingKeys.OUTPUT: output_filename,
             IndexingKeys.PARAMS: {},
         }
         return config
 
     def _create_merge_config(self, index_config: Dict) -> Dict:
-        output_filename = FileFormats.MERGING_OUTPUT.format(name=name)
+        output_filename = FileFormats.MERGING_OUTPUT.format(identification=self.name)
         # TODO: this is probably gonna be multiple files
         input_files = []
         config = {
@@ -94,11 +63,36 @@ class Mapper(_PipelineStep):
         return config
 
     def _create_calibrate_config(self, merge_config: Dict) -> Dict:
-        output_filename = FileFormats.MERGING_OUTPUT.format(name=name)
-        table_filename = FileFormats.CALIBRATION_TABLE.format(name=name)
+        output_filename = FileFormats.MERGING_OUTPUT.format(identification=self.name)
+        table_filename = FileFormats.CALIBRATION_TABLE.format(identification=self.name)
         config = {
             BaseRecalibratorKeys.INPUT: merge_config[MergingKeys.OUTPUT],
             BaseRecalibratorKeys.TABLE: table_filename,
             BaseRecalibratorKeys.OUTPUT: output_filename,
         }
         return config
+
+    def get_output_file_name(self):
+        return self.config[PipelineKeys.CALIBRATE][BaseRecalibratorKeys.OUTPUT]
+
+    def get_config(self):
+        return copy(self.config)
+
+    @property
+    def config(self):
+        mapping_config = self._create_mapping_config()
+        # TODO: indexing is done multiple times, this isnt final
+        sorting_config = self._create_sorting_config(mapping_config)
+        index_config = self._create_index_config(sorting_config)
+        merge_config = self._create_merge_config(index_config)
+        calibrate_config = self._create_calibrate_config(merge_config)
+
+        config = {
+            PipelineKeys.MAPPING: mapping_config,
+            PipelineKeys.SORTING: sorting_config,
+            PipelineKeys.INDEX: index_config,
+            PipelineKeys.MERGE: merge_config,
+            PipelineKeys.CALIBRATE: calibrate_config,
+        }
+        return config
+    
