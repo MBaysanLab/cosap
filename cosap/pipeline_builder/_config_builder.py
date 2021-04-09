@@ -45,58 +45,58 @@ class Pipeline:
         return pipeline_config
 
 
-pipeline = Pipeline()
+# pipeline = Pipeline()
 
-# read file
-germline_files = [
-    FastqReader(
-        "/mount/data/sample_1/fastq/germline_1.fastq", platform="illumina", read=1
-    ),
-    FastqReader(
-        "/mount/data/sample_1/fastq/germline_2.fastq", platform="illumina", read=2
-    ),
-]
+# # read file
+# germline_files = [
+#     FastqReader(
+#         "/mount/data/sample_1/fastq/germline_1.fastq", platform="illumina", read=1
+#     ),
+#     FastqReader(
+#         "/mount/data/sample_1/fastq/germline_2.fastq", platform="illumina", read=2
+#     ),
+# ]
 
-tumor_files = [
-    FastqReader(
-        "/mount/data/sample_1/fastq/tumor_1.fastq", platform="illumina", read=1
-    ),
-    FastqReader(
-        "/mount/data/sample_1/fastq/tumor_2.fastq", platform="illumina", read=2
-    ),
-]
+# tumor_files = [
+#     FastqReader(
+#         "/mount/data/sample_1/fastq/tumor_1.fastq", platform="illumina", read=1
+#     ),
+#     FastqReader(
+#         "/mount/data/sample_1/fastq/tumor_2.fastq", platform="illumina", read=2
+#     ),
+# ]
 
-# add mapping step
-mapper_1 = Mapper(
-    library="bwa",
-    reads=germline_files,
-    params=params,
-)
+# # add mapping step
+# mapper_1 = Mapper(
+#     library="bwa",
+#     reads=germline_files,
+#     params=params,
+# )
 
-mapper_2 = Mapper(
-    library="bwa",
-    reads=tumor_files,
-    params=params,
-)
+# mapper_2 = Mapper(
+#     library="bwa",
+#     reads=tumor_files,
+#     params=params,
+# )
 
-# add variant calling
-caller_1 = VariantCaller(
-    library="varscan",
-    germline=mapper_1,
-    tumor=mapper_2,
-    params=params,
-)
+# # add variant calling
+# caller_1 = VariantCaller(
+#     library="varscan",
+#     germline=mapper_1,
+#     tumor=mapper_2,
+#     params=params,
+# )
 
-germline_bam = BamReader("/mount/data/sample_1/bam/germline.bam")
-tumor_bam = BamReader("/mount/data/sample_1/bam/tumor.bam")
+# germline_bam = BamReader("/mount/data/sample_1/bam/germline.bam")
+# tumor_bam = BamReader("/mount/data/sample_1/bam/tumor.bam")
 
-caller_2 = VariantCaller(
-    library="varscan",
-    germline=germline_bam,
-    tumor=tumor_bam,
-    params=params,
-)
+# caller_2 = VariantCaller(
+#     library="varscan",
+#     germline=germline_bam,
+#     tumor=tumor_bam,
+#     params=params,
+# )
 
-pipeline = Pipeline().add(mapper_1).add(mapper_2).add(caller_1).add(caller_2)
+# pipeline = Pipeline().add(mapper_1).add(mapper_2).add(caller_1).add(caller_2)
 
-pipeline_config = pipeline.build()
+# pipeline_config = pipeline.build()
