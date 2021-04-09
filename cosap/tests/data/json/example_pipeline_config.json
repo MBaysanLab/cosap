@@ -4,10 +4,10 @@
 	"mapping": [
 		{
 			"library": "bwa",
-			"inputs": [
-				"tests/data/sample_1/fastq/germline_1.fastq",
-				"tests/data/sample_1/fastq/germline_2.fastq",
-			],
+			"inputs": {
+				"1": "tests/data/sample_1/fastq/germline_1.fastq",
+				"2": "tests/data/sample_1/fastq/germline_2.fastq",
+			},
 			"output": "tests/data/sample_1/bam/germline.bam",
 			"params": {
 				"sample-type": "germline",

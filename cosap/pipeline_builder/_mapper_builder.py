@@ -1,34 +1,39 @@
-from ._formats import FileFormats
-from typing import List, Dict
-from .pipeline_config import (
-    BaseRecalibratorKeys,
-    IndexingKeys,
-    MappingKeys,
-    MergingKeys,
-    PipelineKeys,
-    SortingKeys,
-)
-
-from ._pipeline_steps import _PipelineStep
-from dataclasses import dataclass
 from copy import copy
+from dataclasses import dataclass
+from typing import Dict, List
+
+from ._formats import FileFormats
+from ._pipeline_steps import _IPipelineStep, _PipelineStep
+from .pipeline_config import (BaseRecalibratorKeys, IndexingKeys, MappingKeys,
+                              MergingKeys, PipelineKeys, SortingKeys)
 
 
 @dataclass
-class Mapper(_PipelineStep):
+class Mapper(_IPipelineStep, _PipelineStep):
     library: str
-    read1: str
-    read2: str
+    reads: List
     params: Dict
-    output: str
+    name: str = None
+
+    def __post_init__(self):
+        if self.name is None:
+            self.name = self._get_name()
 
     def _create_mapping_config(self) -> Dict:
         output_filename = FileFormats.MAPPING_OUTPUT.format(identification=self.name)
 
+        read_filenames = {}
+        for reader in self.reads:
+            read_filenames[reader.read] = reader.get_output()
+
+        if set(read_filenames.keys()) != set(range(1, len(read_filenames))):
+            raise Exception(
+                "Inconsistent read numbers, reads should range from 1 to n."
+            )
+
         config = {
             MappingKeys.LIBRARY: self.library,
-            MappingKeys.READ1: self.read1,
-            MappingKeys.READ2: self.read2
+            MappingKeys.INPUT: read_filenames,
             MappingKeys.OUTPUT: output_filename,
             MappingKeys.PARAMS: self.params,
         }
@@ -72,14 +77,11 @@ class Mapper(_PipelineStep):
         }
         return config
 
-    def get_output_file_name(self):
-        return self.config[PipelineKeys.CALIBRATE][BaseRecalibratorKeys.OUTPUT]
+    def get_output(self) -> str:
+        config = self.get_config()
+        return config[PipelineKeys.CALIBRATE][BaseRecalibratorKeys.OUTPUT]
 
-    def get_config(self):
-        return copy(self.config)
-
-    @property
-    def config(self):
+    def get_config(self) -> Dict:
         mapping_config = self._create_mapping_config()
         # TODO: indexing is done multiple times, this isnt final
         sorting_config = self._create_sorting_config(mapping_config)
@@ -95,4 +97,3 @@ class Mapper(_PipelineStep):
             PipelineKeys.CALIBRATE: calibrate_config,
         }
         return config
-    

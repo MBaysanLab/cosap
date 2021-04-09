@@ -24,13 +24,11 @@ class PipelineBaseKeys:
 @dataclass
 class MappingKeys(PipelineBaseKeys):
     SAMPLE_TYPE: str = "sample-type"
-    READ1: str = "read-1"
-    READ2: str = "read-2"
-    RG_ID: str = "rg-id"
-    RG_SM: str = "rg-sm"
-    RG_LB: str = "rg-lb"
-    RG_PL: str = "rg-pl"
-    RG_PU: str = "rg-pu"
+    # RG_ID: str = "rg-id"
+    # RG_SM: str = "rg-sm"
+    # RG_LB: str = "rg-lb"
+    # RG_PL: str = "rg-pl"
+    # RG_PU: str = "rg-pu"
 
 
 @dataclass
@@ -77,7 +75,7 @@ class BaseRecalibratorKeys(PipelineBaseKeys):
 
 @dataclass
 class VariantCallingKeys(PipelineBaseKeys):
-    NORMAL_SRC: str = "normal-path"
-    TUMOR_SRC: str = "tumor-path"
+    GERMLINE: str = "normal-path"
+    TUMOR: str = "tumor-path"
     OUTPUT_DIR: str = "output-dir"
     PILEUPS: str = "pileups"
