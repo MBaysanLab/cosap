@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from uuid import uuid4
 from typing import Dict
+from uuid import uuid4
 
 
 class _IPipelineStep(ABC):

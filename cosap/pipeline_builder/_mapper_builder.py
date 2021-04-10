@@ -3,9 +3,10 @@ from dataclasses import dataclass
 from typing import Dict, List
 
 from .._formats import FileFormats
+from .._pipeline_config import (BaseRecalibratorKeys, IndexingKeys,
+                                MappingKeys, MergingKeys, PipelineKeys,
+                                SortingKeys)
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
-from .._pipeline_config import (BaseRecalibratorKeys, IndexingKeys, MappingKeys,
-                              MergingKeys, PipelineKeys, SortingKeys)
 
 
 @dataclass
@@ -26,7 +27,9 @@ class Mapper(_IPipelineStep, _PipelineStep):
         for reader in self.reads:
             read_filenames[reader.read] = reader.get_output()
 
-        if set(read_filenames.keys()) != set(map(str, range(1, len(read_filenames)+1))):
+        if set(read_filenames.keys()) != set(
+            map(str, range(1, len(read_filenames) + 1))
+        ):
             raise Exception(
                 "Inconsistent read numbers, reads should range from 1 to n."
             )

@@ -5,13 +5,13 @@ from typing import Dict, List
 from uuid import uuid4
 
 from .._formats import FileFormats
+from .._pipeline_config import (BaseRecalibratorKeys, IndexingKeys,
+                                MappingKeys, MergingKeys, PipelineKeys,
+                                SortingKeys, VariantCallingKeys)
+from .._version import version
 from ._mapper_builder import Mapper
 from ._pipeline_steps import _PipelineStep
 from ._variant_builder import VariantCaller
-from .._version import version
-from .._pipeline_config import (BaseRecalibratorKeys, IndexingKeys, MappingKeys,
-                              MergingKeys, PipelineKeys, SortingKeys,
-                              VariantCallingKeys)
 
 
 class Pipeline:
