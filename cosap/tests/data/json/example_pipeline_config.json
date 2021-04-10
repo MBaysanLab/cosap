@@ -11,11 +11,11 @@
 			"output": "tests/data/sample_1/bam/germline.bam",
 			"params": {
 				"sample-type": "germline",
-				"rg-id": 1,
-				"rg-sm": 1,
-				"rg-lb": 1,
-				"rg-pl": 1,
-				"rg-pu": 1,
+				"rg-id": "1",
+				"rg-sm": "1",
+				"rg-lb": "1",
+				"rg-pl": "1",
+				"rg-pu": "1",
 			} 
 		}
 	],

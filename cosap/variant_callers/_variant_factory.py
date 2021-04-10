@@ -1,7 +1,7 @@
 from ._mutect2_variantcaller import Mutect2VariantCaller
 from ._somaticsniper_variantcaller import SomaticSniperVariantCaller
 from ._strelka_variantcaller import Strelka2VariantCaller
-from ._variantcallers import _VariantCallable
+from ._variantcallers import _VariantCaller
 from ._varscan_variantcaller import VarScanVariantCaller
 
 
@@ -12,7 +12,7 @@ class VariantCallerFactory:
     VARSCAN_CALLER = "varscan"
 
     @classmethod
-    def create(cls, caller_type: str) -> _VariantCallable:
+    def create(cls, caller_type: str) -> _VariantCaller:
         caller_type = str(caller_type).lower()
 
         if caller_type == cls.MUTECT2_CALLER:

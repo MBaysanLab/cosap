@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass
+from typing import Dict
 
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 

@@ -1,13 +1,15 @@
+from __future__ import annotations
+
 from datetime import datetime
 from typing import Dict, List
 from uuid import uuid4
 
-from ._formats import FileFormats
+from .._formats import FileFormats
 from ._mapper_builder import Mapper
 from ._pipeline_steps import _PipelineStep
 from ._variant_builder import VariantCaller
-from ._version import version
-from .pipeline_config import (BaseRecalibratorKeys, IndexingKeys, MappingKeys,
+from .._version import version
+from .._pipeline_config import (BaseRecalibratorKeys, IndexingKeys, MappingKeys,
                               MergingKeys, PipelineKeys, SortingKeys,
                               VariantCallingKeys)
 
@@ -36,11 +38,11 @@ class Pipeline:
     def build(self) -> Dict:
         pipeline_config = self._create_config()
 
-        for step in steps:
+        for step in self._pipeline_steps:
             step_config = step.get_config()
 
             for key, values in step_config.items():
-                pipeline_config[key].extend(values)
+                pipeline_config[key].append(values)
         # TODO: insert validation here
         return pipeline_config
 
@@ -97,6 +99,12 @@ class Pipeline:
 #     params=params,
 # )
 
-# pipeline = Pipeline().add(mapper_1).add(mapper_2).add(caller_1).add(caller_2)
+# pipeline = (
+#     Pipeline()
+#     .add(mapper_1)
+#     .add(mapper_2)
+#     .add(caller_1)
+#     .add(caller_2)
+# )
 
 # pipeline_config = pipeline.build()
