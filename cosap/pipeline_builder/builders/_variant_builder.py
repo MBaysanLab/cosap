@@ -2,8 +2,8 @@ from copy import copy
 from dataclasses import dataclass
 from typing import Dict
 
-from .._formats import FileFormats
-from .._pipeline_config import PipelineKeys, VariantCallingKeys
+from ..._formats import FileFormats
+from ..._pipeline_config import PipelineKeys, VariantCallingKeys
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
 

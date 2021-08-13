@@ -1,14 +1,14 @@
 from dataclasses import dataclass
 from typing import Dict
 
-from .._formats import FileFormats
-from .._pipeline_config import IndexingKeys, PipelineKeys
+from ..._formats import FileFormats
+from ..._pipeline_config import IndexingKeys, PipelineKeys
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
 
 @dataclass
 class Indexer(_IPipelineStep, _PipelineStep):
-    input: str
+    input: _PipelineStep
     params: Dict
     name: str = None
 

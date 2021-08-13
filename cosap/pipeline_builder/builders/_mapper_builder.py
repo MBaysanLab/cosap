@@ -2,8 +2,8 @@ from copy import copy
 from dataclasses import dataclass
 from typing import Dict, List
 
-from .._formats import FileFormats
-from .._pipeline_config import (BaseRecalibratorKeys, IndexingKeys,
+from ..._formats import FileFormats
+from ..._pipeline_config import (BaseRecalibratorKeys, IndexingKeys,
                                 MappingKeys, MergingKeys, PipelineKeys,
                                 SortingKeys)
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
@@ -12,7 +12,7 @@ from ._pipeline_steps import _IPipelineStep, _PipelineStep
 @dataclass
 class Mapper(_IPipelineStep, _PipelineStep):
     library: str
-    reads: List
+    reads: List[_PipelineStep]
     params: Dict
     name: str = None
 

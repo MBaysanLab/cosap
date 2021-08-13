@@ -1,14 +1,14 @@
 from dataclasses import dataclass
-from typing import Dict
+from typing import Dict, List
 
-from .._formats import FileFormats
-from .._pipeline_config import MergingKeys, PipelineKeys
+from ..._formats import FileFormats
+from ..._pipeline_config import MergingKeys, PipelineKeys
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
 
 @dataclass
 class Merger(_IPipelineStep, _PipelineStep):
-    inputs: str
+    inputs: List[_PipelineStep]
     name: str = None
 
     def __post_init__(self):

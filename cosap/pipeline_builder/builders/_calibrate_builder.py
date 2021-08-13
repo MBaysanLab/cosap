@@ -1,14 +1,15 @@
 from dataclasses import dataclass
 from typing import Dict
 
-from .._formats import FileFormats
-from .._pipeline_config import BaseRecalibratorKeys, PipelineKeys
+from ..._formats import FileFormats
+from ..._pipeline_config import BaseRecalibratorKeys, PipelineKeys
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
 
 @dataclass
 class Recalibrator(_IPipelineStep, _PipelineStep):
-    input: str
+    input: _PipelineStep
+    params: Dict
     name: str = None
 
     def __post_init__(self):
