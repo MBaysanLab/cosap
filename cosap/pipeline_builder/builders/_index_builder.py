@@ -5,6 +5,7 @@ from .._formats import FileFormats
 from .._pipeline_config import IndexingKeys, PipelineKeys
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
+
 @dataclass
 class Indexer(_IPipelineStep, _PipelineStep):
     input: str
@@ -32,7 +33,5 @@ class Indexer(_IPipelineStep, _PipelineStep):
 
     def get_config(self) -> Dict:
         indexer_config = self._create_config()
-        config = {
-            PipelineKeys.INDEX: indexer_config
-        }
+        config = {PipelineKeys.INDEX: indexer_config}
         return config

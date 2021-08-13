@@ -9,9 +9,7 @@ from .._pipeline_config import (BaseRecalibratorKeys, IndexingKeys,
                                 MappingKeys, MergingKeys, PipelineKeys,
                                 SortingKeys, VariantCallingKeys)
 from .._version import version
-from ._mapper_builder import Mapper
-from ._pipeline_steps import _PipelineStep
-from ._variant_builder import VariantCaller
+from .builders import _PipelineStep
 
 
 class Pipeline:

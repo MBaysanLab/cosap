@@ -27,6 +27,7 @@ class PipelineRunner:
             BamIndexer.create_index(config)
 
     def merge(self, merge_config: List):
+        # TODO: if there is a single bam skip this
         for config in merge_config:
             BamMerger.merge(config)
 
@@ -45,10 +46,12 @@ class PipelineRunner:
 
     def run_pipeline(self, pipeline_config: Dict):
         self.validate_pipeline_config(pipeline_config)
+
+        # TODO: add trimming
         self.map(pipeline_config[PipelineKeys.MAPPING])
         self.sort(pipeline_config[PipelineKeys.SORTING])
         self.index(pipeline_config[PipelineKeys.INDEX])
         self.merge(pipeline_config[PipelineKeys.MERGE])
         self.calibrate(pipeline_config[PipelineKeys.CALIBRATE])
-        self.index(pipeline_config[PipelineKeys.INDEX])
+
         self.call_variants(pipeline_config[PipelineKeys.VARIANT_CALLING])

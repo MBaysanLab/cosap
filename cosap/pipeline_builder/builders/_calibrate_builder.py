@@ -5,6 +5,7 @@ from .._formats import FileFormats
 from .._pipeline_config import BaseRecalibratorKeys, PipelineKeys
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
+
 @dataclass
 class Recalibrator(_IPipelineStep, _PipelineStep):
     input: str
@@ -32,7 +33,5 @@ class Recalibrator(_IPipelineStep, _PipelineStep):
 
     def get_config(self) -> Dict:
         calibration_config = self._create_config()
-        config = {
-            PipelineKeys.CALIBRATE: calibration_config
-        }
+        config = {PipelineKeys.CALIBRATE: calibration_config}
         return config

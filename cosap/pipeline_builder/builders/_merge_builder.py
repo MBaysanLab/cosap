@@ -5,6 +5,7 @@ from .._formats import FileFormats
 from .._pipeline_config import MergingKeys, PipelineKeys
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
+
 @dataclass
 class Merger(_IPipelineStep, _PipelineStep):
     inputs: str
@@ -33,7 +34,5 @@ class Merger(_IPipelineStep, _PipelineStep):
 
     def get_config(self) -> Dict:
         merger_config = self._create_config()
-        config = {
-            PipelineKeys.MERGE: merger_config
-        }
+        config = {PipelineKeys.MERGE: merger_config}
         return config

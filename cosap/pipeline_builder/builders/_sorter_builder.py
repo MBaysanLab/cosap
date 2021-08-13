@@ -2,8 +2,9 @@ from dataclasses import dataclass
 from typing import Dict
 
 from .._formats import FileFormats
-from .._pipeline_config import SortingKeys, PipelineKeys
+from .._pipeline_config import PipelineKeys, SortingKeys
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
+
 
 @dataclass
 class Sorter(_IPipelineStep, _PipelineStep):
@@ -32,8 +33,5 @@ class Sorter(_IPipelineStep, _PipelineStep):
 
     def get_config(self) -> Dict:
         sorter_config = self._create_config()
-        config = {
-            PipelineKeys.SORTING: sorter_config
-        }
+        config = {PipelineKeys.SORTING: sorter_config}
         return config
-
