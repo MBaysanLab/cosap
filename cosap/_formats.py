@@ -14,3 +14,4 @@ class FileFormats:
     )
     SAMTOOLS_PILEUP_OUTPUT: str = "pileup_{identification}_{algorithm}.vcf"
     GATK_SNP_OUTPUT: str = "snp_{identification}_{algorithm}.vcf"
+    

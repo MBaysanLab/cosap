@@ -69,7 +69,11 @@ class PipelineRunner:
         with open(config_yaml_path, "w") as config_yaml:
             yaml.dump(config, config_yaml, default_flow_style=False)
 
-        snakemake_command = f"snakemake -s /home/mae/Desktop/cosap/cosap/snakemake_workflows/Snakefile \
+        dag_command = f"snakemake -s /home/mae/Desktop/cosap/cosap/snakemake_workflows/Snakefile \
             --configfile {config_yaml_path} --dag -n | dot -Tsvg > {output_dir}workflow_dag.svg"
+
+        os.system(dag_command)
+
+        snakemake_command = f"snakemake -s /home/mae/Desktop/cosap/cosap/snakemake_workflows/Snakefile -j{AppConfig.THREADS} --configfile {config_yaml_path}"
 
         os.system(snakemake_command)

@@ -39,9 +39,7 @@ rule bwa:
         )
 
         command = f"bwa mem {read_group_str} {input.ref_genome} {' '.join(input.fastq)} | samtools sort -o {output.bam} -"
-
         os.system(command)
-
 
 rule bowtie:
     input:
