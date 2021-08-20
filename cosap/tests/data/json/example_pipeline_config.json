@@ -6,7 +6,7 @@
 			"library": "bwa",
 			"inputs": {
 				"1": "tests/data/sample_1/fastq/germline_1.fastq",
-				"2": "tests/data/sample_1/fastq/germline_2.fastq",
+				"2": "tests/data/sample_1/fastq/germline_2.fastq"
 			},
 			"output": "tests/data/sample_1/bam/germline.bam",
 			"params": {
@@ -15,7 +15,7 @@
 				"rg-sm": "1",
 				"rg-lb": "1",
 				"rg-pl": "1",
-				"rg-pu": "1",
+				"rg-pu": "1"
 			} 
 		}
 	],
@@ -33,7 +33,7 @@
 			"tumor-path": "/tests/data/bam/processed/sample_1/",
 			"params": {
 				"sample-type": "germline",
-				"patient-id": "asd1",
+				"patient-id": "asd1"
 			}
 		},
 		{
@@ -42,7 +42,7 @@
 			"tumor-path": "/tests/data/bam/processed/sample_2/",
 			"params": {
 				"sample-type": "germline",
-				"patient-id": "asd1",
+				"patient-id": "asd1"
 			}
 		},
 		{

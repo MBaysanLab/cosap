@@ -18,5 +18,5 @@ class _AppConfigMeta(type):
 
 @dataclass
 class AppConfig(metaclass=_AppConfigMeta):
-    LIBRARY_PATH: str = os.path.normpath("/mount/libs/")
+    LIBRARY_PATH: str = os.path.normpath("/home/mae/Desktop/hg38_bundle/")
     THREADS: int = 1

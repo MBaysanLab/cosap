@@ -1,8 +1,11 @@
 from dataclasses import dataclass
+from os import W_OK
 
 
 @dataclass
 class PipelineKeys:
+    WORKDIR: str = "workdir"
+    LIBRARY_PATH: str = "library_path"
     CREATION_DATE: str = "creation-date"
     VERSION: str = "version"
     MAPPING: str = "mapping"
@@ -75,7 +78,7 @@ class BaseRecalibratorKeys(PipelineBaseKeys):
 
 @dataclass
 class VariantCallingKeys(PipelineBaseKeys):
-    GERMLINE: str = "normal-path"
-    TUMOR: str = "tumor-path"
+    GERMLINE: str = "normal"
+    TUMOR: str = "tumor"
     OUTPUT_DIR: str = "output-dir"
     PILEUPS: str = "pileups"

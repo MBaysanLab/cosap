@@ -5,11 +5,18 @@ from typing import Dict, List
 from uuid import uuid4
 
 from .._formats import FileFormats
-from .._pipeline_config import (BaseRecalibratorKeys, IndexingKeys,
-                                MappingKeys, MergingKeys, PipelineKeys,
-                                SortingKeys, VariantCallingKeys)
+from .._pipeline_config import (
+    BaseRecalibratorKeys,
+    IndexingKeys,
+    MappingKeys,
+    MergingKeys,
+    PipelineKeys,
+    SortingKeys,
+    VariantCallingKeys,
+)
 from .._version import version
 from .builders import _PipelineStep
+from .._config import AppConfig
 
 
 class Pipeline:
@@ -18,14 +25,15 @@ class Pipeline:
 
     def _create_config(self):
         config = {
+            PipelineKeys.LIBRARY_PATH: AppConfig.LIBRARY_PATH,
             PipelineKeys.CREATION_DATE: datetime.now().strftime(r"%Y-%m-%d %H:%M:%S"),
             PipelineKeys.VERSION: version,
-            PipelineKeys.MAPPING: list(),
-            PipelineKeys.SORTING: list(),
-            PipelineKeys.INDEX: list(),
-            PipelineKeys.MERGE: list(),
-            PipelineKeys.CALIBRATE: list(),
-            PipelineKeys.VARIANT_CALLING: list(),
+            PipelineKeys.MAPPING: dict(),
+            PipelineKeys.SORTING: dict(),
+            PipelineKeys.INDEX: dict(),
+            PipelineKeys.MERGE: dict(),
+            PipelineKeys.CALIBRATE: dict(),
+            PipelineKeys.VARIANT_CALLING: dict(),
         }
         return config
 
@@ -40,7 +48,9 @@ class Pipeline:
             step_config = step.get_config()
 
             for key, values in step_config.items():
-                pipeline_config[key].append(values)
+                for k, v in values.items():
+                    pipeline_config[key][k] = v
+
         # TODO: insert validation here
         return pipeline_config
 

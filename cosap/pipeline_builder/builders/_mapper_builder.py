@@ -3,9 +3,14 @@ from dataclasses import dataclass
 from typing import Dict, List
 
 from ..._formats import FileFormats
-from ..._pipeline_config import (BaseRecalibratorKeys, IndexingKeys,
-                                MappingKeys, MergingKeys, PipelineKeys,
-                                SortingKeys)
+from ..._pipeline_config import (
+    BaseRecalibratorKeys,
+    IndexingKeys,
+    MappingKeys,
+    MergingKeys,
+    PipelineKeys,
+    SortingKeys,
+)
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
 
@@ -21,7 +26,9 @@ class Mapper(_IPipelineStep, _PipelineStep):
             self.name = self._get_name()
 
     def _create_config(self) -> Dict:
-        output_filename = FileFormats.MAPPING_OUTPUT.format(identification=self.name)
+        output_filename = FileFormats.MAPPING_OUTPUT.format(
+            identification=self.name, algorithm=self.library
+        )
 
         read_filenames = {}
         for reader in self.reads:
@@ -35,16 +42,18 @@ class Mapper(_IPipelineStep, _PipelineStep):
             )
 
         config = {
-            MappingKeys.LIBRARY: self.library,
-            MappingKeys.INPUT: read_filenames,
-            MappingKeys.OUTPUT: output_filename,
-            MappingKeys.PARAMS: self.params,
+            self.name: {
+                MappingKeys.LIBRARY: self.library,
+                MappingKeys.INPUT: read_filenames,
+                MappingKeys.OUTPUT: output_filename,
+                MappingKeys.PARAMS: self.params,
+            }
         }
         return config
 
     def get_output(self) -> str:
         config = self.get_config()
-        return config[PipelineKeys.MAPPING][BaseRecalibratorKeys.OUTPUT]
+        return config[PipelineKeys.MAPPING][self.name][BaseRecalibratorKeys.OUTPUT]
 
     def get_config(self) -> Dict:
         mapping_config = self._create_config()

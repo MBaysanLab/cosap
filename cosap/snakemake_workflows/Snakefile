@@ -1,0 +1,18 @@
+import os
+
+
+include: "./rules/mapper.smk"
+include: "./rules/preprocess.smk"
+include: "./rules/variantcaller.smk"
+
+
+output_vcfs = [
+    config["variant-calling"][caller]["output"] for caller in config["variant-calling"]
+]
+
+
+rule all:
+    input:
+        expand(
+            os.path.normpath(os.path.join(config["workdir"], "{vcf}")), vcf=output_vcfs
+        ),

@@ -1,10 +1,14 @@
+import os
 from typing import Dict, List
+import yaml
 
 from .._pipeline_config import MappingKeys, PipelineKeys, VariantCallingKeys
 from ..mappers import MapperFactory
-from ..preprocessors import (BamIndexer, BamMerger, MarkDuplicate,
-                             SamtoolsSorter)
+from ..preprocessors import BamIndexer, BamMerger, MarkDuplicate, SamtoolsSorter
 from ..variant_callers import VariantCallerFactory
+from .._config import AppConfig
+
+from .._utils import join_paths
 
 
 class PipelineRunner:
@@ -55,3 +59,17 @@ class PipelineRunner:
         self.calibrate(pipeline_config[PipelineKeys.CALIBRATE])
 
         self.call_variants(pipeline_config[PipelineKeys.VARIANT_CALLING])
+
+    def run_pipeline_snakemake(self, pipeline_config: Dict, output_dir: str):
+        config = pipeline_config
+        config[PipelineKeys.WORKDIR] = output_dir
+
+        config_yaml_path = join_paths(output_dir, "config.yaml")
+
+        with open(config_yaml_path, "w") as config_yaml:
+            yaml.dump(config, config_yaml, default_flow_style=False)
+
+        snakemake_command = f"snakemake -s /home/mae/Desktop/cosap/cosap/snakemake_workflows/Snakefile \
+            --configfile {config_yaml_path} --dag -n | dot -Tsvg > {output_dir}workflow_dag.svg"
+
+        os.system(snakemake_command)
