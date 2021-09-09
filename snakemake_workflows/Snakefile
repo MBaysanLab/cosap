@@ -1,6 +1,5 @@
 import os
 
-
 include: "./rules/mapper.smk"
 include: "./rules/preprocess.smk"
 include: "./rules/variantcaller.smk"

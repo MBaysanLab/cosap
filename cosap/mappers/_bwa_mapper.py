@@ -11,7 +11,7 @@ from ._mappers import _Mappable, _Mapper
 class BWAMapper(_Mapper, _Mappable):
     @classmethod
     def _create_read_group(cls, mapper_config: Dict) -> str:
-        flags = mapper_config[MappingKeys.PARAMS]
+        flags = mapper_config[MappingKeys.PARAMS][MappingKeys.READ_GROUP]
         read_arguments = "".join(
             (
                 '"',

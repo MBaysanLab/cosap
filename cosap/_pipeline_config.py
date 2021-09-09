@@ -27,11 +27,12 @@ class PipelineBaseKeys:
 @dataclass
 class MappingKeys(PipelineBaseKeys):
     SAMPLE_TYPE: str = "sample-type"
-    # RG_ID: str = "rg-id"
-    # RG_SM: str = "rg-sm"
-    # RG_LB: str = "rg-lb"
-    # RG_PL: str = "rg-pl"
-    # RG_PU: str = "rg-pu"
+    READ_GROUP: str = "read_groups"
+    RG_ID: str = "rg-id"
+    RG_SM: str = "rg-sm"
+    RG_LB: str = "rg-lb"
+    RG_PL: str = "rg-pl"
+    RG_PU: str = "rg-pu"
 
 
 @dataclass
