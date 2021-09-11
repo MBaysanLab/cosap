@@ -1,6 +1,0 @@
-{
-    "python.pythonPath": "/home/mae/miniconda3/envs/default/bin/python",
-    "python.linting.enabled": true,
-    "python.analysis.extraPaths": ["cosap/variant_callers", "cosap/mappers", "cosap/parsers","cosap/pipeline_runner", 
-    "cosap/preprocessors", "cosap/tests"]
-}
