@@ -12,26 +12,27 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
     def _create_run_command(
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> list:
-        bam_paths = cls._get_bam_paths(caller_config)
 
-        germline_sample_name = cls._get_sample_name(bam_paths["germline_bam_path"])
-        tumor_sample_name = cls._get_sample_name(bam_paths["tumor_bam_path"])
+        germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
+        tumor_bam = caller_config[VariantCallingKeys.TUMOR_INPUT]
 
-        output_name = cls._create_output_filename(
-            caller_config, sample_name=tumor_sample_name
-        )
+        germline_sample_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.GERMLINE_SAMPLE_NAME]
+        tumor_sample_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.TUMOR_SAMPLE_NAME]
+
+
+        output_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
 
         command = [
-            library_paths.GATK4,
+            "gatk",
             "Mutect2",
             "-R",
             library_paths.REF_DIR,
             "-I",
-            bam_paths["tumor_bam_path"],
+            germline_bam,
             "-tumor",
             tumor_sample_name,
             "-I",
-            bam_paths["germline_bam_path"],
+            tumor_bam,
             "-normal",
             germline_sample_name,
             "-O",
@@ -43,19 +44,12 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
     def _create_get_snp_variants_command(
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> str:
-        bam_paths = cls._get_bam_paths(caller_config)
 
-        tumor_sample_name = cls._get_sample_name(bam_paths["tumor_bam_path"])
-
-        input_name = cls._create_output_filename(
-            caller_config, sample_name=tumor_sample_name
-        )
-        output_name = cls._create_output_filename(
-            caller_config, sample_name=f"SNP_{tumor_sample_name}"
-        )
+        input_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
+        output_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.SNP_OUTPUT]
 
         command = [
-            library_paths.GATK4,
+            "gatk4",
             "SelectVariants",
             "-R",
             library_paths.REF_DIR,
@@ -73,19 +67,12 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
     def _create_get_indel_variants_command(
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> str:
-        bam_paths = cls._get_bam_paths(caller_config)
 
-        tumor_sample_name = cls._get_sample_name(bam_paths["tumor_bam_path"])
-
-        input_name = cls._create_output_filename(
-            caller_config, sample_name=tumor_sample_name
-        )
-        output_name = cls._create_output_filename(
-            caller_config, sample_name=f"SNP_{tumor_sample_name}"
-        )
+        input_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
+        output_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.INDEL_OUTPUT]
 
         command = [
-            library_paths.GATK4,
+            "gatk",
             "SeleckVariants",
             "-R",
             library_paths.REF_DIR,
@@ -103,19 +90,12 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
     def _create_get_other_variants_command(
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> str:
-        bam_paths = cls._get_bam_paths(caller_config)
-
-        tumor_sample_name = cls._get_sample_name(bam_paths["tumor_bam_path"])
-
-        input_name = cls._create_output_filename(
-            caller_config, sample_name=tumor_sample_name
-        )
-        output_name = cls._create_output_filename(
-            caller_config, sample_name=f"SNP_{tumor_sample_name}"
-        )
+    
+        input_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
+        output_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.OTHER_VARIANTS_OUTPUT]
 
         command = [
-            library_paths.GATK4,
+            "gatk",
             "SeleckVariants",
             "-R",
             library_paths.REF_DIR,
@@ -148,10 +128,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             caller_config=caller_config, library_paths=library_paths
         )
 
-        run(mutect_command, cwd=caller_config[VariantCallingKeys.OUTPUT_DIR])
-        run(get_snp_command, cwd=caller_config[VariantCallingKeys.OUTPUT_DIR])
-        run(get_indel_command, cwd=caller_config[VariantCallingKeys.OUTPUT_DIR])
-        run(
-            get_other_variants_command,
-            cwd=caller_config[VariantCallingKeys.VCF_OUTPUT_DIR],
-        )
+        run(" ".join(mutect_command), shell=True)
+        run(" ".join(get_snp_command), shell=True)
+        run(" ".join(get_indel_command), shell=True)
+        run(" ".join(get_other_variants_command), shell=True)

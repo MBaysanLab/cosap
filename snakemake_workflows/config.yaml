@@ -1,0 +1,82 @@
+calibrate:
+  00B3:
+    input: mdup_00B3.bam
+    output: calibrated_00B3.bam
+    table: calibration_table_00B3.table
+  '9870':
+    input: mdup_9870.bam
+    output: calibrated_9870.bam
+    table: calibration_table_9870.table
+creation-date: '2021-09-11 16:47:16'
+final-output:
+- unprocessed_9870.bam
+- unprocessed_00B3.bam
+- mdup_9870.bam
+- mdup_00B3.bam
+- calibrated_9870.bam
+- calibrated_00B3.bam
+- snp_9870_00B3.vcf
+- snp_9870_00B3.vcf
+index: {}
+library_path: /home/mae/Desktop/hg38_bundle
+mapping:
+  00B3:
+    input:
+      '1': /media/mae/SeagateExpansionDrive/arif/case_1_biorep_a_wes/SRR3182433_1.fastq.gz
+      '2': /media/mae/SeagateExpansionDrive/arif/case_1_biorep_a_wes/SRR3182433_2.fastq.gz
+    library: bwa
+    output: unprocessed_00B3.bam
+    params:
+      read_groups:
+        ID: S13
+        LB: S13
+        PL: illumina
+        PU: '0'
+        SM: S13
+  '9870':
+    input:
+      '1': /media/mae/SeagateExpansionDrive/arif/case_1_germline_wes/SRR3182423_1.fastq.gz
+      '2': /media/mae/SeagateExpansionDrive/arif/case_1_germline_wes/SRR3182423_1.fastq.gz
+    library: bwa
+    output: unprocessed_9870.bam
+    params:
+      read_groups:
+        ID: Pt28N
+        LB: Pt28N
+        PL: illumina
+        PU: '0'
+        SM: Pt28N
+mdup:
+  00B3:
+    input: unprocessed_00B3.bam
+    output: mdup_00B3.bam
+  '9870':
+    input: unprocessed_9870.bam
+    output: mdup_9870.bam
+merge: {}
+sorting: {}
+variant-calling:
+  9870_00B3_mutect:
+    indel_output: indel_9870_00B3.vcf
+    library: mutect
+    normal_input: calibrated_9870.bam
+    other_variants_output: other_variants_9870_00B3.vcf
+    params:
+      germline_sample_naeme: normal_sample
+      tumor_sample_name: tumor_sample
+    snp_output: snp_9870_00B3.vcf
+    tumor_input: calibrated_00B3.bam
+    unfiltered_variants: all_9870_00B3.vcf
+  9870_00B3_varscan:
+    indel_output: indel_9870_00B3.vcf
+    library: varscan
+    normal_input: calibrated_9870.bam
+    other_variants_output: other_variants_9870_00B3.vcf
+    params:
+      germline_sample_naeme: normal_sample
+      tumor_sample_name: tumor_sample
+    snp_output: snp_9870_00B3.vcf
+    tumor_input: calibrated_00B3.bam
+    unfiltered_variants: all_9870_00B3.vcf
+version: 0.0.1
+workdir: /media/mae/SeagateExpansionDrive/arif/pipeline_reproduce/

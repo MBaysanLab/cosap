@@ -12,15 +12,13 @@ class SomaticSniperVariantCaller(_Callable, _VariantCaller):
     def _create_somaticSniper_command(
         cls, caller_config=Dict, library_paths=LibraryPaths
     ) -> List:
-        bam_paths = cls._get_bam_paths(caller_config)
 
-        sample_name = cls._get_sample_name(bam_paths["tumor_bam_path"])
-        output_name = cls._create_output_filename(
-            caller_config, sample_name=sample_name
-        )
+        germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
+        tumor_bam = caller_config[VariantCallingKeys.TUMOR_INPUT]
 
+        snp_output_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.SNP_OUTPUT]
         command = [
-            library_paths.SOMATICSNIPER,
+            "somatic-sniper",
             "-q",
             "1",
             "-L",
@@ -43,9 +41,9 @@ class SomaticSniperVariantCaller(_Callable, _VariantCaller):
             "vcf",
             "-f",
             library_paths.REF_DIR,
-            bam_paths["tumor_bam_path"],
-            bam_paths["germline_bam_path"],
-            output_name,
+            germline_bam,
+            tumor_bam,
+            snp_output_name,
         ]
 
         return command
@@ -57,4 +55,4 @@ class SomaticSniperVariantCaller(_Callable, _VariantCaller):
         somatic_sniper_command = cls._create_somaticSniper_command(
             caller_config=caller_config, library_paths=library_paths
         )
-        run(somatic_sniper_command, cwd=caller_config[VariantCallingKeys.OUTPUT_DIR])
+        run(" ".join(somatic_sniper_command), shell=True)

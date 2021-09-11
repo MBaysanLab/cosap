@@ -17,25 +17,50 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
 
     def __post_init__(self):
         if self.name is None:
-            self.name = f"{self.tumor.name}_{self.germline.name}_{self.library}"
+            self.name = f"{self.germline.name}_{self.tumor.name}_{self.library}"
+        if VariantCallingKeys.GERMLINE_SAMPLE_NAME not in self.params:
+            self.params[VariantCallingKeys.GERMLINE_SAMPLE_NAME] = "normal_sample"
+        if VariantCallingKeys.TUMOR_SAMPLE_NAME not in self.params:
+            self.params[VariantCallingKeys.TUMOR_SAMPLE_NAME] = "tumor_sample"
 
     def get_output(self):
         config = self.get_config()
-        return config[PipelineKeys.VARIANT_CALLING][VariantCallingKeys.OUTPUT]
+        return config[PipelineKeys.VARIANT_CALLING][self.name][VariantCallingKeys.SNP_OUTPUT]
 
     def get_config(self) -> Dict:
-        output_filename = FileFormats.GATK_SNP_OUTPUT.format(
-            identification=f"{self.tumor.name}_{self.germline.name}",
+        unfiltered_variants_output_filename = FileFormats.GATK_UNFILTERED_OUTPUT.format(
+            germline_identification=self.germline.name,
+            tumor_identification = self.tumor.name,
             algorithm=self.library,
         )
+        snp_output_filename = FileFormats.GATK_SNP_OUTPUT.format(
+            germline_identification=self.germline.name,
+            tumor_identification = self.tumor.name,
+            algorithm=self.library,
+        )
+        indel_output_filename = FileFormats.GATK_INDEL_OUTPUT.format(
+            germline_identification=self.germline.name,
+            tumor_identification = self.tumor.name,
+            algorithm=self.library,
+        )
+        other_variants_output_filename = FileFormats.GATK_OTHER_VARIANTS_OUTPUT.format(
+            germline_identification=self.germline.name,
+            tumor_identification = self.tumor.name,
+            algorithm=self.library,
+        )
+
 
         vc_config = {
             self.name: {
                 VariantCallingKeys.LIBRARY: self.library,
-                VariantCallingKeys.GERMLINE: self.germline.name,
-                VariantCallingKeys.TUMOR: self.tumor.name,
+                VariantCallingKeys.GERMLINE_INPUT: self.germline.get_output(),
+                VariantCallingKeys.TUMOR_INPUT: self.tumor.get_output(),
                 VariantCallingKeys.PARAMS: self.params,
-                VariantCallingKeys.OUTPUT: output_filename,
+                VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT: unfiltered_variants_output_filename,
+                VariantCallingKeys.SNP_OUTPUT: snp_output_filename,
+                VariantCallingKeys.INDEL_OUTPUT: indel_output_filename,
+                VariantCallingKeys.OTHER_VARIANTS_OUTPUT: other_variants_output_filename
+
             }
         }
 

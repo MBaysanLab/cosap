@@ -9,7 +9,7 @@ from ..._pipeline_config import (
     MappingKeys,
     MergingKeys,
     PipelineKeys,
-    SortingKeys,
+    SortingKeys
 )
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
@@ -27,8 +27,7 @@ class Mapper(_IPipelineStep, _PipelineStep):
 
     def _create_config(self) -> Dict:
         output_filename = FileFormats.MAPPING_OUTPUT.format(
-            identification=self.name, algorithm=self.library
-        )
+            identification=self.name)
 
         read_filenames = {}
         for reader in self.reads:
@@ -53,7 +52,7 @@ class Mapper(_IPipelineStep, _PipelineStep):
 
     def get_output(self) -> str:
         config = self.get_config()
-        return config[PipelineKeys.MAPPING][self.name][BaseRecalibratorKeys.OUTPUT]
+        return config[PipelineKeys.MAPPING][self.name][MappingKeys.OUTPUT]
 
     def get_config(self) -> Dict:
         mapping_config = self._create_config()

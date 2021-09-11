@@ -1,17 +1,14 @@
 import os
+from cosap._pipeline_config import PipelineKeys
 
 include: "./rules/mapper.smk"
 include: "./rules/preprocess.smk"
 include: "./rules/variantcaller.smk"
 
+configfile: "config.yaml"
 
-output_vcfs = [
-    config["variant-calling"][caller]["output"] for caller in config["variant-calling"]
-]
-
+output_files = config[PipelineKeys.FINAL_OUTPUT]
 
 rule all:
     input:
-        expand(
-            os.path.normpath(os.path.join(config["workdir"], "{vcf}")), vcf=output_vcfs
-        ),
+        expand("{output_file}", output_file=output_files)

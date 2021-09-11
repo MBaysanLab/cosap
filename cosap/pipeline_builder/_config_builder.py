@@ -1,4 +1,5 @@
 from __future__ import annotations
+from dataclasses import make_dataclass
 
 from datetime import datetime
 from typing import Dict, List
@@ -19,6 +20,7 @@ from .builders import _PipelineStep
 from .._config import AppConfig
 
 
+
 class Pipeline:
     def __init__(self):
         self._pipeline_steps = []
@@ -32,13 +34,16 @@ class Pipeline:
             PipelineKeys.SORTING: dict(),
             PipelineKeys.INDEX: dict(),
             PipelineKeys.MERGE: dict(),
+            PipelineKeys.MDUP: dict(),
             PipelineKeys.CALIBRATE: dict(),
             PipelineKeys.VARIANT_CALLING: dict(),
+            PipelineKeys.FINAL_OUTPUT: list()
         }
         return config
 
     def add(self, step: _PipelineStep) -> Pipeline:
         self._pipeline_steps.append(step)
+
         return self
 
     def build(self) -> Dict:
@@ -46,7 +51,7 @@ class Pipeline:
 
         for step in self._pipeline_steps:
             step_config = step.get_config()
-
+            pipeline_config[PipelineKeys.FINAL_OUTPUT].append(step.get_output())
             for key, values in step_config.items():
                 for k, v in values.items():
                     pipeline_config[key][k] = v

@@ -11,33 +11,28 @@ from ._variantcallers import _Callable, _VariantCaller
 
 class VarScanVariantCaller(_Callable, _VariantCaller):
     @classmethod
-    def _create_samtools_mpileup_command(
+    def _create_somatic_command(
         cls, caller_config=Dict, library_paths=LibraryPaths
     ) -> List:
-        bam_paths = cls._get_bam_paths(caller_config)
 
-        tumor_sample_name = cls._get_sample_name(bam_paths["tumor_bam_path"])
+        germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
+        tumor_bam = caller_config[VariantCallingKeys.TUMOR_INPUT]
 
-        snp_output_name = cls._create_output_filename(
-            caller_config, sample_name=os.path.join("SNP", tumor_sample_name)
-        )
-        indel_output_name = cls._create_output_filename(
-            caller_config, sample_name=os.path.join("INDEL", tumor_sample_name)
-        )
+        snp_output_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.SNP_OUTPUT]
+        indel_output_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.INDEL_OUTPUT]
 
         command = [
             "samtools",
             "mpileup",
+            "-f",
             library_paths.REF_DIR,
             "-q",
             "1",
-            "-B",
-            bam_paths["germline_bam_path"],
-            " ",
-            bam_paths["tumor_bam_path"],
-            "java",
-            "-jar",
-            library_paths.VARSCAN,
+            "-b",
+            germline_bam,
+            tumor_bam,
+            "|",
+            "varscan",
             "somatic",
             "--output-snp",
             snp_output_name,
@@ -52,17 +47,12 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
 
     @classmethod
     def _create_process_somatic_command(
-        cls,
-        caller_config=Dict,
-        library_paths=LibraryPaths,
-        mpileup_object=Union[str, Path],
+        cls,vcf=Union[str, Path],
     ) -> List:
         command = [
-            "java",
-            "-jar",
-            library_paths.VARSCAN,
+            "varscan",
             "processSomatic",
-            mpileup_object,
+            vcf,
             "--min-tumor-freq",
             "0.1",
             "--max-tumor-freq",
@@ -76,21 +66,24 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
     def call_variants(cls, caller_config: Dict):
         library_paths = LibraryPaths()
 
-        samtools_mpileup = cls._create_samtools_mpileup_command(
+        samtools_mpileup = cls._create_somatic_command(
             caller_config=caller_config, library_paths=library_paths
         )
 
-        run(samtools_mpileup, cwd=caller_config[VariantCallingKeys.OUTPUT_DIR])
+        run(" ".join(samtools_mpileup), shell=True)
 
-        samtools_pileups = call_variants[VariantCallingKeys.PILEUPS]
+        unfiltered_vcfs = [
+            caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.SNP_OUTPUT],
+            caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.INDEL_OUTPUT],
+            ]
 
-        for vcf_file in samtools_pileups:
+        for vcf_file in unfiltered_vcfs:
             process_somatic_command = cls._create_process_somatic_command(
                 caller_config=caller_config,
                 library_paths=library_paths,
-                mpileup_object=vcf_file,
+                vcf=vcf_file,
             )
             run(
-                process_somatic_command,
-                cwd=caller_config[VariantCallingKeys.OUTPUT_DIR],
+                " ".join(process_somatic_command),
+                shell=True
             )

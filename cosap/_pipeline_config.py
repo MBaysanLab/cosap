@@ -12,8 +12,10 @@ class PipelineKeys:
     SORTING: str = "sorting"
     INDEX: str = "index"
     MERGE: str = "merge"
+    MDUP: str = "mdup"
     CALIBRATE: str = "calibrate"
     VARIANT_CALLING: str = "variant-calling"
+    FINAL_OUTPUT: str = "final-output"
 
 
 @dataclass
@@ -28,11 +30,11 @@ class PipelineBaseKeys:
 class MappingKeys(PipelineBaseKeys):
     SAMPLE_TYPE: str = "sample-type"
     READ_GROUP: str = "read_groups"
-    RG_ID: str = "rg-id"
-    RG_SM: str = "rg-sm"
-    RG_LB: str = "rg-lb"
-    RG_PL: str = "rg-pl"
-    RG_PU: str = "rg-pu"
+    RG_ID: str = "ID"
+    RG_SM: str = "SM"
+    RG_LB: str = "LB"
+    RG_PL: str = "PL"
+    RG_PU: str = "PU"
 
 
 @dataclass
@@ -79,7 +81,12 @@ class BaseRecalibratorKeys(PipelineBaseKeys):
 
 @dataclass
 class VariantCallingKeys(PipelineBaseKeys):
-    GERMLINE: str = "normal"
-    TUMOR: str = "tumor"
-    OUTPUT_DIR: str = "output-dir"
+    GERMLINE_INPUT: str = "normal_input"
+    TUMOR_INPUT: str = "tumor_input"
+    GERMLINE_SAMPLE_NAME: str = "germline_sample_naeme"
+    TUMOR_SAMPLE_NAME: str = "tumor_sample_name"
+    UNFILTERED_VARIANTS_OUTPUT: str = "unfiltered_variants"
+    SNP_OUTPUT: str = "snp_output"
+    INDEL_OUTPUT: str = "indel_output"
+    OTHER_VARIANTS_OUTPUT: str = "other_variants_output"
     PILEUPS: str = "pileups"

@@ -12,13 +12,13 @@ class Bowtie2Mapper(_Mapper, _Mappable):
     @classmethod
     def _create_fastq_reads_command(cls, mapper_config: Dict) -> List:
         command = []
-        for i, read in enumerate(mapper_config[MappingKeys.INPUTS]):
-            command.extend([f"-{i}", read])
+        for i, read in enumerate(mapper_config[MappingKeys.INPUT],1):
+            command.extend([f"-{i}", mapper_config[MappingKeys.INPUT][read]])
         return command
 
     @classmethod
     def _create_read_group(cls, mapper_config: Dict) -> List:
-        flags = mapper_config[MappingKeys.PARAMS]
+        flags = mapper_config[MappingKeys.PARAMS][MappingKeys.READ_GROUP]
         read_arguments = [
             "--rg-id",
             flags[MappingKeys.RG_ID],
@@ -45,18 +45,16 @@ class Bowtie2Mapper(_Mapper, _Mappable):
         command = [
             "bowtie2",
             "-p",
-            app_config.THREADS,
+            str(app_config.THREADS),
             *read_group,
             "-x",
-            library_paths.REF_DIR,
-            # TODO: This needs to go somewhere else
             library_paths.BOWTIE2_ASSEMBLY,
             *fastq_reads,
             "|",
             "samtools",
             "view",
             "-@",
-            app_config.THREADS,
+            str(app_config.THREADS),
             "-bS",
             "-",
             ">",
@@ -80,5 +78,5 @@ class Bowtie2Mapper(_Mapper, _Mappable):
             library_paths=library_paths,
             app_config=app_config,
         )
-
-        run(command, cwd=os.path.dirname(mapper_config[MappingKeys.INPUTS][0]))
+        
+        run(" ".join(command), shell=True)

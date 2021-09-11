@@ -1,6 +1,5 @@
 from ._mutect2_variantcaller import Mutect2VariantCaller
 from ._somaticsniper_variantcaller import SomaticSniperVariantCaller
-from ._strelka_variantcaller import Strelka2VariantCaller
 from ._variantcallers import _VariantCaller
 from ._varscan_variantcaller import VarScanVariantCaller
 
@@ -19,8 +18,6 @@ class VariantCallerFactory:
             caller = Mutect2VariantCaller
         elif caller_type == cls.SOMATICSNIPER_CALLER:
             caller = SomaticSniperVariantCaller
-        elif caller_type == cls.STRELKA2_CALLER:
-            caller = Strelka2VariantCaller
         elif caller_type == cls.VARSCAN_CALLER:
             caller = VarScanVariantCaller
         else:
