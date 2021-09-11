@@ -25,30 +25,31 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
 
     def get_output(self):
         config = self.get_config()
-        return config[PipelineKeys.VARIANT_CALLING][self.name][VariantCallingKeys.SNP_OUTPUT]
+        return config[PipelineKeys.VARIANT_CALLING][self.name][
+            VariantCallingKeys.SNP_OUTPUT
+        ]
 
     def get_config(self) -> Dict:
         unfiltered_variants_output_filename = FileFormats.GATK_UNFILTERED_OUTPUT.format(
             germline_identification=self.germline.name,
-            tumor_identification = self.tumor.name,
+            tumor_identification=self.tumor.name,
             algorithm=self.library,
         )
         snp_output_filename = FileFormats.GATK_SNP_OUTPUT.format(
             germline_identification=self.germline.name,
-            tumor_identification = self.tumor.name,
+            tumor_identification=self.tumor.name,
             algorithm=self.library,
         )
         indel_output_filename = FileFormats.GATK_INDEL_OUTPUT.format(
             germline_identification=self.germline.name,
-            tumor_identification = self.tumor.name,
+            tumor_identification=self.tumor.name,
             algorithm=self.library,
         )
         other_variants_output_filename = FileFormats.GATK_OTHER_VARIANTS_OUTPUT.format(
             germline_identification=self.germline.name,
-            tumor_identification = self.tumor.name,
+            tumor_identification=self.tumor.name,
             algorithm=self.library,
         )
-
 
         vc_config = {
             self.name: {
@@ -59,8 +60,7 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
                 VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT: unfiltered_variants_output_filename,
                 VariantCallingKeys.SNP_OUTPUT: snp_output_filename,
                 VariantCallingKeys.INDEL_OUTPUT: indel_output_filename,
-                VariantCallingKeys.OTHER_VARIANTS_OUTPUT: other_variants_output_filename
-
+                VariantCallingKeys.OTHER_VARIANTS_OUTPUT: other_variants_output_filename,
             }
         }
 

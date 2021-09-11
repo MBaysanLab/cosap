@@ -9,7 +9,7 @@ from ..._pipeline_config import (
     MappingKeys,
     MergingKeys,
     PipelineKeys,
-    SortingKeys
+    SortingKeys,
 )
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
@@ -26,8 +26,7 @@ class Mapper(_IPipelineStep, _PipelineStep):
             self.name = self._get_name()
 
     def _create_config(self) -> Dict:
-        output_filename = FileFormats.MAPPING_OUTPUT.format(
-            identification=self.name)
+        output_filename = FileFormats.MAPPING_OUTPUT.format(identification=self.name)
 
         read_filenames = {}
         for reader in self.reads:

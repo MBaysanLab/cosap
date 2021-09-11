@@ -5,6 +5,7 @@ from ._indexer import BamIndexer
 from ._sorter import SamtoolsSorter
 from ._merger import BamMerger
 
+
 class PreprocessorFactory:
     markduplicate = "mark_duplicate"
     indexer = "indexer"

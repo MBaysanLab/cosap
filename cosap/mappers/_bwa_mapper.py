@@ -15,15 +15,15 @@ class BWAMapper(_Mapper, _Mappable):
         read_arguments = "".join(
             (
                 '"',
-                r'@RG\tID:',
+                r"@RG\tID:",
                 flags[MappingKeys.RG_ID],
-                r'\tSM:',
+                r"\tSM:",
                 flags[MappingKeys.RG_SM],
-                r'\tLB:',
+                r"\tLB:",
                 flags[MappingKeys.RG_LB],
-                r'\tPL:',
+                r"\tPL:",
                 flags[MappingKeys.RG_PL],
-                r'\tPU:',
+                r"\tPU:",
                 flags[MappingKeys.RG_PU],
                 '"',
             )
@@ -39,7 +39,9 @@ class BWAMapper(_Mapper, _Mappable):
         app_config: AppConfig,
     ) -> List:
 
-        fastq_inputs = " ".join([fastq for fastq in mapper_config[MappingKeys.INPUT].values()])
+        fastq_inputs = " ".join(
+            [fastq for fastq in mapper_config[MappingKeys.INPUT].values()]
+        )
 
         command = [
             "bwa",
@@ -58,7 +60,8 @@ class BWAMapper(_Mapper, _Mappable):
             "-bS",
             "-",
             ">",
-            mapper_config[MappingKeys.OUTPUT],]
+            mapper_config[MappingKeys.OUTPUT],
+        ]
         return command
 
     @classmethod
@@ -74,6 +77,6 @@ class BWAMapper(_Mapper, _Mappable):
             library_paths=library_paths,
             app_config=app_config,
         )
-        
-        #TODO: this is not the best practice
-        run(" ".join(command),shell=True)
+
+        # TODO: this is not the best practice
+        run(" ".join(command), shell=True)

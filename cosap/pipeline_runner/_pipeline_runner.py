@@ -4,7 +4,13 @@ import yaml
 
 from .._pipeline_config import MappingKeys, PipelineKeys, VariantCallingKeys
 from ..mappers import MapperFactory
-from ..preprocessors import BamIndexer, BamMerger, MarkDuplicate, SamtoolsSorter, BaseRecalibrator
+from ..preprocessors import (
+    BamIndexer,
+    BamMerger,
+    MarkDuplicate,
+    SamtoolsSorter,
+    BaseRecalibrator,
+)
 from ..variant_callers import VariantCallerFactory
 from .._config import AppConfig
 
@@ -76,5 +82,5 @@ class PipelineRunner:
 
         snakemake_command = f"snakemake -s /home/mae/Desktop/cosap/cosap/snakemake_workflows/Snakefile -j{AppConfig.THREADS} --configfile {config_yaml_path}"
 
-        #TODO: Use snakemake api for this
+        # TODO: Use snakemake api for this
         os.system(snakemake_command)

@@ -18,8 +18,12 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
         germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
         tumor_bam = caller_config[VariantCallingKeys.TUMOR_INPUT]
 
-        snp_output_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.SNP_OUTPUT]
-        indel_output_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.INDEL_OUTPUT]
+        snp_output_name = caller_config[VariantCallingKeys.PARAMS][
+            VariantCallingKeys.SNP_OUTPUT
+        ]
+        indel_output_name = caller_config[VariantCallingKeys.PARAMS][
+            VariantCallingKeys.INDEL_OUTPUT
+        ]
 
         command = [
             "samtools",
@@ -47,7 +51,8 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
 
     @classmethod
     def _create_process_somatic_command(
-        cls,vcf=Union[str, Path],
+        cls,
+        vcf=Union[str, Path],
     ) -> List:
         command = [
             "varscan",
@@ -75,7 +80,7 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
         unfiltered_vcfs = [
             caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.SNP_OUTPUT],
             caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.INDEL_OUTPUT],
-            ]
+        ]
 
         for vcf_file in unfiltered_vcfs:
             process_somatic_command = cls._create_process_somatic_command(
@@ -83,7 +88,4 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
                 library_paths=library_paths,
                 vcf=vcf_file,
             )
-            run(
-                " ".join(process_somatic_command),
-                shell=True
-            )
+            run(" ".join(process_somatic_command), shell=True)

@@ -17,14 +17,16 @@ class Recalibrator(_IPipelineStep, _PipelineStep):
 
     def _create_config(self) -> Dict:
         filename = self.input_step.get_output()
-        output_filename = FileFormats.CALIBRATION_OUTPUT.format(identification=self.name)
+        output_filename = FileFormats.CALIBRATION_OUTPUT.format(
+            identification=self.name
+        )
         table_filename = FileFormats.CALIBRATION_TABLE.format(identification=self.name)
 
         config = {
-            self.name:{
-            BaseRecalibratorKeys.INPUT: filename,
-            BaseRecalibratorKeys.TABLE: table_filename,
-            BaseRecalibratorKeys.OUTPUT: output_filename,
+            self.name: {
+                BaseRecalibratorKeys.INPUT: filename,
+                BaseRecalibratorKeys.TABLE: table_filename,
+                BaseRecalibratorKeys.OUTPUT: output_filename,
             }
         }
         return config

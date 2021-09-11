@@ -16,11 +16,16 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
         tumor_bam = caller_config[VariantCallingKeys.TUMOR_INPUT]
 
-        germline_sample_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.GERMLINE_SAMPLE_NAME]
-        tumor_sample_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.TUMOR_SAMPLE_NAME]
+        germline_sample_name = caller_config[VariantCallingKeys.PARAMS][
+            VariantCallingKeys.GERMLINE_SAMPLE_NAME
+        ]
+        tumor_sample_name = caller_config[VariantCallingKeys.PARAMS][
+            VariantCallingKeys.TUMOR_SAMPLE_NAME
+        ]
 
-
-        output_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
+        output_name = caller_config[VariantCallingKeys.PARAMS][
+            VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT
+        ]
 
         command = [
             "gatk",
@@ -45,8 +50,12 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> str:
 
-        input_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
-        output_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.SNP_OUTPUT]
+        input_name = caller_config[VariantCallingKeys.PARAMS][
+            VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT
+        ]
+        output_name = caller_config[VariantCallingKeys.PARAMS][
+            VariantCallingKeys.SNP_OUTPUT
+        ]
 
         command = [
             "gatk4",
@@ -68,8 +77,12 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> str:
 
-        input_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
-        output_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.INDEL_OUTPUT]
+        input_name = caller_config[VariantCallingKeys.PARAMS][
+            VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT
+        ]
+        output_name = caller_config[VariantCallingKeys.PARAMS][
+            VariantCallingKeys.INDEL_OUTPUT
+        ]
 
         command = [
             "gatk",
@@ -90,9 +103,13 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
     def _create_get_other_variants_command(
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> str:
-    
-        input_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
-        output_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.OTHER_VARIANTS_OUTPUT]
+
+        input_name = caller_config[VariantCallingKeys.PARAMS][
+            VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT
+        ]
+        output_name = caller_config[VariantCallingKeys.PARAMS][
+            VariantCallingKeys.OTHER_VARIANTS_OUTPUT
+        ]
 
         command = [
             "gatk",

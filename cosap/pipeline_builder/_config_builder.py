@@ -20,7 +20,6 @@ from .builders import _PipelineStep
 from .._config import AppConfig
 
 
-
 class Pipeline:
     def __init__(self):
         self._pipeline_steps = []
@@ -37,7 +36,7 @@ class Pipeline:
             PipelineKeys.MDUP: dict(),
             PipelineKeys.CALIBRATE: dict(),
             PipelineKeys.VARIANT_CALLING: dict(),
-            PipelineKeys.FINAL_OUTPUT: list()
+            PipelineKeys.FINAL_OUTPUT: list(),
         }
         return config
 

@@ -16,12 +16,14 @@ class MDUP(_IPipelineStep, _PipelineStep):
             self.name = self.input_step.name
 
     def _create_config(self) -> Dict:
-        output_filename = FileFormats.MDUP_OUTPUT.format(identification=self.input_step.name)
+        output_filename = FileFormats.MDUP_OUTPUT.format(
+            identification=self.input_step.name
+        )
 
         config = {
             self.name: {
-            MDUPKeys.INPUT: self.input_step.get_output(),
-            MDUPKeys.OUTPUT: output_filename,
+                MDUPKeys.INPUT: self.input_step.get_output(),
+                MDUPKeys.OUTPUT: output_filename,
             }
         }
         return config

@@ -12,7 +12,7 @@ class Bowtie2Mapper(_Mapper, _Mappable):
     @classmethod
     def _create_fastq_reads_command(cls, mapper_config: Dict) -> List:
         command = []
-        for i, read in enumerate(mapper_config[MappingKeys.INPUT],1):
+        for i, read in enumerate(mapper_config[MappingKeys.INPUT], 1):
             command.extend([f"-{i}", mapper_config[MappingKeys.INPUT][read]])
         return command
 
@@ -78,5 +78,5 @@ class Bowtie2Mapper(_Mapper, _Mappable):
             library_paths=library_paths,
             app_config=app_config,
         )
-        
+
         run(" ".join(command), shell=True)

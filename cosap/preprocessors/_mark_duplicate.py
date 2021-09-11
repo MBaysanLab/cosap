@@ -7,7 +7,7 @@ from .._pipeline_config import MDUPKeys
 from ._preprocessors import _Preprocessor, _PreProcessable
 
 
-class MarkDuplicate(_Preprocessor,_PreProcessable):
+class MarkDuplicate(_Preprocessor, _PreProcessable):
     @classmethod
     def _create_command(
         cls, library_paths: LibraryPaths, app_config: AppConfig, mdup_config: Dict
