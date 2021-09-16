@@ -1,6 +1,6 @@
 from copy import copy
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from ..._formats import FileFormats
 from ..._pipeline_config import (
@@ -12,25 +12,34 @@ from ..._pipeline_config import (
     SortingKeys,
 )
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
+from ._trimmer_builder import Trimmer
+from ._file_readers import FastqReader
 
 
 @dataclass
 class Mapper(_IPipelineStep, _PipelineStep):
     library: str
-    reads: List[_PipelineStep]
+    reads: Union[_PipelineStep, List[_PipelineStep]]
     params: Dict
     name: str = None
 
     def __post_init__(self):
         if self.name is None:
-            self.name = self._get_name()
+            if type(self.reads) == Trimmer:
+                self.name = self.reads.name
+            else:
+                self.name = "%s" % "-".join(read.name for read in self.reads)
 
     def _create_config(self) -> Dict:
         output_filename = FileFormats.MAPPING_OUTPUT.format(identification=self.name)
 
-        read_filenames = {}
-        for reader in self.reads:
-            read_filenames[reader.read] = reader.get_output()
+        if type(self.reads) == Trimmer:
+            read_filenames = self.reads.get_output()
+
+        else:
+            read_filenames = {}
+            for reader in self.reads:
+                read_filenames[reader.read] = reader.get_output()
 
         if set(read_filenames.keys()) != set(
             map(str, range(1, len(read_filenames) + 1))

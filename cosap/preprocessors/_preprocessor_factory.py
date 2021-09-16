@@ -4,6 +4,7 @@ from ._base_recalibrator import BaseRecalibrator
 from ._indexer import BamIndexer
 from ._sorter import SamtoolsSorter
 from ._merger import BamMerger
+from ._trimmer import Trimmer
 
 
 class PreprocessorFactory:
@@ -12,6 +13,7 @@ class PreprocessorFactory:
     base_recalibrator = "base_recalibrator"
     merger = "merger"
     sorter = "sorter"
+    trimmer = "trimmer"
 
     @classmethod
     def create(cls, preprocessor_type: str) -> _Preprocessor:
@@ -27,6 +29,8 @@ class PreprocessorFactory:
             preprocessor = BamMerger
         elif preprocessor_type == cls.sorter:
             preprocessor = SamtoolsSorter
+        elif preprocessor_type == cls.trimmer:
+            preprocessor = Trimmer
         else:
             raise Exception(f"Unknown mapper type: {preprocessor_type}")
 

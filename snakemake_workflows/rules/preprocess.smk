@@ -4,6 +4,15 @@ from cosap._formats import FileFormats
 from cosap._pipeline_config import MappingKeys, PipelineKeys
 
 
+rule fastp_trim:
+    output:
+        fastq=FileFormats.TRIMMING_OUTPUT.format(identification="{identification}"),
+    run:
+        trimmer = PreprocessorFactory.create(
+            preprocessor_type = "trimmer"
+        )
+        trimmer.run_preprocessor(config[PipelineKeys.TRIM][wildcards.identification])
+
 rule mark_dup:
     input:
         bam=lambda wildcards: FileFormats.MAPPING_OUTPUT.format(

@@ -1,31 +1,35 @@
 calibrate:
-  00B3:
-    input: mdup_00B3.bam
-    output: calibrated_00B3.bam
-    table: calibration_table_00B3.table
-  '9870':
-    input: mdup_9870.bam
-    output: calibrated_9870.bam
-    table: calibration_table_9870.table
-creation-date: '2021-09-11 16:47:16'
+  4E2D:
+    input: mdup_4E2D.bam
+    output: calibrated_4E2D.bam
+    table: calibration_table_4E2D.table
+  DD16:
+    input: mdup_DD16.bam
+    output: calibrated_DD16.bam
+    table: calibration_table_DD16.table
+creation-date: '2021-09-16 16:22:21'
 final-output:
-- unprocessed_9870.bam
-- unprocessed_00B3.bam
-- mdup_9870.bam
-- mdup_00B3.bam
-- calibrated_9870.bam
-- calibrated_00B3.bam
-- snp_9870_00B3.vcf
-- snp_9870_00B3.vcf
+- '1': trimmed_DD16_1.fastq.gz
+  '2': trimmed_DD16_2.fastq.gz
+- '1': trimmed_4E2D_1.fastq.gz
+  '2': trimmed_4E2D_2.fastq.gz
+- unprocessed_DD16.bam
+- unprocessed_4E2D.bam
+- mdup_DD16.bam
+- mdup_4E2D.bam
+- calibrated_DD16.bam
+- calibrated_4E2D.bam
+- snp_DD16_4E2D.vcf
+- snp_DD16_4E2D.vcf
 index: {}
 library_path: /home/mae/Desktop/hg38_bundle
 mapping:
-  00B3:
+  4E2D:
     input:
-      '1': /media/mae/SeagateExpansionDrive/arif/case_1_biorep_a_wes/SRR3182433_1.fastq.gz
-      '2': /media/mae/SeagateExpansionDrive/arif/case_1_biorep_a_wes/SRR3182433_2.fastq.gz
+      '1': trimmed_4E2D_1.fastq.gz
+      '2': trimmed_4E2D_2.fastq.gz
     library: bwa
-    output: unprocessed_00B3.bam
+    output: unprocessed_4E2D.bam
     params:
       read_groups:
         ID: S13
@@ -33,12 +37,12 @@ mapping:
         PL: illumina
         PU: '0'
         SM: S13
-  '9870':
+  DD16:
     input:
-      '1': /media/mae/SeagateExpansionDrive/arif/case_1_germline_wes/SRR3182423_1.fastq.gz
-      '2': /media/mae/SeagateExpansionDrive/arif/case_1_germline_wes/SRR3182423_1.fastq.gz
+      '1': trimmed_DD16_1.fastq.gz
+      '2': trimmed_DD16_2.fastq.gz
     library: bwa
-    output: unprocessed_9870.bam
+    output: unprocessed_DD16.bam
     params:
       read_groups:
         ID: Pt28N
@@ -47,36 +51,51 @@ mapping:
         PU: '0'
         SM: Pt28N
 mdup:
-  00B3:
-    input: unprocessed_00B3.bam
-    output: mdup_00B3.bam
-  '9870':
-    input: unprocessed_9870.bam
-    output: mdup_9870.bam
+  4E2D:
+    input: unprocessed_4E2D.bam
+    output: mdup_4E2D.bam
+  DD16:
+    input: unprocessed_DD16.bam
+    output: mdup_DD16.bam
 merge: {}
 sorting: {}
+trim:
+  4E2D:
+    input:
+      '1': /media/mae/SeagateExpansionDrive/arif/case_1_biorep_a_wes/SRR3182433_1.fastq.gz
+      '2': /media/mae/SeagateExpansionDrive/arif/case_1_biorep_a_wes/SRR3182433_2.fastq.gz
+    output:
+      '1': trimmed_4E2D_1.fastq.gz
+      '2': trimmed_4E2D_2.fastq.gz
+  DD16:
+    input:
+      '1': /media/mae/SeagateExpansionDrive/arif/case_1_germline_wes/SRR3182423_1.fastq.gz
+      '2': /media/mae/SeagateExpansionDrive/arif/case_1_germline_wes/SRR3182423_2.fastq.gz
+    output:
+      '1': trimmed_DD16_1.fastq.gz
+      '2': trimmed_DD16_2.fastq.gz
 variant-calling:
-  9870_00B3_mutect:
-    indel_output: indel_9870_00B3.vcf
+  DD16_4E2D_mutect:
+    indel_output: indel_DD16_4E2D.vcf
     library: mutect
-    normal_input: calibrated_9870.bam
-    other_variants_output: other_variants_9870_00B3.vcf
+    normal_input: calibrated_DD16.bam
+    other_variants_output: other_variants_DD16_4E2D.vcf
     params:
       germline_sample_naeme: normal_sample
       tumor_sample_name: tumor_sample
-    snp_output: snp_9870_00B3.vcf
-    tumor_input: calibrated_00B3.bam
-    unfiltered_variants: all_9870_00B3.vcf
-  9870_00B3_varscan:
-    indel_output: indel_9870_00B3.vcf
+    snp_output: snp_DD16_4E2D.vcf
+    tumor_input: calibrated_4E2D.bam
+    unfiltered_variants: all_DD16_4E2D.vcf
+  DD16_4E2D_varscan:
+    indel_output: indel_DD16_4E2D.vcf
     library: varscan
-    normal_input: calibrated_9870.bam
-    other_variants_output: other_variants_9870_00B3.vcf
+    normal_input: calibrated_DD16.bam
+    other_variants_output: other_variants_DD16_4E2D.vcf
     params:
       germline_sample_naeme: normal_sample
       tumor_sample_name: tumor_sample
-    snp_output: snp_9870_00B3.vcf
-    tumor_input: calibrated_00B3.bam
-    unfiltered_variants: all_9870_00B3.vcf
+    snp_output: snp_DD16_4E2D.vcf
+    tumor_input: calibrated_4E2D.bam
+    unfiltered_variants: all_DD16_4E2D.vcf
 version: 0.0.1
 workdir: /media/mae/SeagateExpansionDrive/arif/pipeline_reproduce/
