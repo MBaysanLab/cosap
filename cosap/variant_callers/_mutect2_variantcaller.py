@@ -145,7 +145,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             caller_config=caller_config, library_paths=library_paths
         )
 
-        run(" ".join(mutect_command), shell=True)
-        run(" ".join(get_snp_command), shell=True)
-        run(" ".join(get_indel_command), shell=True)
-        run(" ".join(get_other_variants_command), shell=True)
+        run(mutect_command)
+        run(get_snp_command)
+        run(get_indel_command)
+        run(get_other_variants_command)

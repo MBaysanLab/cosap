@@ -1,7 +1,7 @@
 import glob
 import os
 from pathlib import Path
-from subprocess import run
+from subprocess import Popen, run, check_output, PIPE
 from typing import Dict, List, Union
 
 from .._library_paths import LibraryPaths
@@ -11,19 +11,12 @@ from ._variantcallers import _Callable, _VariantCaller
 
 class VarScanVariantCaller(_Callable, _VariantCaller):
     @classmethod
-    def _create_somatic_command(
+    def _create_samtools_command(
         cls, caller_config=Dict, library_paths=LibraryPaths
     ) -> List:
 
         germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
         tumor_bam = caller_config[VariantCallingKeys.TUMOR_INPUT]
-
-        snp_output_name = caller_config[VariantCallingKeys.PARAMS][
-            VariantCallingKeys.SNP_OUTPUT
-        ]
-        indel_output_name = caller_config[VariantCallingKeys.PARAMS][
-            VariantCallingKeys.INDEL_OUTPUT
-        ]
 
         command = [
             "samtools",
@@ -35,7 +28,22 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
             "-b",
             germline_bam,
             tumor_bam,
-            "|",
+        ]
+        return command
+
+    @classmethod
+    def _create_varscan_somatic_command(
+        cls, caller_config=Dict, library_paths=LibraryPaths
+    ) -> List:
+
+        snp_output_name = caller_config[VariantCallingKeys.PARAMS][
+            VariantCallingKeys.SNP_OUTPUT
+        ]
+        indel_output_name = caller_config[VariantCallingKeys.PARAMS][
+            VariantCallingKeys.INDEL_OUTPUT
+        ]
+
+        command = [
             "varscan",
             "somatic",
             "--output-snp",
@@ -71,11 +79,16 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
     def call_variants(cls, caller_config: Dict):
         library_paths = LibraryPaths()
 
-        samtools_mpileup = cls._create_somatic_command(
+        samtools_mpileup = cls._create_samtools_command(
+            caller_config=caller_config, library_paths=library_paths
+        )
+        varscan_somatic = cls._create_varscan_somatic_command(
             caller_config=caller_config, library_paths=library_paths
         )
 
-        run(" ".join(samtools_mpileup), shell=True)
+        samtools = Popen(samtools_mpileup, stdout=PIPE)
+        varscan = check_output(varscan_somatic, stdin=samtools.stdout)
+        samtools.wait()
 
         unfiltered_vcfs = [
             caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.SNP_OUTPUT],
@@ -88,4 +101,4 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
                 library_paths=library_paths,
                 vcf=vcf_file,
             )
-            run(" ".join(process_somatic_command), shell=True)
+            run(process_somatic_command)

@@ -2,11 +2,13 @@ import os
 from cosap.preprocessors._preprocessor_factory import PreprocessorFactory
 from cosap._formats import FileFormats
 from cosap._pipeline_config import MappingKeys, PipelineKeys
+from collections import defaultdict
 
 
 rule fastp_trim:
     output:
-        fastq=FileFormats.TRIMMING_OUTPUT.format(identification="{identification}"),
+        fastq_read_1=FileFormats.TRIMMING_OUTPUT.format(d=defaultdict(str, identification="{identification}", read_no=f"_1")),
+        fastq_read_2=FileFormats.TRIMMING_OUTPUT.format(d=defaultdict(str, identification="{identification}", read_no=f"_2")),
     run:
         trimmer = PreprocessorFactory.create(
             preprocessor_type = "trimmer"

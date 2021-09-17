@@ -1,5 +1,5 @@
 import os
-from subprocess import run
+from subprocess import Popen, run, check_output, PIPE
 from typing import Dict, List
 
 from .._config import AppConfig
@@ -50,15 +50,26 @@ class Bowtie2Mapper(_Mapper, _Mappable):
             "-x",
             library_paths.BOWTIE2_ASSEMBLY,
             *fastq_reads,
-            "|",
+        ]
+        return command
+
+    @classmethod
+    def _create_samtools_command(
+        cls,
+        mapper_config: Dict,
+        read_group: str,
+        library_paths: LibraryPaths,
+        app_config: AppConfig,
+    ) -> List:
+
+        command = [
             "samtools",
-            "view",
+            "sort",
             "-@",
             str(app_config.THREADS),
-            "-bS",
-            "-",
-            ">",
+            "-o",
             mapper_config[MappingKeys.OUTPUT],
+            "-",
         ]
         return command
 
@@ -71,7 +82,7 @@ class Bowtie2Mapper(_Mapper, _Mappable):
 
         fastq_reads = cls._create_fastq_reads_command(mapper_config=mapper_config)
 
-        command = cls._create_command(
+        bowtie_command = cls._create_command(
             mapper_config=mapper_config,
             read_group=read_group,
             fastq_reads=fastq_reads,
@@ -79,4 +90,13 @@ class Bowtie2Mapper(_Mapper, _Mappable):
             app_config=app_config,
         )
 
-        run(" ".join(command), shell=True)
+        samtools_command = cls._create_samtools_command(
+            mapper_config=mapper_config,
+            read_group=read_group,
+            library_paths=library_paths,
+            app_config=app_config,
+        )
+
+        bowtie = Popen(bowtie_command, stdout=PIPE)
+        samtools = check_output(samtools_command, stdin=bowtie.stdout)
+        bowtie.wait()

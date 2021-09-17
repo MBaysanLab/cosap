@@ -12,7 +12,7 @@ class Trimmer(_Preprocessor, _PreProcessable):
     def _create_command(
         cls, library_paths: LibraryPaths, app_config: AppConfig, trimmer_config: Dict
     ) -> List:
-        
+
         fastq_inputs = " ".join(
             [fastq for fastq in trimmer_config[TrimmingKeys.INPUT].values()]
         )
@@ -39,4 +39,4 @@ class Trimmer(_Preprocessor, _PreProcessable):
         command = cls._create_command(
             library_paths=library_paths, app_config=app_config, mdup_config=mdup_config
         )
-        run(" ".join(command), shell=True)
+        run(command)

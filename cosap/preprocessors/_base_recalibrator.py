@@ -51,14 +51,14 @@ class BaseRecalibrator(_Preprocessor, _PreProcessable):
         command = cls._create_table_command(
             calibration_config=calibration_config, library_paths=library_paths
         )
-        run(" ".join(command), shell=True)
+        run(command)
 
     @classmethod
     def _apply_calibration(cls, calibration_config: Dict, library_paths: LibraryPaths):
         command = cls._create_calibration_command(
             calibration_config=calibration_config, library_paths=library_paths
         )
-        run(" ".join(command), shell=True)
+        run(command)
 
     @classmethod
     def run_preprocessor(cls, calibration_config: Dict):

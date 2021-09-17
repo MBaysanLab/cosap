@@ -51,7 +51,15 @@ class Pipeline:
 
         for step in self._pipeline_steps:
             step_config = step.get_config()
-            pipeline_config[PipelineKeys.FINAL_OUTPUT].append(step.get_output())
+            step_output = step.get_output()
+
+            if type(step_output) == str:
+                pipeline_config[PipelineKeys.FINAL_OUTPUT].append(step_output)
+            elif type(step_output) == list:
+                pipeline_config[PipelineKeys.FINAL_OUTPUT].extend(step_output)
+            elif type(step_output) == dict:
+                pipeline_config[PipelineKeys.FINAL_OUTPUT].extend(step_output.values())
+
             for key, values in step_config.items():
                 for k, v in values.items():
                     pipeline_config[key][k] = v

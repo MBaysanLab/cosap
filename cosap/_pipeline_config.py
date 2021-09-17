@@ -37,12 +37,14 @@ class MappingKeys(PipelineBaseKeys):
     RG_PL: str = "PL"
     RG_PU: str = "PU"
 
+
 @dataclass
 class TrimmingKeys(PipelineBaseKeys):
     PAIRED_INPUT_1: str = "input_1"
     PAIRED_INPUT_2: str = "input_2"
     PAIRED_OUTPUT_1: str = "output_1"
     PAIRED_OUTPUT_2: str = "output_2"
+
 
 @dataclass
 class SortingKeys(PipelineBaseKeys):

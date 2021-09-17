@@ -1,6 +1,7 @@
 import os
 from typing import Dict, List
 import yaml
+from subprocess import PIPE, Popen, check_output, run
 
 from .._pipeline_config import MappingKeys, PipelineKeys, VariantCallingKeys
 from ..mappers import MapperFactory
@@ -66,21 +67,43 @@ class PipelineRunner:
 
         self.call_variants(pipeline_config[PipelineKeys.VARIANT_CALLING])
 
-    def run_pipeline_snakemake(self, pipeline_config: Dict, output_dir: str):
+    def run_pipeline_snakemake(self, pipeline_config: Dict, workdir: str):
         config = pipeline_config
-        config[PipelineKeys.WORKDIR] = output_dir
+        config[PipelineKeys.WORKDIR] = workdir
 
-        config_yaml_path = join_paths(output_dir, "config.yaml")
+        config_yaml_path = join_paths(workdir, "config.yaml")
 
         with open(config_yaml_path, "w") as config_yaml:
             yaml.dump(config, config_yaml, default_flow_style=False)
 
-        dag_command = f"snakemake -s /home/mae/Desktop/cosap/cosap/snakemake_workflows/Snakefile \
-            --configfile {config_yaml_path} --dag -n | dot -Tsvg > {output_dir}workflow_dag.svg"
+        dag_command = [
+            "snakemake",
+            "-s",
+            AppConfig.SNAKEFILE_PATH,
+            "--configfile",
+            config_yaml_path,
+            "--dag",
+            "-n",
+        ]
+        print_dag = ["dot", "-Tsvg", "-o", "workflow_dag.svg"]
 
-        os.system(dag_command)
+        create_dag = Popen(dag_command, cwd=workdir, stdout=PIPE)
+        print_dat_to_file = check_output(
+            print_dag, cwd=workdir, stdin=create_dag.stdout
+        )
+        create_dag.wait()
 
-        snakemake_command = f"snakemake -s /home/mae/Desktop/cosap/cosap/snakemake_workflows/Snakefile -j{AppConfig.THREADS} --configfile {config_yaml_path}"
+        snakemake_command = [
+            "snakemake",
+            "-s",
+            AppConfig.SNAKEFILE_PATH,
+            "-j",
+            str(AppConfig.THREADS),
+            "--configfile",
+            config_yaml_path,
+        ]
 
-        # TODO: Use snakemake api for this
-        os.system(snakemake_command)
+        run(snakemake_command, cwd=workdir)
+
+        snakemake_report_command = ["snakemake", "--report", "report.html"]
+        run(snakemake_report_command, cwd=workdir)

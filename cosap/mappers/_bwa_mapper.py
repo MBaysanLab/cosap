@@ -1,5 +1,6 @@
 import os
-from subprocess import run
+from posixpath import commonpath
+from subprocess import STDOUT, run, Popen, check_output, PIPE
 from typing import Dict, List
 
 from .._config import AppConfig
@@ -52,15 +53,26 @@ class BWAMapper(_Mapper, _Mappable):
             read_group,
             library_paths.BWA_ASSEMBLY,
             fastq_inputs,
-            "|",
+        ]
+        return command
+
+    @classmethod
+    def _create_samtools_command(
+        cls,
+        mapper_config: Dict,
+        read_group: str,
+        library_paths: LibraryPaths,
+        app_config: AppConfig,
+    ) -> List:
+
+        command = [
             "samtools",
-            "view",
+            "sort",
             "-@",
             str(app_config.THREADS),
-            "-bS",
-            "-",
-            ">",
+            "-o",
             mapper_config[MappingKeys.OUTPUT],
+            "-",
         ]
         return command
 
@@ -71,12 +83,19 @@ class BWAMapper(_Mapper, _Mappable):
 
         read_group = cls._create_read_group(mapper_config=mapper_config)
 
-        command = cls._create_command(
+        bwa_command = cls._create_command(
+            mapper_config=mapper_config,
+            read_group=read_group,
+            library_paths=library_paths,
+            app_config=app_config,
+        )
+        samtools_command = cls._create_samtools_command(
             mapper_config=mapper_config,
             read_group=read_group,
             library_paths=library_paths,
             app_config=app_config,
         )
 
-        # TODO: this is not the best practice
-        run(" ".join(command), shell=True)
+        bwa = Popen(bwa_command, stdout=PIPE)
+        samtools = check_output(samtools_command, stdin=bwa.stdout)
+        bwa.wait()

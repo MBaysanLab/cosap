@@ -6,6 +6,8 @@ from cosap._pipeline_config import MappingKeys, PipelineKeys
 
 
 rule mapper:
+    input:
+        fastqfiles=lambda wildcards: expand(config[PipelineKeys.MAPPING][wildcards.identification][MappingKeys.INPUT].values())
     output:
         bam=FileFormats.MAPPING_OUTPUT.format(identification="{identification}"),
     run:

@@ -19,4 +19,7 @@ class _AppConfigMeta(type):
 @dataclass
 class AppConfig(metaclass=_AppConfigMeta):
     LIBRARY_PATH: str = os.path.normpath("/home/mae/Desktop/hg38_bundle/")
-    THREADS: int = 1
+    SNAKEFILE_PATH: str = os.path.normpath(
+        "/home/mae/Desktop/cosap/snakemake_workflows/Snakefile"
+    )
+    THREADS: int = 8

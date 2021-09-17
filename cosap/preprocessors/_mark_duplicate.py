@@ -32,4 +32,4 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
         command = cls._create_command(
             library_paths=library_paths, app_config=app_config, mdup_config=mdup_config
         )
-        run(" ".join(command), shell=True)
+        run(command)

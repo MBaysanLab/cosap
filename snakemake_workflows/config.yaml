@@ -1,35 +1,35 @@
 calibrate:
-  4E2D:
-    input: mdup_4E2D.bam
-    output: calibrated_4E2D.bam
-    table: calibration_table_4E2D.table
-  DD16:
-    input: mdup_DD16.bam
-    output: calibrated_DD16.bam
-    table: calibration_table_DD16.table
-creation-date: '2021-09-16 16:22:21'
+  0A60:
+    input: mdup_0A60.bam
+    output: calibrated_0A60.bam
+    table: calibration_table_0A60.table
+  ACFC:
+    input: mdup_ACFC.bam
+    output: calibrated_ACFC.bam
+    table: calibration_table_ACFC.table
+creation-date: '2021-09-17 18:31:52'
 final-output:
-- '1': trimmed_DD16_1.fastq.gz
-  '2': trimmed_DD16_2.fastq.gz
-- '1': trimmed_4E2D_1.fastq.gz
-  '2': trimmed_4E2D_2.fastq.gz
-- unprocessed_DD16.bam
-- unprocessed_4E2D.bam
-- mdup_DD16.bam
-- mdup_4E2D.bam
-- calibrated_DD16.bam
-- calibrated_4E2D.bam
-- snp_DD16_4E2D.vcf
-- snp_DD16_4E2D.vcf
+- trimmed_ACFC_1.fastq.gz
+- trimmed_ACFC_2.fastq.gz
+- trimmed_0A60_1.fastq.gz
+- trimmed_0A60_2.fastq.gz
+- unprocessed_ACFC.bam
+- unprocessed_0A60.bam
+- mdup_ACFC.bam
+- mdup_0A60.bam
+- calibrated_ACFC.bam
+- calibrated_0A60.bam
+- snp_ACFC_0A60.vcf
+- snp_ACFC_0A60.vcf
 index: {}
 library_path: /home/mae/Desktop/hg38_bundle
 mapping:
-  4E2D:
+  0A60:
     input:
-      '1': trimmed_4E2D_1.fastq.gz
-      '2': trimmed_4E2D_2.fastq.gz
+      '1': trimmed_0A60_1.fastq.gz
+      '2': trimmed_0A60_2.fastq.gz
     library: bwa
-    output: unprocessed_4E2D.bam
+    output: unprocessed_0A60.bam
     params:
       read_groups:
         ID: S13
@@ -37,12 +37,12 @@ mapping:
         PL: illumina
         PU: '0'
         SM: S13
-  DD16:
+  ACFC:
     input:
-      '1': trimmed_DD16_1.fastq.gz
-      '2': trimmed_DD16_2.fastq.gz
+      '1': trimmed_ACFC_1.fastq.gz
+      '2': trimmed_ACFC_2.fastq.gz
     library: bwa
-    output: unprocessed_DD16.bam
+    output: unprocessed_ACFC.bam
     params:
       read_groups:
         ID: Pt28N
@@ -51,51 +51,51 @@ mapping:
         PU: '0'
         SM: Pt28N
 mdup:
-  4E2D:
-    input: unprocessed_4E2D.bam
-    output: mdup_4E2D.bam
-  DD16:
-    input: unprocessed_DD16.bam
-    output: mdup_DD16.bam
+  0A60:
+    input: unprocessed_0A60.bam
+    output: mdup_0A60.bam
+  ACFC:
+    input: unprocessed_ACFC.bam
+    output: mdup_ACFC.bam
 merge: {}
 sorting: {}
 trim:
-  4E2D:
+  0A60:
     input:
       '1': /media/mae/SeagateExpansionDrive/arif/case_1_biorep_a_wes/SRR3182433_1.fastq.gz
       '2': /media/mae/SeagateExpansionDrive/arif/case_1_biorep_a_wes/SRR3182433_2.fastq.gz
     output:
-      '1': trimmed_4E2D_1.fastq.gz
-      '2': trimmed_4E2D_2.fastq.gz
-  DD16:
+      '1': trimmed_0A60_1.fastq.gz
+      '2': trimmed_0A60_2.fastq.gz
+  ACFC:
     input:
       '1': /media/mae/SeagateExpansionDrive/arif/case_1_germline_wes/SRR3182423_1.fastq.gz
       '2': /media/mae/SeagateExpansionDrive/arif/case_1_germline_wes/SRR3182423_2.fastq.gz
     output:
-      '1': trimmed_DD16_1.fastq.gz
-      '2': trimmed_DD16_2.fastq.gz
+      '1': trimmed_ACFC_1.fastq.gz
+      '2': trimmed_ACFC_2.fastq.gz
 variant-calling:
-  DD16_4E2D_mutect:
-    indel_output: indel_DD16_4E2D.vcf
+  ACFC_0A60_mutect:
+    indel_output: indel_ACFC_0A60.vcf
     library: mutect
-    normal_input: calibrated_DD16.bam
-    other_variants_output: other_variants_DD16_4E2D.vcf
+    normal_input: calibrated_ACFC.bam
+    other_variants_output: other_variants_ACFC_0A60.vcf
     params:
-      germline_sample_naeme: normal_sample
+      germline_sample_name: normal_sample
       tumor_sample_name: tumor_sample
-    snp_output: snp_DD16_4E2D.vcf
-    tumor_input: calibrated_4E2D.bam
-    unfiltered_variants: all_DD16_4E2D.vcf
-  DD16_4E2D_varscan:
-    indel_output: indel_DD16_4E2D.vcf
+    snp_output: snp_ACFC_0A60.vcf
+    tumor_input: calibrated_0A60.bam
+    unfiltered_variants: all_ACFC_0A60.vcf
+  ACFC_0A60_varscan:
+    indel_output: indel_ACFC_0A60.vcf
     library: varscan
-    normal_input: calibrated_DD16.bam
-    other_variants_output: other_variants_DD16_4E2D.vcf
+    normal_input: calibrated_ACFC.bam
+    other_variants_output: other_variants_ACFC_0A60.vcf
     params:
-      germline_sample_naeme: normal_sample
+      germline_sample_name: normal_sample
       tumor_sample_name: tumor_sample
-    snp_output: snp_DD16_4E2D.vcf
-    tumor_input: calibrated_4E2D.bam
-    unfiltered_variants: all_DD16_4E2D.vcf
+    snp_output: snp_ACFC_0A60.vcf
+    tumor_input: calibrated_0A60.bam
+    unfiltered_variants: all_ACFC_0A60.vcf
 version: 0.0.1
 workdir: /media/mae/SeagateExpansionDrive/arif/pipeline_reproduce/
