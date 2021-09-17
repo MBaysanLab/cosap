@@ -90,7 +90,7 @@ class BaseRecalibratorKeys(PipelineBaseKeys):
 class VariantCallingKeys(PipelineBaseKeys):
     GERMLINE_INPUT: str = "normal_input"
     TUMOR_INPUT: str = "tumor_input"
-    GERMLINE_SAMPLE_NAME: str = "germline_sample_naeme"
+    GERMLINE_SAMPLE_NAME: str = "germline_sample_name"
     TUMOR_SAMPLE_NAME: str = "tumor_sample_name"
     UNFILTERED_VARIANTS_OUTPUT: str = "unfiltered_variants"
     SNP_OUTPUT: str = "snp_output"
