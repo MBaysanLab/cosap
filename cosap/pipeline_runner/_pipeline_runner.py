@@ -105,5 +105,5 @@ class PipelineRunner:
 
         run(snakemake_command, cwd=workdir)
 
-        snakemake_report_command = ["snakemake", "--report", "report.html"]
+        snakemake_report_command = ["snakemake", "-s", AppConfig.SNAKEFILE_PATH, "--report", "report.html"]
         run(snakemake_report_command, cwd=workdir)

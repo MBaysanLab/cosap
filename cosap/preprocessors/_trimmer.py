@@ -32,11 +32,11 @@ class Trimmer(_Preprocessor, _PreProcessable):
         return command
 
     @classmethod
-    def run_preprocessor(cls, mdup_config: Dict):
+    def run_preprocessor(cls, trimmer_config: Dict):
         app_config = AppConfig()
         library_paths = LibraryPaths()
 
         command = cls._create_command(
-            library_paths=library_paths, app_config=app_config, mdup_config=mdup_config
+            library_paths=library_paths, app_config=app_config, trimmer_config=trimmer_config
         )
         run(command)
