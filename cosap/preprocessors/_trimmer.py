@@ -25,9 +25,9 @@ class Trimmer(_Preprocessor, _PreProcessable):
             "--in2",
             fastq_inputs[1],
             "--out1",
-            trimmer_config[TrimmingKeys.PAIRED_OUTPUT_1],
+            trimmer_config[TrimmingKeys.OUTPUT]["1"],
             "--out2",
-            trimmer_config[TrimmingKeys.PAIRED_OUTPUT_1],
+            trimmer_config[TrimmingKeys.OUTPUT]["2"],
         ]
         return command
 
