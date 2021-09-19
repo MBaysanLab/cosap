@@ -7,8 +7,6 @@ include: "./rules/preprocess.smk"
 include: "./rules/variantcaller.smk"
 
 
-configfile: "config.yaml"
-
 
 output_files = config[PipelineKeys.FINAL_OUTPUT]
 

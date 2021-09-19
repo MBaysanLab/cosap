@@ -16,11 +16,16 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
         command = [
             "picard",
             "MarkDuplicates",
-            f"--I {mdup_config[MDUPKeys.INPUT]}",
-            f"--O {mdup_config[MDUPKeys.OUTPUT]}",
-            f"--M {mdup_config[MDUPKeys.OUTPUT]}_metrics",
-            "-REMOVE_DUPLICATES true",
-            "-CREATE_INDEX true",
+            "--INPUT",
+            mdup_config[MDUPKeys.INPUT],
+            "--OUTPUT",
+            mdup_config[MDUPKeys.OUTPUT],
+            "--METRICS_FILE",
+            f"{mdup_config[MDUPKeys.OUTPUT]}_metrics",
+            "--REMOVE_DUPLICATES",
+            "true",
+            "--CREATE_INDEX",
+            "true",
         ]
         return command
 

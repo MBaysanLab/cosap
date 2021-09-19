@@ -76,6 +76,16 @@ class PipelineRunner:
         with open(config_yaml_path, "w") as config_yaml:
             yaml.dump(config, config_yaml, default_flow_style=False)
 
+        snakemake_unlock_dir_command = [
+            "snakemake",
+            "-s",
+            AppConfig.SNAKEFILE_PATH,
+            "--configfile",
+            config_yaml_path,
+            "--unlock",
+        ]
+        run(snakemake_unlock_dir_command, cwd=workdir)
+
         dag_command = [
             "snakemake",
             "-s",
@@ -103,7 +113,16 @@ class PipelineRunner:
             config_yaml_path,
         ]
 
+        print(" ".join(snakemake_command))
         run(snakemake_command, cwd=workdir)
 
-        snakemake_report_command = ["snakemake", "-s", AppConfig.SNAKEFILE_PATH, "--report", "report.html"]
+        snakemake_report_command = [
+            "snakemake",
+            "-s",
+            AppConfig.SNAKEFILE_PATH,
+            "--configfile",
+            config_yaml_path,
+            "--report",
+            "report.html",
+        ]
         run(snakemake_report_command, cwd=workdir)
