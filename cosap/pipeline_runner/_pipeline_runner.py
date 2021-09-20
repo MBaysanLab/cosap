@@ -68,7 +68,7 @@ class PipelineRunner:
         self.call_variants(pipeline_config[PipelineKeys.VARIANT_CALLING])
 
     def run_pipeline_snakemake(self, pipeline_config: Dict, workdir: str):
-        config[PipelineKeys.WORKDIR] = workdir
+        pipeline_config[PipelineKeys.WORKDIR] = workdir
 
         config_yaml_path = join_paths(workdir, "config.yaml")
         
