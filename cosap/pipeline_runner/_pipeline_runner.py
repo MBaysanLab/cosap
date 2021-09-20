@@ -8,6 +8,9 @@ from ..variant_callers import VariantCallerFactory
 
 
 class PipelineRunner:
+    def __init__(self):
+        self._completed = False
+
     def validate_pipeline_config(self, pipeline_config: Dict):
         raise NotImplementedError()
 
@@ -49,9 +52,10 @@ class PipelineRunner:
 
         # TODO: add trimming
         self.map(pipeline_config[PipelineKeys.MAPPING])
-        self.sort(pipeline_config[PipelineKeys.SORTING])
-        self.index(pipeline_config[PipelineKeys.INDEX])
-        self.merge(pipeline_config[PipelineKeys.MERGE])
-        self.calibrate(pipeline_config[PipelineKeys.CALIBRATE])
+        while not self._completed:
+            self.sort(pipeline_config[PipelineKeys.SORTING])
+            self.index(pipeline_config[PipelineKeys.INDEX])
+            self.merge(pipeline_config[PipelineKeys.MERGE])
+            self.calibrate(pipeline_config[PipelineKeys.CALIBRATE])
 
         self.call_variants(pipeline_config[PipelineKeys.VARIANT_CALLING])
