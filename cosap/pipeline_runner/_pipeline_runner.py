@@ -68,13 +68,12 @@ class PipelineRunner:
         self.call_variants(pipeline_config[PipelineKeys.VARIANT_CALLING])
 
     def run_pipeline_snakemake(self, pipeline_config: Dict, workdir: str):
-        config = pipeline_config
         config[PipelineKeys.WORKDIR] = workdir
 
         config_yaml_path = join_paths(workdir, "config.yaml")
-
-        with open(config_yaml_path, "w") as config_yaml:
-            yaml.dump(config, config_yaml, default_flow_style=False)
+        
+        # with open(config_yaml_path, "w") as config_yaml:
+        #     yaml.dump(pipeline_config, config_yaml, default_flow_style=False)
 
         snakemake_unlock_dir_command = [
             "snakemake",

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 @dataclass
 class FileFormats:
-    TRIMMING_OUTPUT: str = "trimmed_{d[identification]}{d[read_no]}.fastq.gz"
+    TRIMMING_OUTPUT: str = "trimmed_{identification}.fastq.gz"
     MAPPING_OUTPUT: str = "unprocessed_{identification}.bam"
     SORTING_OUTPUT: str = "sorted_{identification}.bam"
     INDEXING_OUTPUT: str = "indexed_{identification}.bam"
@@ -17,3 +17,7 @@ class FileFormats:
     GATK_SNP_OUTPUT: str = "snp_{identification}.vcf"
     GATK_INDEL_OUTPUT: str = "indel_{identification}.vcf"
     GATK_OTHER_VARIANTS_OUTPUT: str = "other_variants_{identification}.vcf"
+
+@dataclass
+class Platforms:
+    ILLUMINA: str = "illumina"

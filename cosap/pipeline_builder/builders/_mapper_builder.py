@@ -21,11 +21,11 @@ class Mapper(_IPipelineStep, _PipelineStep):
     library: str
     reads: Union[_PipelineStep, List[_PipelineStep]]
     params: Dict
-    name: str = None
+    name: str 
 
     def __post_init__(self):
         if self.name is None:
-            if type(self.reads) == Trimmer:
+            if isinstance(self.reads, Trimmer):
                 self.name = self.reads.name
             else:
                 self.name = "%s" % "-".join(read.name for read in self.reads)

@@ -25,3 +25,5 @@ class AppConfig(metaclass=_AppConfigMeta):
         "/home/bioinformaticslab/Desktop/cosap/snakemake_workflows/Snakefile"
     )
     THREADS: int = 4
+    WORKDIR: str = os.getcwd()
+    
