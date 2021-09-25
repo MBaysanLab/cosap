@@ -31,24 +31,16 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
 
     def get_config(self) -> Dict:
         unfiltered_variants_output_filename = FileFormats.GATK_UNFILTERED_OUTPUT.format(
-            germline_identification=self.germline.name,
-            tumor_identification=self.tumor.name,
-            algorithm=self.library,
+            identification=self.name
         )
         snp_output_filename = FileFormats.GATK_SNP_OUTPUT.format(
-            germline_identification=self.germline.name,
-            tumor_identification=self.tumor.name,
-            algorithm=self.library,
+            identification=self.name
         )
         indel_output_filename = FileFormats.GATK_INDEL_OUTPUT.format(
-            germline_identification=self.germline.name,
-            tumor_identification=self.tumor.name,
-            algorithm=self.library,
+            identification=self.name
         )
         other_variants_output_filename = FileFormats.GATK_OTHER_VARIANTS_OUTPUT.format(
-            germline_identification=self.germline.name,
-            tumor_identification=self.tumor.name,
-            algorithm=self.library,
+           identification=self.name
         )
 
         vc_config = {
