@@ -34,8 +34,6 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             library_paths.REF_DIR,
             "-I",
             germline_bam,
-            "-tumor",
-            tumor_sample_name,
             "-I",
             tumor_bam,
             "-normal",

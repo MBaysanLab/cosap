@@ -24,6 +24,7 @@ class _LibraryMeta(type):
 
 @dataclass
 class _LibraryPaths:
+    ENSEMBL_VEP: str = os.path.join(AppConfig.LIBRARY_PATH, "vep")
     # PICARD: str = os.path.join(AppConfig.LIBRARY_PATH, "picard.jar")
     # GATK: str = os.path.join(AppConfig.LIBRARY_PATH, "GenomeAnalysisTK.jar")
     # GATK4: str = os.path.join(AppConfig.LIBRARY_PATH, "gatk-4.1.0.0", "gatk")
@@ -79,6 +80,7 @@ class _LibraryPaths38(_LibraryPaths):
     BOWTIE2_ASSEMBLY: str = os.path.join(
         AppConfig.LIBRARY_PATH, "Bowtie2", "Homo_sapiens_assembly38"
     )
+
 
 
 @dataclass

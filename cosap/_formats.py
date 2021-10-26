@@ -23,3 +23,4 @@ class FileFormats:
     GATK_OTHER_VARIANTS_OUTPUT: str = (
         "other_variants_{germline_identification}_{tumor_identification}.vcf"
     )
+    ANNOTATING_OUTPUT: str = "annotated_{germline_identification}_{tumor_identification}.vcf"

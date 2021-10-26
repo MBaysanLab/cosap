@@ -99,3 +99,7 @@ class VariantCallingKeys(PipelineBaseKeys):
     INDEL_OUTPUT: str = "indel_output"
     OTHER_VARIANTS_OUTPUT: str = "other_variants_output"
     PILEUPS: str = "pileups"
+
+@dataclass
+class AnnotatorKeys(PipelineBaseKeys):
+    pass
