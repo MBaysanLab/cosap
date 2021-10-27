@@ -5,9 +5,9 @@ from ._varscan_variantcaller import VarScanVariantCaller
 
 
 class VariantCallerFactory:
-    MUTECT2_CALLER = "mutect2"
+    MUTECT2_CALLER = "mutect"
     SOMATICSNIPER_CALLER = "somaticsniper"
-    STRELKA2_CALLER = "strelka2"
+    STRELKA2_CALLER = "strelka"
     VARSCAN_CALLER = "varscan"
 
     @classmethod

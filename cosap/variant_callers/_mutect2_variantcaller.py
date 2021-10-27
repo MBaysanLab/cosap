@@ -23,15 +23,13 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             VariantCallingKeys.TUMOR_SAMPLE_NAME
         ]
 
-        output_name = caller_config[VariantCallingKeys.PARAMS][
-            VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT
-        ]
+        output_name = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
 
         command = [
             "gatk",
             "Mutect2",
             "-R",
-            library_paths.REF_DIR,
+            library_paths.REF_FASTA,
             "-I",
             germline_bam,
             "-I",
@@ -48,18 +46,14 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> str:
 
-        input_name = caller_config[VariantCallingKeys.PARAMS][
-            VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT
-        ]
-        output_name = caller_config[VariantCallingKeys.PARAMS][
-            VariantCallingKeys.SNP_OUTPUT
-        ]
+        input_name = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
+        output_name = caller_config[VariantCallingKeys.SNP_OUTPUT]
 
         command = [
-            "gatk4",
+            "gatk",
             "SelectVariants",
             "-R",
-            library_paths.REF_DIR,
+            library_paths.REF_FASTA,
             "-V",
             input_name,
             "--select-type-to-include",
@@ -75,18 +69,14 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> str:
 
-        input_name = caller_config[VariantCallingKeys.PARAMS][
-            VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT
-        ]
-        output_name = caller_config[VariantCallingKeys.PARAMS][
-            VariantCallingKeys.INDEL_OUTPUT
-        ]
+        input_name = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
+        output_name = caller_config[VariantCallingKeys.INDEL_OUTPUT]
 
         command = [
             "gatk",
-            "SeleckVariants",
+            "SelectVariants",
             "-R",
-            library_paths.REF_DIR,
+            library_paths.REF_FASTA,
             "-V",
             input_name,
             "--select-type-to-include",
@@ -102,18 +92,14 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> str:
 
-        input_name = caller_config[VariantCallingKeys.PARAMS][
-            VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT
-        ]
-        output_name = caller_config[VariantCallingKeys.PARAMS][
-            VariantCallingKeys.OTHER_VARIANTS_OUTPUT
-        ]
+        input_name = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
+        output_name = caller_config[VariantCallingKeys.OTHER_VARIANTS_OUTPUT]
 
         command = [
             "gatk",
-            "SeleckVariants",
+            "SelectVariants",
             "-R",
-            library_paths.REF_DIR,
+            library_paths.REF_FASTA,
             "-V",
             input_name,
             "--select-type-to-exclude",

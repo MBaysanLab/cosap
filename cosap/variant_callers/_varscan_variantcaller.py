@@ -22,10 +22,7 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
             "samtools",
             "mpileup",
             "-f",
-            library_paths.REF_DIR,
-            "-q",
-            "1",
-            "-b",
+            library_paths.REF_FASTA,
             germline_bam,
             tumor_bam,
         ]
@@ -36,12 +33,8 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
         cls, caller_config=Dict, library_paths=LibraryPaths
     ) -> List:
 
-        snp_output_name = caller_config[VariantCallingKeys.PARAMS][
-            VariantCallingKeys.SNP_OUTPUT
-        ]
-        indel_output_name = caller_config[VariantCallingKeys.PARAMS][
-            VariantCallingKeys.INDEL_OUTPUT
-        ]
+        snp_output_name = caller_config[VariantCallingKeys.SNP_OUTPUT]
+        indel_output_name = caller_config[VariantCallingKeys.INDEL_OUTPUT]
 
         command = [
             "varscan",
@@ -91,14 +84,12 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
         samtools.wait()
 
         unfiltered_vcfs = [
-            caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.SNP_OUTPUT],
-            caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.INDEL_OUTPUT],
+            caller_config[VariantCallingKeys.SNP_OUTPUT],
+            caller_config[VariantCallingKeys.INDEL_OUTPUT],
         ]
 
         for vcf_file in unfiltered_vcfs:
             process_somatic_command = cls._create_process_somatic_command(
-                caller_config=caller_config,
-                library_paths=library_paths,
                 vcf=vcf_file,
             )
             run(process_somatic_command)

@@ -15,7 +15,6 @@ class BWAMapper(_Mapper, _Mappable):
         flags = mapper_config[MappingKeys.PARAMS][MappingKeys.READ_GROUP]
         read_arguments = "".join(
             (
-                '"',
                 r"@RG\tID:",
                 flags[MappingKeys.RG_ID],
                 r"\tSM:",
@@ -26,7 +25,6 @@ class BWAMapper(_Mapper, _Mappable):
                 flags[MappingKeys.RG_PL],
                 r"\tPU:",
                 flags[MappingKeys.RG_PU],
-                '"',
             )
         )
         return read_arguments
@@ -40,9 +38,7 @@ class BWAMapper(_Mapper, _Mappable):
         app_config: AppConfig,
     ) -> List:
 
-        fastq_inputs = " ".join(
-            [fastq for fastq in mapper_config[MappingKeys.INPUT].values()]
-        )
+        fastq_inputs = [fastq for fastq in mapper_config[MappingKeys.INPUT].values()]
 
         command = [
             "bwa",
@@ -52,8 +48,9 @@ class BWAMapper(_Mapper, _Mappable):
             "-R",
             read_group,
             library_paths.BWA_ASSEMBLY,
-            fastq_inputs,
+            *fastq_inputs,
         ]
+        print(command)
         return command
 
     @classmethod

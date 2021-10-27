@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Dict
 
 from ..._formats import FileFormats
-from ..._pipeline_config import PipelineKeys, VariantCallingKeys
+from ..._pipeline_config import PipelineKeys, VariantCallingKeys, MappingKeys
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
 
@@ -17,7 +17,7 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
 
     def __post_init__(self):
         if self.name is None:
-            self.name = f"{self.germline.name}_{self.tumor.name}_{self.library}"
+            self.name = self._get_name()
         if VariantCallingKeys.GERMLINE_SAMPLE_NAME not in self.params:
             self.params[VariantCallingKeys.GERMLINE_SAMPLE_NAME] = "normal_sample"
         if VariantCallingKeys.TUMOR_SAMPLE_NAME not in self.params:
@@ -31,24 +31,16 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
 
     def get_config(self) -> Dict:
         unfiltered_variants_output_filename = FileFormats.GATK_UNFILTERED_OUTPUT.format(
-            germline_identification=self.germline.name,
-            tumor_identification=self.tumor.name,
-            algorithm=self.library,
+            identification=self.name
         )
         snp_output_filename = FileFormats.GATK_SNP_OUTPUT.format(
-            germline_identification=self.germline.name,
-            tumor_identification=self.tumor.name,
-            algorithm=self.library,
+            identification=self.name
         )
         indel_output_filename = FileFormats.GATK_INDEL_OUTPUT.format(
-            germline_identification=self.germline.name,
-            tumor_identification=self.tumor.name,
-            algorithm=self.library,
+            identification=self.name
         )
         other_variants_output_filename = FileFormats.GATK_OTHER_VARIANTS_OUTPUT.format(
-            germline_identification=self.germline.name,
-            tumor_identification=self.tumor.name,
-            algorithm=self.library,
+           identification=self.name
         )
 
         vc_config = {
