@@ -18,6 +18,9 @@ class FastqReader(_IPipelineStep, _PipelineStep):
         self.read = str(self.read)
         self.filename = os.path.normpath(self.filename)
 
+        if self.name == None:
+            self.name = self._get_name()
+
     def get_output(self) -> str:
         return self.filename
 
