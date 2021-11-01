@@ -16,6 +16,7 @@ class PipelineKeys:
     TRIM: str = "trim"
     CALIBRATE: str = "calibrate"
     VARIANT_CALLING: str = "variant-calling"
+    ANNOTATION: str = "annotation"
     FINAL_OUTPUT: str = "final-output"
 
 

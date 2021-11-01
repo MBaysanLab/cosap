@@ -14,6 +14,7 @@ from ..._pipeline_config import (
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 from ._trimmer_builder import Trimmer
 from ._file_readers import FastqReader
+import pyhash
 
 
 @dataclass
@@ -32,6 +33,7 @@ class Mapper(_IPipelineStep, _PipelineStep):
 
     def _create_config(self) -> Dict:
         output_filename = FileFormats.MAPPING_OUTPUT.format(identification=self.name)
+        print(pyhash.highway_128())
 
         if type(self.reads) == Trimmer:
             read_filenames = self.reads.get_output()

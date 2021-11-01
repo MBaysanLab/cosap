@@ -73,8 +73,19 @@ class PipelineRunner:
 
         config_yaml_path = join_paths(workdir, "config.yaml")
 
-        with open(config_yaml_path, "w") as config_yaml:
-            yaml.dump(config, config_yaml, default_flow_style=False)
+        if not os.path.isfile(config_yaml_path):
+            with open(config_yaml_path, "w") as config_yaml:
+                yaml.dump(config, config_yaml, default_flow_style=False)
+
+        snakemake_unlock_dir_command = [
+            "snakemake",
+            "-s",
+            AppConfig.SNAKEFILE_PATH,
+            "--configfile",
+            config_yaml_path,
+            "--unlock",
+        ]
+        run(snakemake_unlock_dir_command, cwd=workdir)
 
         snakemake_unlock_dir_command = [
             "snakemake",

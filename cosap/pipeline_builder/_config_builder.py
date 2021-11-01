@@ -13,7 +13,7 @@ from .._pipeline_config import (
     MergingKeys,
     PipelineKeys,
     SortingKeys,
-    VariantCallingKeys,
+    VariantCallingKeys
 )
 from .._version import version
 from .builders import _PipelineStep
@@ -21,8 +21,9 @@ from .._config import AppConfig
 
 
 class Pipeline:
-    def __init__(self):
+    def __init__(self, name: str):
         self._pipeline_steps = []
+        self.name = name
 
     def _create_config(self):
         config = {
@@ -37,11 +38,13 @@ class Pipeline:
             PipelineKeys.MDUP: dict(),
             PipelineKeys.CALIBRATE: dict(),
             PipelineKeys.VARIANT_CALLING: dict(),
+            PipelineKeys.ANNOTATION :dict(),
             PipelineKeys.FINAL_OUTPUT: list(),
         }
         return config
 
     def add(self, step: _PipelineStep) -> Pipeline:
+        step.name = self.name
         self._pipeline_steps.append(step)
 
         return self
