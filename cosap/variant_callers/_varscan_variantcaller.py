@@ -21,11 +21,15 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
         command = [
             "samtools",
             "mpileup",
+            "-B",
+            "-q",
+            "1",
             "-f",
             library_paths.REF_FASTA,
             germline_bam,
             tumor_bam,
         ]
+        print(" ".join(command))
         return command
 
     @classmethod
@@ -44,10 +48,9 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
             "--output-indel",
             indel_output_name,
             "--mpileup",
-            "1",
-            "--strand-filter",
-            "0",
+            "1"
         ]
+        print(" ".join(command))
         return command
 
     @classmethod
@@ -58,13 +61,7 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
         command = [
             "varscan",
             "processSomatic",
-            vcf,
-            "--min-tumor-freq",
-            "0.1",
-            "--max-tumor-freq",
-            "0.05",
-            "--p-value",
-            "0.07",
+            vcf
         ]
         return command
 
@@ -78,7 +75,7 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
         varscan_somatic = cls._create_varscan_somatic_command(
             caller_config=caller_config, library_paths=library_paths
         )
-
+        
         samtools = Popen(samtools_mpileup, stdout=PIPE)
         varscan = check_output(varscan_somatic, stdin=samtools.stdout)
         samtools.wait()

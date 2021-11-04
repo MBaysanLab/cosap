@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Dict
-from uuid import uuid4
-
+from pathlib import Path
 
 class _IPipelineStep(ABC):
     @abstractmethod
@@ -14,5 +13,5 @@ class _IPipelineStep(ABC):
 
 
 class _PipelineStep:
-    def _get_name(self) -> str:
-        return uuid4().hex[:4].upper()
+    def _get_name_from_path(self, path) -> str:
+        return Path(path).name.split(".")[0]

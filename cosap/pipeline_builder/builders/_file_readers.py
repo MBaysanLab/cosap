@@ -12,14 +12,14 @@ class FastqReader(_IPipelineStep, _PipelineStep):
     filename: str
     read: int
     platform: str = "illumina"
-    name: str = None
+    name = None
 
     def __post_init__(self):
         self.read = str(self.read)
         self.filename = os.path.normpath(self.filename)
 
         if self.name == None:
-            self.name = self._get_name()
+            self.name = self._get_name_from_path(self.filename)
 
     def get_output(self) -> str:
         return self.filename

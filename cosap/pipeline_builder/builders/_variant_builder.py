@@ -14,10 +14,11 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
     tumor: str
     params: Dict
     name: str = None
+    key: str = PipelineKeys.VARIANT_CALLING
 
     def __post_init__(self):
         if self.name is None:
-            self.name = self._get_name()
+            self.name = f"{self.germline.name}-{self.tumor.name}_{self.library}"
         if VariantCallingKeys.GERMLINE_SAMPLE_NAME not in self.params:
             self.params[VariantCallingKeys.GERMLINE_SAMPLE_NAME] = "normal_sample"
         if VariantCallingKeys.TUMOR_SAMPLE_NAME not in self.params:
@@ -25,7 +26,7 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
 
     def get_output(self):
         config = self.get_config()
-        return config[PipelineKeys.VARIANT_CALLING][self.name][
+        return config[self.key][self.name][
             VariantCallingKeys.SNP_OUTPUT
         ]
 
@@ -44,6 +45,7 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
         )
 
         vc_config = {
+            VariantCallingKeys.SNAKEMAKE_OUTPUT: FileFormats.GATK_SNP_OUTPUT.format(identification="{identification}"),
             self.name: {
                 VariantCallingKeys.LIBRARY: self.library,
                 VariantCallingKeys.GERMLINE_INPUT: self.germline.get_output(),
@@ -56,5 +58,5 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
             }
         }
 
-        config = {PipelineKeys.VARIANT_CALLING: vc_config}
+        config = {self.key: vc_config}
         return config

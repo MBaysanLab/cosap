@@ -10,7 +10,7 @@ rule variant_caller:
         germline_bam=lambda wildcards: config[PipelineKeys.VARIANT_CALLING][wildcards.identification][VariantCallingKeys.GERMLINE_INPUT],
         tumor_bam=lambda wildcards: config[PipelineKeys.VARIANT_CALLING][wildcards.identification][VariantCallingKeys.TUMOR_INPUT]
     output:
-        vcf=FileFormats.GATK_SNP_OUTPUT.format(identification="{identification}"),
+        vcf=config[PipelineKeys.VARIANT_CALLING][VariantCallingKeys.SNAKEMAKE_OUTPUT]
     run:
         variant_caller = VariantCallerFactory.create(
             caller_type=config[PipelineKeys.VARIANT_CALLING][wildcards.identification][VariantCallingKeys.LIBRARY]

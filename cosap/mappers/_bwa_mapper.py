@@ -50,7 +50,6 @@ class BWAMapper(_Mapper, _Mappable):
             library_paths.BWA_ASSEMBLY,
             *fastq_inputs,
         ]
-        print(command)
         return command
 
     @classmethod

@@ -21,9 +21,8 @@ from .._config import AppConfig
 
 
 class Pipeline:
-    def __init__(self, name: str):
+    def __init__(self):
         self._pipeline_steps = []
-        self.name = name
 
     def _create_config(self):
         config = {
@@ -44,7 +43,6 @@ class Pipeline:
         return config
 
     def add(self, step: _PipelineStep) -> Pipeline:
-        step.name = self.name
         self._pipeline_steps.append(step)
 
         return self
@@ -52,18 +50,14 @@ class Pipeline:
     def build(self) -> Dict:
         pipeline_config = self._create_config()
 
+        #Final output is the outputs of latest added step
+        step_key = self._pipeline_steps[-1].key
         for step in self._pipeline_steps:
             step_config = step.get_config()
-            step_output = step.get_output()
-
-            if type(step_output) == str:
-                pipeline_config[PipelineKeys.FINAL_OUTPUT].append(step_output)
-            elif type(step_output) == list:
-                pipeline_config[PipelineKeys.FINAL_OUTPUT].extend(step_output)
-            elif type(step_output) == dict:
-                pipeline_config[PipelineKeys.FINAL_OUTPUT].extend(step_output.values())
 
             for key, values in step_config.items():
+                if key == step_key:
+                    pipeline_config[PipelineKeys.FINAL_OUTPUT].append(step.get_output())
                 for k, v in values.items():
                     pipeline_config[key][k] = v
 

@@ -19,13 +19,10 @@ class _AppConfigMeta(type):
 @dataclass
 class AppConfig(metaclass=_AppConfigMeta):
     LIBRARY_PATH: str = os.path.normpath(
-<<<<<<< HEAD
-        "/media/bioinformaticslab/SeagateExpansionDrive/arif/hg38_bundle"
-=======
-        "/media/bioinformaticslab/Elements/arif/hg38_bundle"
->>>>>>> cfadb91122480dd2af2a767b75579b101aeeda02
+        "/media/mae/SeagateExpansionDrive/hg38_bundle/"
     )
     SNAKEFILE_PATH: str = os.path.normpath(
-        "/home/bioinformaticslab/Desktop/cosap/snakemake_workflows/Snakefile"
+        "/home/mae/Desktop/cosap/snakemake_workflows/Snakefile"
     )
-    THREADS: int = 4
+    THREADS: int = 8
+    WORKDIR: str = os.getcwd()

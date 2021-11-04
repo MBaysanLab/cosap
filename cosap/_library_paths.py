@@ -45,7 +45,7 @@ class _LibraryPaths:
 
 @dataclass
 class _LibraryPaths38(_LibraryPaths):
-    REF_DIR: str = os.path.join(AppConfig.LIBRARY_PATH)
+    REF_DIR: str = AppConfig.LIBRARY_PATH
     REF_FASTA: str = os.path.join(
         AppConfig.LIBRARY_PATH, "Homo_sapiens_assembly38.fasta"
     )

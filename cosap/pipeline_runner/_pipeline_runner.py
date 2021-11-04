@@ -4,6 +4,7 @@ import yaml
 from subprocess import PIPE, Popen, check_output, run
 
 from .._pipeline_config import MappingKeys, PipelineKeys, VariantCallingKeys
+from ._snakemake_runner import SnakemakeRunner
 from ..mappers import MapperFactory
 from ..preprocessors import (
     BamIndexer,
@@ -55,85 +56,21 @@ class PipelineRunner:
             caller = VariantCallerFactory.create(config[VariantCallingKeys.LIBRARY])
             caller.call_variants(config)
 
-    def run_pipeline(self, pipeline_config: Dict):
-        self.validate_pipeline_config(pipeline_config)
-
-        # TODO: add trimming
-        self.map(pipeline_config[PipelineKeys.MAPPING])
-        self.sort(pipeline_config[PipelineKeys.SORTING])
-        self.index(pipeline_config[PipelineKeys.INDEX])
-        self.merge(pipeline_config[PipelineKeys.MERGE])
-        self.calibrate(pipeline_config[PipelineKeys.CALIBRATE])
-
-        self.call_variants(pipeline_config[PipelineKeys.VARIANT_CALLING])
-
-    def run_pipeline_snakemake(self, pipeline_config: Dict, workdir: str):
-        config = pipeline_config
-        config[PipelineKeys.WORKDIR] = workdir
-
-        config_yaml_path = join_paths(workdir, "config.yaml")
-
-        if not os.path.isfile(config_yaml_path):
-            with open(config_yaml_path, "w") as config_yaml:
-                yaml.dump(config, config_yaml, default_flow_style=False)
-
-        snakemake_unlock_dir_command = [
-            "snakemake",
-            "-s",
-            AppConfig.SNAKEFILE_PATH,
-            "--configfile",
-            config_yaml_path,
-            "--unlock",
-        ]
-        run(snakemake_unlock_dir_command, cwd=workdir)
-
-        snakemake_unlock_dir_command = [
-            "snakemake",
-            "-s",
-            AppConfig.SNAKEFILE_PATH,
-            "--configfile",
-            config_yaml_path,
-            "--unlock",
-        ]
-        run(snakemake_unlock_dir_command, cwd=workdir)
-
-        dag_command = [
-            "snakemake",
-            "-s",
-            AppConfig.SNAKEFILE_PATH,
-            "--configfile",
-            config_yaml_path,
-            "--dag",
-            "-n",
-        ]
-        print_dag = ["dot", "-Tsvg", "-o", "workflow_dag.svg"]
-
-        create_dag = Popen(dag_command, cwd=workdir, stdout=PIPE)
-        print_dat_to_file = check_output(
-            print_dag, cwd=workdir, stdin=create_dag.stdout
+    def run_pipeline(self, pipeline_config: Dict, snakemake: bool):
+        if snakemake:
+            snakemake_runner = SnakemakeRunner(
+            pipeline_config = pipeline_config
         )
-        create_dag.wait()
+            snakemake_runner.run_snakemake_pipeline()
 
-        snakemake_command = [
-            "snakemake",
-            "-s",
-            AppConfig.SNAKEFILE_PATH,
-            "-j",
-            str(AppConfig.THREADS),
-            "--configfile",
-            config_yaml_path,
-        ]
+        else:
+            self.validate_pipeline_config(pipeline_config)
 
-        print(" ".join(snakemake_command))
-        run(snakemake_command, cwd=workdir)
+            # TODO: add trimming
+            self.map(pipeline_config[PipelineKeys.MAPPING])
+            self.sort(pipeline_config[PipelineKeys.SORTING])
+            self.index(pipeline_config[PipelineKeys.INDEX])
+            self.merge(pipeline_config[PipelineKeys.MERGE])
+            self.calibrate(pipeline_config[PipelineKeys.CALIBRATE])
 
-        snakemake_report_command = [
-            "snakemake",
-            "-s",
-            AppConfig.SNAKEFILE_PATH,
-            "--configfile",
-            config_yaml_path,
-            "--report",
-            "report.html",
-        ]
-        run(snakemake_report_command, cwd=workdir)
+            self.call_variants(pipeline_config[PipelineKeys.VARIANT_CALLING])

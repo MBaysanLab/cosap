@@ -12,6 +12,7 @@ class Recalibrator(_IPipelineStep, _PipelineStep):
     name: str = None
 
     def __post_init__(self):
+        self.key = PipelineKeys.CALIBRATE
         if self.name is None:
             self.name = self.input_step.name
 
@@ -23,19 +24,21 @@ class Recalibrator(_IPipelineStep, _PipelineStep):
         table_filename = FileFormats.CALIBRATION_TABLE.format(identification=self.name)
 
         config = {
+            BaseRecalibratorKeys.SNAKEMAKE_OUTPUT: FileFormats.CALIBRATION_OUTPUT.format(identification="{identification}"),
             self.name: {
                 BaseRecalibratorKeys.INPUT: filename,
                 BaseRecalibratorKeys.TABLE: table_filename,
                 BaseRecalibratorKeys.OUTPUT: output_filename,
+                
             }
         }
         return config
 
     def get_output(self) -> str:
         config = self.get_config()
-        return config[PipelineKeys.CALIBRATE][self.name][BaseRecalibratorKeys.OUTPUT]
+        return config[self.key][self.name][BaseRecalibratorKeys.OUTPUT]
 
     def get_config(self) -> Dict:
         calibration_config = self._create_config()
-        config = {PipelineKeys.CALIBRATE: calibration_config}
+        config = {self.key: calibration_config}
         return config
