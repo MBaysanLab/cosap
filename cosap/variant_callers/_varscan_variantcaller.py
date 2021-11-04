@@ -1,7 +1,7 @@
 import glob
 import os
 from pathlib import Path
-from subprocess import Popen, run, check_output, PIPE
+from subprocess import PIPE, Popen, check_output, run
 from typing import Dict, List, Union
 
 from .._library_paths import LibraryPaths
@@ -48,7 +48,7 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
             "--output-indel",
             indel_output_name,
             "--mpileup",
-            "1"
+            "1",
         ]
         print(" ".join(command))
         return command
@@ -58,11 +58,7 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
         cls,
         vcf=Union[str, Path],
     ) -> List:
-        command = [
-            "varscan",
-            "processSomatic",
-            vcf
-        ]
+        command = ["varscan", "processSomatic", vcf]
         return command
 
     @classmethod
@@ -75,7 +71,7 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
         varscan_somatic = cls._create_varscan_somatic_command(
             caller_config=caller_config, library_paths=library_paths
         )
-        
+
         samtools = Popen(samtools_mpileup, stdout=PIPE)
         varscan = check_output(varscan_somatic, stdin=samtools.stdout)
         samtools.wait()

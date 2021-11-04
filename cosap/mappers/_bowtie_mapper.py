@@ -1,5 +1,5 @@
 import os
-from subprocess import Popen, run, check_output, PIPE
+from subprocess import PIPE, Popen, check_output, run
 from typing import Dict, List
 
 from .._config import AppConfig

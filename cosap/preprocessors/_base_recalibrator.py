@@ -1,5 +1,6 @@
-from typing import Dict
 from subprocess import run
+from typing import Dict
+
 from .._library_paths import LibraryPaths
 from .._pipeline_config import BaseRecalibratorKeys
 from ._preprocessors import _PreProcessable, _Preprocessor

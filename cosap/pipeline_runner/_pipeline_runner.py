@@ -1,22 +1,17 @@
 import os
-from typing import Dict, List
-import yaml
 from subprocess import PIPE, Popen, check_output, run
+from typing import Dict, List
 
-from .._pipeline_config import MappingKeys, PipelineKeys, VariantCallingKeys
-from ._snakemake_runner import SnakemakeRunner
-from ..mappers import MapperFactory
-from ..preprocessors import (
-    BamIndexer,
-    BamMerger,
-    MarkDuplicate,
-    SamtoolsSorter,
-    BaseRecalibrator,
-)
-from ..variant_callers import VariantCallerFactory
+import yaml
+
 from .._config import AppConfig
-
+from .._pipeline_config import MappingKeys, PipelineKeys, VariantCallingKeys
 from .._utils import join_paths
+from ..mappers import MapperFactory
+from ..preprocessors import (BamIndexer, BamMerger, BaseRecalibrator,
+                             MarkDuplicate, SamtoolsSorter)
+from ..variant_callers import VariantCallerFactory
+from ._snakemake_runner import SnakemakeRunner
 
 
 class PipelineRunner:
@@ -58,9 +53,7 @@ class PipelineRunner:
 
     def run_pipeline(self, pipeline_config: Dict, snakemake: bool):
         if snakemake:
-            snakemake_runner = SnakemakeRunner(
-            pipeline_config = pipeline_config
-        )
+            snakemake_runner = SnakemakeRunner(pipeline_config=pipeline_config)
             snakemake_runner.run_snakemake_pipeline()
 
         else:

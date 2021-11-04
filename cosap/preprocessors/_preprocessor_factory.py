@@ -1,9 +1,9 @@
-from ._preprocessors import _Preprocessor
-from ._mark_duplicate import MarkDuplicate
 from ._base_recalibrator import BaseRecalibrator
 from ._indexer import BamIndexer
-from ._sorter import SamtoolsSorter
+from ._mark_duplicate import MarkDuplicate
 from ._merger import BamMerger
+from ._preprocessors import _Preprocessor
+from ._sorter import SamtoolsSorter
 from ._trimmer import Trimmer
 
 

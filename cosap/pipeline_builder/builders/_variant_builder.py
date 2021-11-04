@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Dict
 
 from ..._formats import FileFormats
-from ..._pipeline_config import PipelineKeys, VariantCallingKeys, MappingKeys
+from ..._pipeline_config import MappingKeys, PipelineKeys, VariantCallingKeys
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
 
@@ -26,9 +26,7 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
 
     def get_output(self):
         config = self.get_config()
-        return config[self.key][self.name][
-            VariantCallingKeys.SNP_OUTPUT
-        ]
+        return config[self.key][self.name][VariantCallingKeys.SNP_OUTPUT]
 
     def get_config(self) -> Dict:
         unfiltered_variants_output_filename = FileFormats.GATK_UNFILTERED_OUTPUT.format(
@@ -41,11 +39,13 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
             identification=self.name
         )
         other_variants_output_filename = FileFormats.GATK_OTHER_VARIANTS_OUTPUT.format(
-           identification=self.name
+            identification=self.name
         )
 
         vc_config = {
-            VariantCallingKeys.SNAKEMAKE_OUTPUT: FileFormats.GATK_SNP_OUTPUT.format(identification="{identification}"),
+            VariantCallingKeys.SNAKEMAKE_OUTPUT: FileFormats.GATK_SNP_OUTPUT.format(
+                identification="{identification}"
+            ),
             self.name: {
                 VariantCallingKeys.LIBRARY: self.library,
                 VariantCallingKeys.GERMLINE_INPUT: self.germline.get_output(),
@@ -55,7 +55,7 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
                 VariantCallingKeys.SNP_OUTPUT: snp_output_filename,
                 VariantCallingKeys.INDEL_OUTPUT: indel_output_filename,
                 VariantCallingKeys.OTHER_VARIANTS_OUTPUT: other_variants_output_filename,
-            }
+            },
         }
 
         config = {self.key: vc_config}

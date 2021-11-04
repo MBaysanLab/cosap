@@ -4,7 +4,7 @@ from typing import Dict, List
 from .._config import AppConfig
 from .._library_paths import LibraryPaths
 from .._pipeline_config import MDUPKeys
-from ._preprocessors import _Preprocessor, _PreProcessable
+from ._preprocessors import _PreProcessable, _Preprocessor
 
 
 class MarkDuplicate(_Preprocessor, _PreProcessable):

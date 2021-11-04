@@ -3,17 +3,12 @@ from dataclasses import dataclass
 from typing import Dict, List, Union
 
 from ..._formats import FileFormats
-from ..._pipeline_config import (
-    BaseRecalibratorKeys,
-    IndexingKeys,
-    MappingKeys,
-    MergingKeys,
-    PipelineKeys,
-    SortingKeys,
-)
+from ..._pipeline_config import (BaseRecalibratorKeys, IndexingKeys,
+                                 MappingKeys, MergingKeys, PipelineKeys,
+                                 SortingKeys)
+from ._file_readers import FastqReader
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 from ._trimmer_builder import Trimmer
-from ._file_readers import FastqReader
 
 
 @dataclass
@@ -29,7 +24,9 @@ class Mapper(_IPipelineStep, _PipelineStep):
             if isinstance(self.reads, Trimmer):
                 self.name = f"{self.reads.name}_{self.library}"
             else:
-                self.name = "%s" % "-".join(read.name for read in self.reads) + self.library
+                self.name = (
+                    "%s" % "-".join(read.name for read in self.reads) + self.library
+                )
 
     def _create_config(self) -> Dict:
         output_filename = FileFormats.MAPPING_OUTPUT.format(identification=self.name)
@@ -50,14 +47,15 @@ class Mapper(_IPipelineStep, _PipelineStep):
             )
 
         config = {
-            MappingKeys.SNAKEMAKE_OUTPUT: FileFormats.MAPPING_OUTPUT.format(identification="{identification}"),
+            MappingKeys.SNAKEMAKE_OUTPUT: FileFormats.MAPPING_OUTPUT.format(
+                identification="{identification}"
+            ),
             self.name: {
                 MappingKeys.LIBRARY: self.library,
                 MappingKeys.INPUT: read_filenames,
                 MappingKeys.OUTPUT: output_filename,
                 MappingKeys.PARAMS: self.params,
-                
-            }
+            },
         }
         return config
 

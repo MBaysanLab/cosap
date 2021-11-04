@@ -9,6 +9,7 @@ include: "./rules/variantcaller.smk"
 
 output_files = config[PipelineKeys.FINAL_OUTPUT]
 
+
 rule all:
     input:
         expand("{output_file}", output_file=output_files),

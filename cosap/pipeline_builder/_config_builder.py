@@ -1,23 +1,17 @@
 from __future__ import annotations
-from dataclasses import make_dataclass
 
+from dataclasses import make_dataclass
 from datetime import datetime
 from typing import Dict, List
 from uuid import uuid4
 
+from .._config import AppConfig
 from .._formats import FileFormats
-from .._pipeline_config import (
-    BaseRecalibratorKeys,
-    IndexingKeys,
-    MappingKeys,
-    MergingKeys,
-    PipelineKeys,
-    SortingKeys,
-    VariantCallingKeys
-)
+from .._pipeline_config import (BaseRecalibratorKeys, IndexingKeys,
+                                MappingKeys, MergingKeys, PipelineKeys,
+                                SortingKeys, VariantCallingKeys)
 from .._version import version
 from .builders import _PipelineStep
-from .._config import AppConfig
 
 
 class Pipeline:
@@ -37,7 +31,7 @@ class Pipeline:
             PipelineKeys.MDUP: dict(),
             PipelineKeys.CALIBRATE: dict(),
             PipelineKeys.VARIANT_CALLING: dict(),
-            PipelineKeys.ANNOTATION :dict(),
+            PipelineKeys.ANNOTATION: dict(),
             PipelineKeys.FINAL_OUTPUT: list(),
         }
         return config
@@ -50,7 +44,7 @@ class Pipeline:
     def build(self) -> Dict:
         pipeline_config = self._create_config()
 
-        #Final output is the outputs of latest added step
+        # Final output is the outputs of latest added step
         step_key = self._pipeline_steps[-1].key
         for step in self._pipeline_steps:
             step_config = step.get_config()

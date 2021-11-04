@@ -1,6 +1,6 @@
 import os
 from posixpath import commonpath
-from subprocess import STDOUT, run, Popen, check_output, PIPE
+from subprocess import PIPE, STDOUT, Popen, check_output, run
 from typing import Dict, List
 
 from .._config import AppConfig

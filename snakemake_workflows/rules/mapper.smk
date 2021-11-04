@@ -7,9 +7,13 @@ from cosap._pipeline_config import MappingKeys, PipelineKeys
 
 rule mapper:
     input:
-        fastqfiles=lambda wildcards: expand(config[PipelineKeys.MAPPING][wildcards.identification][MappingKeys.INPUT].values())
+        fastqfiles=lambda wildcards: expand(
+            config[PipelineKeys.MAPPING][wildcards.identification][
+                MappingKeys.INPUT
+            ].values()
+        ),
     output:
-        bam=config[PipelineKeys.MAPPING][MappingKeys.SNAKEMAKE_OUTPUT]
+        bam=config[PipelineKeys.MAPPING][MappingKeys.SNAKEMAKE_OUTPUT],
     run:
         mapper = MapperFactory.create(
             config[PipelineKeys.MAPPING][wildcards.identification][MappingKeys.LIBRARY]

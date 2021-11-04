@@ -75,7 +75,6 @@ class _LibraryPaths38(_LibraryPaths):
     )
 
 
-
 @dataclass
 class _LibraryPaths19(_LibraryPaths):
     REF_DIR: str = os.path.join(

@@ -24,13 +24,14 @@ class Recalibrator(_IPipelineStep, _PipelineStep):
         table_filename = FileFormats.CALIBRATION_TABLE.format(identification=self.name)
 
         config = {
-            BaseRecalibratorKeys.SNAKEMAKE_OUTPUT: FileFormats.CALIBRATION_OUTPUT.format(identification="{identification}"),
+            BaseRecalibratorKeys.SNAKEMAKE_OUTPUT: FileFormats.CALIBRATION_OUTPUT.format(
+                identification="{identification}"
+            ),
             self.name: {
                 BaseRecalibratorKeys.INPUT: filename,
                 BaseRecalibratorKeys.TABLE: table_filename,
                 BaseRecalibratorKeys.OUTPUT: output_filename,
-                
-            }
+            },
         }
         return config
 
