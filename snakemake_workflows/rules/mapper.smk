@@ -9,7 +9,7 @@ rule mapper:
     input:
         fastqfiles=lambda wildcards: expand(config[PipelineKeys.MAPPING][wildcards.identification][MappingKeys.INPUT].values())
     output:
-        bam=FileFormats.MAPPING_OUTPUT.format(identification="{identification}"),
+        bam=config[PipelineKeys.MAPPING][MappingKeys.SNAKEMAKE_OUTPUT]
     run:
         mapper = MapperFactory.create(
             config[PipelineKeys.MAPPING][wildcards.identification][MappingKeys.LIBRARY]

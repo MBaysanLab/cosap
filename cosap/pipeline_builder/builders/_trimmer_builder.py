@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from typing import Dict, List
-from collections import defaultdict
 
 from ..._formats import FileFormats
 from ..._pipeline_config import TrimmingKeys, PipelineKeys
@@ -10,9 +9,15 @@ from ._pipeline_steps import _IPipelineStep, _PipelineStep
 @dataclass
 class Trimmer(_IPipelineStep, _PipelineStep):
     reads: List[_PipelineStep]
-    name: str
+    name: str = None
+
+    def __post_init__(self):
+        self.key = PipelineKeys.TRIM
+        if self.name == None:
+            self.name = "_".join([step.name for step in self.reads])
 
     def _create_config(self) -> Dict:
+
         read_filenames = {}
         for reader in self.reads:
             read_filenames[reader.read] = reader.get_output()
@@ -26,23 +31,23 @@ class Trimmer(_IPipelineStep, _PipelineStep):
 
         output_filenames = {}
         for reader in self.reads:
-            output_filenames[reader.read] = FileFormats.TRIMMING_OUTPUT.format(
-                identification=self._get_name()
-            )
+            output_filenames[reader.read] = FileFormats.TRIMMING_OUTPUT.format(identification=reader.name)
 
         config = {
+            TrimmingKeys.SNAKEMAKE_OUTPUT: FileFormats.TRIMMING_OUTPUT.format(identification="{{identification}}_{pair}"),
             self.name: {
                 TrimmingKeys.INPUT: read_filenames,
                 TrimmingKeys.OUTPUT: output_filenames,
+                
             }
         }
         return config
 
     def get_output(self) -> str:
         config = self.get_config()
-        return config[PipelineKeys.TRIM][self.name][TrimmingKeys.OUTPUT]
+        return config[self.key][self.name][TrimmingKeys.OUTPUT]
 
     def get_config(self) -> Dict:
         trim_config = self._create_config()
-        config = {PipelineKeys.TRIM: trim_config}
+        config = {self.key: trim_config}
         return config

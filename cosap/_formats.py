@@ -12,12 +12,13 @@ class FileFormats:
     CALIBRATION_OUTPUT: str = "calibrated_{identification}.bam"
     CALIBRATION_TABLE: str = "calibration_table_{identification}.table"
     CALIBRATED_INDEXING_OUTPUT: str = "calibrated_indexed_{identification}.bam"
-
     GATK_UNFILTERED_OUTPUT: str = "all_{identification}.vcf"
     GATK_SNP_OUTPUT: str = "snp_{identification}.vcf"
     GATK_INDEL_OUTPUT: str = "indel_{identification}.vcf"
     GATK_OTHER_VARIANTS_OUTPUT: str = "other_variants_{identification}.vcf"
+    ANNOTATING_OUTPUT: str = "annotated_{identification}.vcf"
 
 @dataclass
 class Platforms:
     ILLUMINA: str = "illumina"
+    

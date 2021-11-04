@@ -32,8 +32,6 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             library_paths.REF_FASTA,
             "-I",
             germline_bam,
-            "-tumor",
-            tumor_sample_name,
             "-I",
             tumor_bam,
             "-normal",

@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 
-
 @dataclass
 class PipelineKeys:
     WORKDIR: str = "workdir"
@@ -15,6 +14,7 @@ class PipelineKeys:
     TRIM: str = "trim"
     CALIBRATE: str = "calibrate"
     VARIANT_CALLING: str = "variant-calling"
+    ANNOTATION: str = "annotation"
     FINAL_OUTPUT: str = "final-output"
 
 
@@ -24,6 +24,7 @@ class PipelineBaseKeys:
     PARAMS: str = "params"
     INPUT: str = "input"
     OUTPUT: str = "output"
+    SNAKEMAKE_OUTPUT: str = "snakemake_output"
 
 
 @dataclass
@@ -39,10 +40,7 @@ class MappingKeys(PipelineBaseKeys):
 
 @dataclass
 class TrimmingKeys(PipelineBaseKeys):
-    PAIRED_INPUT_1: str = "input_1"
-    PAIRED_INPUT_2: str = "input_2"
-    PAIRED_OUTPUT_1: str = "output_1"
-    PAIRED_OUTPUT_2: str = "output_2"
+    pass
 
 
 @dataclass
@@ -98,3 +96,7 @@ class VariantCallingKeys(PipelineBaseKeys):
     INDEL_OUTPUT: str = "indel_output"
     OTHER_VARIANTS_OUTPUT: str = "other_variants_output"
     PILEUPS: str = "pileups"
+
+@dataclass
+class AnnotatorKeys(PipelineBaseKeys):
+    pass

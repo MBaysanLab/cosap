@@ -7,9 +7,7 @@ include: "./rules/preprocess.smk"
 include: "./rules/variantcaller.smk"
 
 
-
 output_files = config[PipelineKeys.FINAL_OUTPUT]
-
 
 rule all:
     input:

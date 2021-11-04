@@ -13,7 +13,7 @@ from .._pipeline_config import (
     MergingKeys,
     PipelineKeys,
     SortingKeys,
-    VariantCallingKeys,
+    VariantCallingKeys
 )
 from .._version import version
 from .builders import _PipelineStep
@@ -37,6 +37,7 @@ class Pipeline:
             PipelineKeys.MDUP: dict(),
             PipelineKeys.CALIBRATE: dict(),
             PipelineKeys.VARIANT_CALLING: dict(),
+            PipelineKeys.ANNOTATION :dict(),
             PipelineKeys.FINAL_OUTPUT: list(),
         }
         return config
@@ -49,18 +50,14 @@ class Pipeline:
     def build(self) -> Dict:
         pipeline_config = self._create_config()
 
+        #Final output is the outputs of latest added step
+        step_key = self._pipeline_steps[-1].key
         for step in self._pipeline_steps:
             step_config = step.get_config()
-            step_output = step.get_output()
-
-            if type(step_output) == str:
-                pipeline_config[PipelineKeys.FINAL_OUTPUT].append(step_output)
-            elif type(step_output) == list:
-                pipeline_config[PipelineKeys.FINAL_OUTPUT].extend(step_output)
-            elif type(step_output) == dict:
-                pipeline_config[PipelineKeys.FINAL_OUTPUT].extend(step_output.values())
 
             for key, values in step_config.items():
+                if key == step_key:
+                    pipeline_config[PipelineKeys.FINAL_OUTPUT].append(step.get_output())
                 for k, v in values.items():
                     pipeline_config[key][k] = v
 

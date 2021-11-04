@@ -24,11 +24,12 @@ class Mapper(_IPipelineStep, _PipelineStep):
     name: str 
 
     def __post_init__(self):
+        self.key = PipelineKeys.MAPPING
         if self.name is None:
             if isinstance(self.reads, Trimmer):
-                self.name = self.reads.name
+                self.name = f"{self.reads.name}_{self.library}"
             else:
-                self.name = "%s" % "-".join(read.name for read in self.reads)
+                self.name = "%s" % "-".join(read.name for read in self.reads) + self.library
 
     def _create_config(self) -> Dict:
         output_filename = FileFormats.MAPPING_OUTPUT.format(identification=self.name)
@@ -49,22 +50,24 @@ class Mapper(_IPipelineStep, _PipelineStep):
             )
 
         config = {
+            MappingKeys.SNAKEMAKE_OUTPUT: FileFormats.MAPPING_OUTPUT.format(identification="{identification}"),
             self.name: {
                 MappingKeys.LIBRARY: self.library,
                 MappingKeys.INPUT: read_filenames,
                 MappingKeys.OUTPUT: output_filename,
                 MappingKeys.PARAMS: self.params,
+                
             }
         }
         return config
 
     def get_output(self) -> str:
         config = self.get_config()
-        return config[PipelineKeys.MAPPING][self.name][MappingKeys.OUTPUT]
+        return config[self.key][self.name][MappingKeys.OUTPUT]
 
     def get_config(self) -> Dict:
         mapping_config = self._create_config()
         config = {
-            PipelineKeys.MAPPING: mapping_config,
+            self.key: mapping_config,
         }
         return config
