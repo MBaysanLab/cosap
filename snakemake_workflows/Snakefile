@@ -2,13 +2,13 @@ import os
 from cosap._pipeline_config import PipelineKeys
 
 
-include: "./rules/mapper.smk"
-include: "./rules/preprocess.smk"
-include: "./rules/variantcaller.smk"
+include: "rules/mapper.smk"
+include: "rules/preprocess.smk"
+include: "rules/variantcaller.smk"
 
+workdir: config[PipelineKeys.WORKDIR]
 
 output_files = config[PipelineKeys.FINAL_OUTPUT]
-
 
 rule all:
     input:

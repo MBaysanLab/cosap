@@ -1,7 +1,7 @@
 import os
 from subprocess import PIPE, Popen, check_output, run
 from typing import Dict, List
-
+import sys
 import yaml
 
 from .._config import AppConfig
@@ -11,16 +11,14 @@ from .._utils import join_paths
 
 class SnakemakeRunner:
     def __init__(self, pipeline_config):
-        self.pipeline_congfig = pipeline_config
-        self.workdir = AppConfig.WORKDIR
+        self.pipeline_config = pipeline_config
+        self.workdir = pipeline_config[PipelineKeys.WORKDIR]
         self.config_yaml_path = join_paths(self.workdir, "config.yaml")
-
+        self._write_config_to_yaml()
+        
     def _write_config_to_yaml(self):
-        self.config[PipelineKeys.WORKDIR] = self.workdir
-
-        if not os.path.isfile(self.config_yaml_path):
-            with open(self.config_yaml_path, "w") as config_yaml:
-                yaml.dump(self.config, config_yaml, default_flow_style=False)
+        with open(self.config_yaml_path, "w") as config_yaml:
+            yaml.dump(self.pipeline_config, config_yaml, default_flow_style=False)
 
     def _create_unlock_dir_command(self) -> list:
         command = [
@@ -84,5 +82,8 @@ class SnakemakeRunner:
         dag = Popen(create_dag, cwd=self.workdir, stdout=PIPE)
         print_dat_to_file = check_output(save_dag, cwd=self.workdir, stdin=dag.stdout)
         dag.wait()
+        cont = input(("Check the DAG of the created workflow. Do you want to continue? ([y]/n)") or "y")
+        if cont.lower() == "n":
+            sys.exit()
         run(snakemake, cwd=self.workdir)
         run(report, cwd=self.workdir)

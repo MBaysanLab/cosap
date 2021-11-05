@@ -38,6 +38,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             germline_sample_name,
             "-O",
             output_name,
+            "-Xmx30000"
         ]
         return command
 

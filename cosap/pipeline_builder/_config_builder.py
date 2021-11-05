@@ -33,6 +33,7 @@ class Pipeline:
             PipelineKeys.VARIANT_CALLING: dict(),
             PipelineKeys.ANNOTATION: dict(),
             PipelineKeys.FINAL_OUTPUT: list(),
+            PipelineKeys.WORKDIR: str,
         }
         return config
 
@@ -41,8 +42,11 @@ class Pipeline:
 
         return self
 
-    def build(self) -> Dict:
+    def build(self, workdir:str=None) -> Dict:
         pipeline_config = self._create_config()
+
+        if workdir:
+            pipeline_config[PipelineKeys.WORKDIR] = workdir
 
         # Final output is the outputs of latest added step
         step_key = self._pipeline_steps[-1].key
