@@ -27,6 +27,8 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
 
         command = [
             "gatk",
+            "--java-options",
+            "-Xmx8G",
             "Mutect2",
             "-R",
             library_paths.REF_FASTA,
@@ -37,8 +39,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             "-normal",
             germline_sample_name,
             "-O",
-            output_name,
-            "-Xmx30000"
+            output_name
         ]
         return command
 
