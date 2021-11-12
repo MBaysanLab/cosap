@@ -1,4 +1,5 @@
 import os
+import multiprocessing
 from subprocess import PIPE, Popen, check_output, run
 from typing import Dict, List
 import sys
@@ -48,12 +49,13 @@ class SnakemakeRunner:
         return command
 
     def _create_snakemake_run_command(self) -> list:
+        available_cpu = multiprocessing.cpu_count()
         command = [
             "snakemake",
             "-s",
             AppConfig.SNAKEFILE_PATH,
             "-j",
-            str(AppConfig.THREADS),
+            str(available_cpu // AppConfig.THREADS),
             "--configfile",
             self.config_yaml_path,
         ]
@@ -82,8 +84,8 @@ class SnakemakeRunner:
         dag = Popen(create_dag, cwd=self.workdir, stdout=PIPE)
         print_dat_to_file = check_output(save_dag, cwd=self.workdir, stdin=dag.stdout)
         dag.wait()
-        cont = input(("Check the DAG of the created workflow. Do you want to continue? ([y]/n)") or "y")
-        if cont.lower() == "n":
-            sys.exit()
+        # cont = input(("Check the DAG of the created workflow. Do you want to continue? ([y]/n)") or "y")
+        # if cont.lower() == "n":
+        #     sys.exit()
         run(snakemake, cwd=self.workdir)
         run(report, cwd=self.workdir)

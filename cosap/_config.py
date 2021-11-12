@@ -24,5 +24,6 @@ class AppConfig(metaclass=_AppConfigMeta):
     SNAKEFILE_PATH: str = os.path.normpath(
         "/home/monkey/workspace/cosap/snakemake_workflows/Snakefile"
     )
-    THREADS: int = 8
+
+    THREADS: int = 6 #This is number of threads each job can use and not the all available threads
     WORKDIR: str = os.getcwd()

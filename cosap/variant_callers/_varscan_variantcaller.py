@@ -29,7 +29,6 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
             germline_bam,
             tumor_bam,
         ]
-        print(" ".join(command))
         return command
 
     @classmethod
@@ -49,8 +48,17 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
             indel_output_name,
             "--mpileup",
             "1",
+            "--min-coverage-normal 8",
+            "--min-coverage-tumor 6",
+            "--min-var-freq 0.10",
+            "--min-freq-for-hom 0.75",
+            "--normal-purity 1.0",
+            "--tumor-purity 1.00",
+            "--p-value 0.99",
+            "--somatic-p-value 0.05",
+            "--strand-filter 0",
+            "--output-vcf"
         ]
-        print(" ".join(command))
         return command
 
     @classmethod
@@ -58,7 +66,14 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
         cls,
         vcf=Union[str, Path],
     ) -> List:
-        command = ["varscan", "processSomatic", vcf]
+        command = [
+            "varscan",
+            "processSomatic",
+            vcf,
+            "--min-tumor-freq 0.10",
+            "--max-normal-freq 0.05",
+            "--p-value 0.07"
+        ]
         return command
 
     @classmethod
