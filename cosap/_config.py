@@ -19,10 +19,10 @@ class _AppConfigMeta(type):
 @dataclass
 class AppConfig(metaclass=_AppConfigMeta):
     LIBRARY_PATH: str = os.path.normpath(
-        "/media/monkey/bigmac/omer_research/data/ref/"
+        "/media/bioinformaticslab/Elements/arif/hg38_bundle/"
     )
     SNAKEFILE_PATH: str = os.path.normpath(
-        "/home/monkey/workspace/cosap/snakemake_workflows/Snakefile"
+        "/home/bioinformaticslab/Desktop/cosap/snakemake_workflows/Snakefile"
     )
 
     THREADS: int = 6 #This is number of threads each job can use and not the all available threads

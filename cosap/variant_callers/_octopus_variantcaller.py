@@ -39,7 +39,9 @@ class OctopusVariantCaller(_Callable, _VariantCaller):
             "--normal-sample",
             germline_sample_name,
             "-o",
-            output_name
+            output_name,
+            "--threads",
+            str(app_config.THREADS)
         ]
         return command
 
