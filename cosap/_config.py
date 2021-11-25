@@ -25,5 +25,5 @@ class AppConfig(metaclass=_AppConfigMeta):
         "/home/bioinformaticslab/Desktop/cosap/snakemake_workflows/Snakefile"
     )
 
-    THREADS: int = 6 #This is number of threads each job can use and not the all available threads
+    THREADS: int = 8 #This is number of threads each job can use and not the all available threads
     WORKDIR: str = os.getcwd()

@@ -48,6 +48,18 @@ class SnakemakeRunner:
         command = ["dot", "-Tsvg", "-o", "workflow_dag.svg"]
         return command
 
+    def _create_dry_run_command(self) -> list:
+        command = [
+            "snakemake",
+            "-s",
+            AppConfig.SNAKEFILE_PATH,
+            "--configfile",
+            self.config_yaml_path,
+            "-r",
+            "-n",
+            ]
+        return command 
+
     def _create_snakemake_run_command(self) -> list:
         available_cpu = multiprocessing.cpu_count()
         command = [
@@ -58,7 +70,8 @@ class SnakemakeRunner:
             str(available_cpu // AppConfig.THREADS),
             "--configfile",
             self.config_yaml_path,
-        ]
+            "-r"
+            ]
         return command
 
     def _create_snakemake_report_command(self) -> list:
@@ -77,6 +90,7 @@ class SnakemakeRunner:
         unlock_dir = self._create_unlock_dir_command()
         create_dag = self._create_workflow_dag_command()
         save_dag = self._create_save_dag_as_svg_command()
+        dry_run = self._create_dry_run_command()
         snakemake = self._create_snakemake_run_command()
         report = self._create_snakemake_report_command()
 
@@ -87,5 +101,6 @@ class SnakemakeRunner:
         # cont = input(("Check the DAG of the created workflow. Do you want to continue? ([y]/n)") or "y")
         # if cont.lower() == "n":
         #     sys.exit()
+        run(dry_run, cwd=self.workdir)
         run(snakemake, cwd=self.workdir)
         run(report, cwd=self.workdir)
