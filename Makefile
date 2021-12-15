@@ -2,8 +2,8 @@
 up: build start
 
 build:
-	docker-compose build 
+	docker build . 
 
 start:
-	docker-compose start -d --name=cosap
-	
+	docker run -it cosap /bin/bash
+

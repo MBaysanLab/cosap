@@ -1,28 +1,29 @@
 from ._mutect2_variantcaller import Mutect2VariantCaller
+from ._octopus_variantcaller import OctopusVariantCaller
 from ._somaticsniper_variantcaller import SomaticSniperVariantCaller
-from ._strelka_variantcaller import Strelka2VariantCaller
-from ._variantcallers import _VariantCallable
+from ._variantcallers import _VariantCaller
 from ._varscan_variantcaller import VarScanVariantCaller
 
 
 class VariantCallerFactory:
-    MUTECT2_CALLER = "mutect2"
+    MUTECT2_CALLER = "mutect"
     SOMATICSNIPER_CALLER = "somaticsniper"
-    STRELKA2_CALLER = "strelka2"
+    STRELKA2_CALLER = "strelka"
     VARSCAN_CALLER = "varscan"
+    OCTOPUS_CALLER = "octopus"
 
     @classmethod
-    def create(cls, caller_type: str) -> _VariantCallable:
+    def create(cls, caller_type: str) -> _VariantCaller:
         caller_type = str(caller_type).lower()
 
         if caller_type == cls.MUTECT2_CALLER:
             caller = Mutect2VariantCaller
         elif caller_type == cls.SOMATICSNIPER_CALLER:
             caller = SomaticSniperVariantCaller
-        elif caller_type == cls.STRELKA2_CALLER:
-            caller = Strelka2VariantCaller
         elif caller_type == cls.VARSCAN_CALLER:
             caller = VarScanVariantCaller
+        elif caller_type == cls.OCTOPUS_CALLER:
+            caller = OctopusVariantCaller
         else:
             raise Exception(f"Unknown caller type: {caller_type}")
 

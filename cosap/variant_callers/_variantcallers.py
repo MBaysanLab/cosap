@@ -9,7 +9,7 @@ from .._pipeline_config import VariantCallingKeys
 from .._utils import join_paths
 
 
-class _VariantCallable(ABC):
+class _VariantCaller(ABC):
     @abstractmethod
     def call_variants(self):
         pass

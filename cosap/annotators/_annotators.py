@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
 
 
-class _Mapper(ABC):
+class _Annotator(ABC):
     @abstractmethod
-    def map(self):
+    def annotate(self):
         pass
 
 
-class _Mappable:
+class _Annotatable:
     pass

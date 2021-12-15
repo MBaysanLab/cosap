@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
 
 
-class _Mapper(ABC):
+class _Preprocessor(ABC):
     @abstractmethod
-    def map(self):
+    def run_preprocessor(self):
         pass
 
 
-class _Mappable:
+class _PreProcessable:
     pass

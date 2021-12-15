@@ -18,5 +18,12 @@ class _AppConfigMeta(type):
 
 @dataclass
 class AppConfig(metaclass=_AppConfigMeta):
-    LIBRARY_PATH: str = os.path.normpath("/mount/libs/")
-    THREADS: int = 1
+    LIBRARY_PATH: str = os.path.normpath(
+        "/media/bioinformaticslab/Elements/arif/hg38_bundle/"
+    )
+    SNAKEFILE_PATH: str = os.path.normpath(
+        "/home/bioinformaticslab/Desktop/cosap/snakemake_workflows/Snakefile"
+    )
+
+    THREADS: int = 8 #This is number of threads each job can use and not the all available threads
+    WORKDIR: str = os.getcwd()
