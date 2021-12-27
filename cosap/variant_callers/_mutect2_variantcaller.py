@@ -11,7 +11,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
     @classmethod
     def _create_run_command(
         cls, caller_config: Dict, library_paths: LibraryPaths
-    ) -> list:
+    ) -> List:
 
         germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
         tumor_bam = caller_config[VariantCallingKeys.TUMOR_INPUT]
@@ -46,7 +46,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
     @classmethod
     def _create_get_snp_variants_command(
         cls, caller_config: Dict, library_paths: LibraryPaths
-    ) -> str:
+    ) -> List:
 
         input_name = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
         output_name = caller_config[VariantCallingKeys.SNP_OUTPUT]
@@ -69,7 +69,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
     @classmethod
     def _create_get_indel_variants_command(
         cls, caller_config: Dict, library_paths: LibraryPaths
-    ) -> str:
+    ) -> List:
 
         input_name = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
         output_name = caller_config[VariantCallingKeys.INDEL_OUTPUT]
@@ -92,7 +92,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
     @classmethod
     def _create_get_other_variants_command(
         cls, caller_config: Dict, library_paths: LibraryPaths
-    ) -> str:
+    ) -> List:
 
         input_name = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
         output_name = caller_config[VariantCallingKeys.OTHER_VARIANTS_OUTPUT]
@@ -113,12 +113,35 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         ]
 
         return command
+    
+    @classmethod
+    def _filter_mutect_calls(
+        cls, caller_config: Dict, library_paths: LibraryPaths
+    ) -> List:
+
+        output_name = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
+
+        command = [
+            "gatk",
+            "FilterMutectCalls",
+            "-V",
+            output_name,
+            "-R",
+            library_paths.REF_FASTA,
+            "-O",
+            output_name
+        ]
+
+        return command
 
     @classmethod
     def call_variants(cls, caller_config: Dict):
         library_paths = LibraryPaths()
 
         mutect_command = cls._create_run_command(
+            caller_config=caller_config, library_paths=library_paths
+        )
+        filter_command = cls._filter_mutect_calls(
             caller_config=caller_config, library_paths=library_paths
         )
         get_snp_command = cls._create_get_snp_variants_command(
@@ -132,6 +155,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         )
 
         run(mutect_command)
+        run(filter_command)
         run(get_snp_command)
         run(get_indel_command)
         run(get_other_variants_command)

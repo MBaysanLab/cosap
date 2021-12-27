@@ -1,8 +1,11 @@
+from subprocess import call
 from ._mutect2_variantcaller import Mutect2VariantCaller
 from ._octopus_variantcaller import OctopusVariantCaller
 from ._somaticsniper_variantcaller import SomaticSniperVariantCaller
 from ._variantcallers import _VariantCaller
 from ._varscan_variantcaller import VarScanVariantCaller
+from ._muse_variantcaller import MuseVariantCaller
+from ._vardict_variantcaller import VarDictVariantCaller
 
 
 class VariantCallerFactory:
@@ -11,6 +14,8 @@ class VariantCallerFactory:
     STRELKA2_CALLER = "strelka"
     VARSCAN_CALLER = "varscan"
     OCTOPUS_CALLER = "octopus"
+    MUSE_CALLER = "muse"
+    VARDICT_CALLER = "vardict"
 
     @classmethod
     def create(cls, caller_type: str) -> _VariantCaller:
@@ -24,6 +29,10 @@ class VariantCallerFactory:
             caller = VarScanVariantCaller
         elif caller_type == cls.OCTOPUS_CALLER:
             caller = OctopusVariantCaller
+        elif caller_type == cls.MUSE_CALLER:
+            caller = MuseVariantCaller
+        elif caller_type == cls.VARDICT_CALLER:
+            caller = VarDictVariantCaller
         else:
             raise Exception(f"Unknown caller type: {caller_type}")
 

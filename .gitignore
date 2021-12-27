@@ -132,3 +132,4 @@ dmypy.json
 .vscode/
 
 *.ipynb
+cosap/_config.py
