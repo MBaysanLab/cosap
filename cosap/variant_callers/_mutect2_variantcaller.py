@@ -39,7 +39,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             "-normal",
             germline_sample_name,
             "-O",
-            output_name
+            output_name,
         ]
         return command
 
@@ -113,7 +113,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         ]
 
         return command
-    
+
     @classmethod
     def _filter_mutect_calls(
         cls, caller_config: Dict, library_paths: LibraryPaths
@@ -129,7 +129,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             "-R",
             library_paths.REF_FASTA,
             "-O",
-            output_name
+            output_name,
         ]
 
         return command

@@ -1,11 +1,12 @@
 from subprocess import call
+
+from ._muse_variantcaller import MuseVariantCaller
 from ._mutect2_variantcaller import Mutect2VariantCaller
 from ._octopus_variantcaller import OctopusVariantCaller
 from ._somaticsniper_variantcaller import SomaticSniperVariantCaller
+from ._vardict_variantcaller import VarDictVariantCaller
 from ._variantcallers import _VariantCaller
 from ._varscan_variantcaller import VarScanVariantCaller
-from ._muse_variantcaller import MuseVariantCaller
-from ._vardict_variantcaller import VarDictVariantCaller
 
 
 class VariantCallerFactory:
