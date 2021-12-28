@@ -1,8 +1,9 @@
-import os
 import multiprocessing
+import os
+import sys
 from subprocess import PIPE, Popen, check_output, run
 from typing import Dict, List
-import sys
+
 import yaml
 
 from .._config import AppConfig
@@ -16,7 +17,7 @@ class SnakemakeRunner:
         self.workdir = pipeline_config[PipelineKeys.WORKDIR]
         self.config_yaml_path = join_paths(self.workdir, "config.yaml")
         self._write_config_to_yaml()
-        
+
     def _write_config_to_yaml(self):
         with open(self.config_yaml_path, "w") as config_yaml:
             yaml.dump(self.pipeline_config, config_yaml, default_flow_style=False)
@@ -57,8 +58,8 @@ class SnakemakeRunner:
             self.config_yaml_path,
             "-r",
             "-n",
-            ]
-        return command 
+        ]
+        return command
 
     def _create_snakemake_run_command(self) -> list:
         available_cpu = multiprocessing.cpu_count()
@@ -70,8 +71,8 @@ class SnakemakeRunner:
             str(available_cpu // AppConfig.THREADS),
             "--configfile",
             self.config_yaml_path,
-            "-r"
-            ]
+            "-r",
+        ]
         return command
 
     def _create_snakemake_report_command(self) -> list:

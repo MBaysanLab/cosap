@@ -57,7 +57,7 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
             "--p-value 0.99",
             "--somatic-p-value 0.05",
             "--strand-filter 0",
-            "--output-vcf"
+            "--output-vcf",
         ]
         return command
 
@@ -72,7 +72,7 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
             vcf,
             "--min-tumor-freq 0.10",
             "--max-normal-freq 0.05",
-            "--p-value 0.07"
+            "--p-value 0.07",
         ]
         return command
 
