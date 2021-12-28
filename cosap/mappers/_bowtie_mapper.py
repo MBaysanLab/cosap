@@ -1,5 +1,5 @@
 import os
-from subprocess import run
+from subprocess import PIPE, Popen, check_output, run
 from typing import Dict, List
 
 from .._config import AppConfig
@@ -12,13 +12,13 @@ class Bowtie2Mapper(_Mapper, _Mappable):
     @classmethod
     def _create_fastq_reads_command(cls, mapper_config: Dict) -> List:
         command = []
-        for i, read in enumerate(mapper_config[MappingKeys.INPUTS]):
-            command.extend([f"-{i}", read])
+        for i, read in enumerate(mapper_config[MappingKeys.INPUT], 1):
+            command.extend([f"-{i}", mapper_config[MappingKeys.INPUT][read]])
         return command
 
     @classmethod
     def _create_read_group(cls, mapper_config: Dict) -> List:
-        flags = mapper_config[MappingKeys.PARAMS]
+        flags = mapper_config[MappingKeys.PARAMS][MappingKeys.READ_GROUP]
         read_arguments = [
             "--rg-id",
             flags[MappingKeys.RG_ID],
@@ -36,7 +36,7 @@ class Bowtie2Mapper(_Mapper, _Mappable):
     @classmethod
     def _create_command(
         cls,
-        mapping_config: Dict,
+        mapper_config: Dict,
         read_group: List,
         fastq_reads: List,
         library_paths: LibraryPaths,
@@ -45,40 +45,58 @@ class Bowtie2Mapper(_Mapper, _Mappable):
         command = [
             "bowtie2",
             "-p",
-            app_config.THREADS,
+            str(app_config.THREADS),
             *read_group,
             "-x",
-            library_paths.REF_DIR,
-            # TODO: This needs to go somewhere else
-            os.path.normpath("Bowtie2/Homo_sapiens_assembly38"),
+            library_paths.BOWTIE2_ASSEMBLY,
             *fastq_reads,
-            "|",
-            "samtools",
-            "view",
-            "-@",
-            app_config.THREADS,
-            "-bS",
-            "-",
-            ">",
-            mapping_config[MappingKeys.OUTPUT],
         ]
         return command
 
     @classmethod
-    def map(cls, mapping_config: Dict):
+    def _create_samtools_command(
+        cls,
+        mapper_config: Dict,
+        read_group: str,
+        library_paths: LibraryPaths,
+        app_config: AppConfig,
+    ) -> List:
+
+        command = [
+            "samtools",
+            "sort",
+            "-@",
+            str(app_config.THREADS),
+            "-o",
+            mapper_config[MappingKeys.OUTPUT],
+            "-",
+        ]
+        return command
+
+    @classmethod
+    def map(cls, mapper_config: Dict):
         library_paths = LibraryPaths()
         app_config = AppConfig()
 
-        read_group = cls._create_read_group(mapping_config=mapping_config)
+        read_group = cls._create_read_group(mapper_config=mapper_config)
 
-        fastq_reads = cls._create_fastq_reads_command(mapping_config=mapping_config)
+        fastq_reads = cls._create_fastq_reads_command(mapper_config=mapper_config)
 
-        command = cls._create_command(
-            mapping_config=mapping_config,
+        bowtie_command = cls._create_command(
+            mapper_config=mapper_config,
             read_group=read_group,
             fastq_reads=fastq_reads,
             library_paths=library_paths,
             app_config=app_config,
         )
 
-        run(command, cwd=os.path.dirname(pipeline_config[MappingKeys.INPUTS][0]))
+        samtools_command = cls._create_samtools_command(
+            mapper_config=mapper_config,
+            read_group=read_group,
+            library_paths=library_paths,
+            app_config=app_config,
+        )
+
+        bowtie = Popen(bowtie_command, stdout=PIPE)
+        samtools = check_output(samtools_command, stdin=bowtie.stdout)
+        bowtie.wait()

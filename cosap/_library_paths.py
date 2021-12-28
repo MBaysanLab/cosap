@@ -24,6 +24,7 @@ class _LibraryMeta(type):
 
 @dataclass
 class _LibraryPaths:
+    ENSEMBL_VEP: str = os.path.join(AppConfig.LIBRARY_PATH, "vep")
     # PICARD: str = os.path.join(AppConfig.LIBRARY_PATH, "picard.jar")
     # GATK: str = os.path.join(AppConfig.LIBRARY_PATH, "GenomeAnalysisTK.jar")
     # GATK4: str = os.path.join(AppConfig.LIBRARY_PATH, "gatk-4.1.0.0", "gatk")
@@ -44,34 +45,33 @@ class _LibraryPaths:
 
 @dataclass
 class _LibraryPaths38(_LibraryPaths):
-    REF_DIR: str = os.path.join(
-        AppConfig.LIBRARY_PATH, "ref_genome_indexes", "hg38_bundle"
+    REF_DIR: str = AppConfig.LIBRARY_PATH
+    REF_FASTA: str = os.path.join(
+        AppConfig.LIBRARY_PATH, "Homo_sapiens_assembly38.fasta"
     )
     DBSNP: str = os.path.join(
         AppConfig.LIBRARY_PATH,
-        "ref_genome_indexes",
-        "hg38_bundle",
-        "dbsnp_146.hg38.vcf.gz",
+        "Homo_sapiens_assembly38.dbsnp138.vcf",
     )
     MILLS_INDEL: str = os.path.join(
         AppConfig.LIBRARY_PATH,
-        "ref_genome_indexes",
-        "hg38_bundle",
         "Mills_and_1000G_gold_standard.indels.hg38.vcf.gz",
     )
     COSMIC: str = os.path.join(
         AppConfig.LIBRARY_PATH,
-        "ref_genome_indexes",
-        "hg19_bundle",
         "cosmic_hg19_lifted_over.vcf",
     )
     ANNOVAR: str = os.path.join(AppConfig.LIBRARY_PATH, "annovar")
     ANNOVAR_DB: str = os.path.join(AppConfig.LIBRARY_PATH, "annovar", "humandb_38")
     ONE_THOUSAND_G: str = os.path.join(
         AppConfig.LIBRARY_PATH,
-        "ref_genome_indexes",
-        "hg38_bundle",
         "1000G_phase1.snps.high_confidence.hg38.vcf.gz",
+    )
+    BWA_ASSEMBLY: str = os.path.join(
+        AppConfig.LIBRARY_PATH, "Bwa", "Homo_sapiens_assembly38.fasta"
+    )
+    BOWTIE2_ASSEMBLY: str = os.path.join(
+        AppConfig.LIBRARY_PATH, "Bowtie2", "Homo_sapiens_assembly38"
     )
 
 

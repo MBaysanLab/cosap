@@ -3,7 +3,7 @@ from subprocess import run
 from typing import Dict, List
 
 from .._library_paths import LibraryPaths
-from .._pipeline_config import PipelineConfig
+from .._pipeline_config import VariantCallingKeys
 from ._variantcallers import _Callable, _VariantCaller
 
 
@@ -12,29 +12,15 @@ class SomaticSniperVariantCaller(_Callable, _VariantCaller):
     def _create_somaticSniper_command(
         cls, caller_config=Dict, library_paths=LibraryPaths
     ) -> List:
-        bam_paths = cls._get_bam_paths(caller_config)
 
-        sample_name = cls._get_sample_name(bam_paths["tumor_bam_path"])
-        output_name = cls._create_output_filename(
-            caller_config, sample_name=sample_name
-        )
+        germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
+        tumor_bam = caller_config[VariantCallingKeys.TUMOR_INPUT]
 
+        snp_output_name = caller_config[VariantCallingKeys.PARAMS][
+            VariantCallingKeys.SNP_OUTPUT
+        ]
         command = [
-            library_paths.SOMATICSNIPER,
-            "-q",
-            "1",
-            "-L",
-            "-G",
-            "-Q",
-            "15",
-            "-s",
-            "0.01",
-            "-T",
-            "0.85",
-            "-N",
-            "2",
-            "-r",
-            "0.001",
+            "somatic-sniper",
             "-n",
             "NORMAL",
             "-t",
@@ -43,9 +29,9 @@ class SomaticSniperVariantCaller(_Callable, _VariantCaller):
             "vcf",
             "-f",
             library_paths.REF_DIR,
-            bam_paths["tumor_bam_path"],
-            bam_paths["germline_bam_path"],
-            output_name,
+            germline_bam,
+            tumor_bam,
+            snp_output_name,
         ]
 
         return command
@@ -57,4 +43,4 @@ class SomaticSniperVariantCaller(_Callable, _VariantCaller):
         somatic_sniper_command = cls._create_somaticSniper_command(
             caller_config=caller_config, library_paths=library_paths
         )
-        run(somatic_sniper_command, cwd=caller_config.VCF_OUTPUT_DIR)
+        run(somatic_sniper_command)

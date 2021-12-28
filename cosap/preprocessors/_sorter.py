@@ -1,11 +1,9 @@
-import glob
-import os
 from subprocess import run
 from typing import Dict, List
 
 from .._config import AppConfig
 from .._library_paths import LibraryPaths
-from .._sorting_config import SortingKeys
+from .._pipeline_config import SortingKeys
 from .._utils import join_paths
 
 
@@ -42,4 +40,4 @@ class SamtoolsSorter:
             library_paths=library_paths,
         )
 
-        run(command, cwd=sorting_config.BAM_DIR)
+        run(command, cwd=sorting_config[SortingKeys.BAM_DIR])
