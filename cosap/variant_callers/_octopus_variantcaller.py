@@ -41,7 +41,7 @@ class OctopusVariantCaller(_Callable, _VariantCaller):
             "-o",
             output_name,
             "--threads",
-            str(app_config.THREADS)
+            str(app_config.THREADS),
         ]
         return command
 

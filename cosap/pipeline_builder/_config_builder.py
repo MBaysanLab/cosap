@@ -42,7 +42,7 @@ class Pipeline:
 
         return self
 
-    def build(self, workdir:str=None) -> Dict:
+    def build(self, workdir: str = None) -> Dict:
         pipeline_config = self._create_config()
 
         if workdir:

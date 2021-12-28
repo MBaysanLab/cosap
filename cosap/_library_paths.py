@@ -49,6 +49,7 @@ class _LibraryPaths38(_LibraryPaths):
     REF_FASTA: str = os.path.join(
         AppConfig.LIBRARY_PATH, "Homo_sapiens_assembly38.fasta"
     )
+    REF_BED: str = os.path.join(AppConfig.LIBRARY_PATH, "hg38_intervals.bed")
     DBSNP: str = os.path.join(
         AppConfig.LIBRARY_PATH,
         "Homo_sapiens_assembly38.dbsnp138.vcf",

@@ -27,4 +27,3 @@ dependencies:
   - pygraphviz
   - snakefmt
   - snakemake
-prefix: /home/bioinformaticslab/miniconda3/envs/cosap
