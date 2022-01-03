@@ -18,17 +18,13 @@ class SomaticSniperVariantCaller(_Callable, _VariantCaller):
 
         output_name = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
         command = [
-            "somatic-sniper",
-            "-n",
-            "NORMAL",
-            "-t",
-            "TUMOR",
-            "-F",
-            "vcf",
+            "bam-somaticsniper",
             "-f",
             library_paths.REF_DIR,
-            germline_bam,
+            "-F",
+            "vcf",
             tumor_bam,
+            germline_bam,
             output_name,
         ]
 
