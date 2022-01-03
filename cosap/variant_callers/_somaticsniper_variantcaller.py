@@ -20,7 +20,7 @@ class SomaticSniperVariantCaller(_Callable, _VariantCaller):
         command = [
             "bam-somaticsniper",
             "-f",
-            library_paths.REF_DIR,
+            library_paths.REF_FASTA,
             "-F",
             "vcf",
             tumor_bam,
