@@ -15,6 +15,7 @@ rule variant_caller:
         ][VariantCallingKeys.TUMOR_INPUT],
     output:
         vcf=config[PipelineKeys.VARIANT_CALLING][VariantCallingKeys.SNAKEMAKE_OUTPUT],
+    resources: 1
     run:
         variant_caller = VariantCallerFactory.create(
             caller_type=config[PipelineKeys.VARIANT_CALLING][wildcards.identification][
