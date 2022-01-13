@@ -3,12 +3,14 @@ from dataclasses import dataclass
 from typing import Dict
 
 from ..._formats import FileFormats
-from ..._pipeline_config import MappingKeys, PipelineKeys, VariantCallingKeys
+from ..._pipeline_config import MappingKeys, PipelineKeys, VariantCallingKeys,DefaultValues
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
 
 @dataclass
 class VariantCaller(_IPipelineStep, _PipelineStep):
+    PY2_PACKAGES = ["strelka"]
+
     library: str
     germline: str
     tumor: str
@@ -20,9 +22,9 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
         if self.name is None:
             self.name = f"{self.germline.name}-{self.tumor.name}_{self.library}"
         if VariantCallingKeys.GERMLINE_SAMPLE_NAME not in self.params:
-            self.params[VariantCallingKeys.GERMLINE_SAMPLE_NAME] = "normal_sample"
+            self.params[VariantCallingKeys.GERMLINE_SAMPLE_NAME] = DefaultValues.DEFAULT_GERMLINE_SAMPLE_NAME
         if VariantCallingKeys.TUMOR_SAMPLE_NAME not in self.params:
-            self.params[VariantCallingKeys.TUMOR_SAMPLE_NAME] = "tumor_sample"
+            self.params[VariantCallingKeys.TUMOR_SAMPLE_NAME] = DefaultValues.DEFAULT_TUMOR_SAMPLE_NAME
 
     def get_output(self):
         config = self.get_config()
@@ -41,7 +43,6 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
         other_variants_output_filename = FileFormats.GATK_OTHER_VARIANTS_OUTPUT.format(
             identification=self.name
         )
-
         vc_config = {
             VariantCallingKeys.SNAKEMAKE_OUTPUT: FileFormats.GATK_SNP_OUTPUT.format(
                 identification="{identification}"

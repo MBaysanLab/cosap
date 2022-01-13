@@ -15,7 +15,7 @@ rule fastp_trim:
         fastq_outputs=expand(
             config[PipelineKeys.TRIM][TrimmingKeys.SNAKEMAKE_OUTPUT], pair=["1", "2"]
         ),
-    resources: 14
+    resources: fastp=14
     run:
         trimmer = PreprocessorFactory.create(preprocessor_type="trimmer")
         trimmer.run_preprocessor(config[PipelineKeys.TRIM][wildcards.identification])
@@ -28,7 +28,7 @@ rule mark_dup:
         ],
     output:
         mdup_bam=config[PipelineKeys.MDUP][MDUPKeys.SNAKEMAKE_OUTPUT],
-    resources:1
+    resources: mdup=1
     run:
         duplicate_remover = PreprocessorFactory.create(
             preprocessor_type="mark_duplicate"
@@ -47,7 +47,7 @@ rule gatk_base_cal:
         calibrated_bam=config[PipelineKeys.CALIBRATE][
             BaseRecalibratorKeys.SNAKEMAKE_OUTPUT
         ],
-    resources: 1
+    resources: base_cal=1
     run:
         duplicate_remover = PreprocessorFactory.create(
             preprocessor_type="base_recalibrator"

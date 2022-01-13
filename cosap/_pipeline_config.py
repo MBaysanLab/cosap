@@ -97,8 +97,17 @@ class VariantCallingKeys(PipelineBaseKeys):
     INDEL_OUTPUT: str = "indel_output"
     OTHER_VARIANTS_OUTPUT: str = "other_variants_output"
     PILEUPS: str = "pileups"
+    CONDA_ENV: str = "conda_env"
 
 
 @dataclass
 class AnnotatorKeys(PipelineBaseKeys):
     pass
+
+
+@dataclass
+class DefaultValues:
+    DEFAULT_ENV: str = "default_environment"
+    DEFAULT_ENV_PY2: str = "py2_environment"
+    DEFAULT_GERMLINE_SAMPLE_NAME: str = "normal_sample"
+    DEFAULT_TUMOR_SAMPLE_NAME: str = "tumor_sample"
