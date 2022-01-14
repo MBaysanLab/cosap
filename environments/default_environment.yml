@@ -27,3 +27,4 @@ dependencies:
   - pygraphviz
   - snakefmt
   - snakemake
+  - elprep

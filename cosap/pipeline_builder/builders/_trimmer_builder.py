@@ -32,13 +32,10 @@ class Trimmer(_IPipelineStep, _PipelineStep):
         output_filenames = {}
         for reader in self.reads:
             output_filenames[reader.read] = FileFormats.TRIMMING_OUTPUT.format(
-                identification=reader.name
+                identification=reader.name, pair=reader.read
             )
 
         config = {
-            TrimmingKeys.SNAKEMAKE_OUTPUT: FileFormats.TRIMMING_OUTPUT.format(
-                identification="{{identification}}_{pair}"
-            ),
             self.name: {
                 TrimmingKeys.INPUT: read_filenames,
                 TrimmingKeys.OUTPUT: output_filenames,

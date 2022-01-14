@@ -30,6 +30,7 @@ class Pipeline:
             PipelineKeys.MERGE: dict(),
             PipelineKeys.MDUP: dict(),
             PipelineKeys.CALIBRATE: dict(),
+            PipelineKeys.ELPREP_PROCESS: dict(),
             PipelineKeys.VARIANT_CALLING: dict(),
             PipelineKeys.ANNOTATION: dict(),
             PipelineKeys.FINAL_OUTPUT: list(),

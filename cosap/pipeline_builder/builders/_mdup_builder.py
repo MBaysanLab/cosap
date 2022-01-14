@@ -22,9 +22,6 @@ class MDUP(_IPipelineStep, _PipelineStep):
         )
 
         config = {
-            MDUPKeys.SNAKEMAKE_OUTPUT: FileFormats.MDUP_OUTPUT.format(
-                identification="{identification}"
-            ),
             self.name: {
                 MDUPKeys.INPUT: self.input_step.get_output(),
                 MDUPKeys.OUTPUT: output_filename,

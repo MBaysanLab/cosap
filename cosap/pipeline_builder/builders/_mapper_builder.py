@@ -47,9 +47,6 @@ class Mapper(_IPipelineStep, _PipelineStep):
             )
 
         config = {
-            MappingKeys.SNAKEMAKE_OUTPUT: FileFormats.MAPPING_OUTPUT.format(
-                identification="{identification}"
-            ),
             self.name: {
                 MappingKeys.LIBRARY: self.library,
                 MappingKeys.INPUT: read_filenames,

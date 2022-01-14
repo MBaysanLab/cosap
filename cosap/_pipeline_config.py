@@ -14,6 +14,7 @@ class PipelineKeys:
     MDUP: str = "mdup"
     TRIM: str = "trim"
     CALIBRATE: str = "calibrate"
+    ELPREP_PROCESS: str = "elprep"
     VARIANT_CALLING: str = "variant-calling"
     ANNOTATION: str = "annotation"
     FINAL_OUTPUT: str = "final-output"
@@ -102,6 +103,10 @@ class VariantCallingKeys(PipelineBaseKeys):
 
 @dataclass
 class AnnotatorKeys(PipelineBaseKeys):
+    pass
+
+@dataclass
+class ElprepKeys(MDUPKeys, BaseRecalibratorKeys):
     pass
 
 

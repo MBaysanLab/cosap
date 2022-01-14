@@ -44,9 +44,6 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
             identification=self.name
         )
         vc_config = {
-            VariantCallingKeys.SNAKEMAKE_OUTPUT: FileFormats.GATK_SNP_OUTPUT.format(
-                identification="{identification}"
-            ),
             self.name: {
                 VariantCallingKeys.LIBRARY: self.library,
                 VariantCallingKeys.GERMLINE_INPUT: self.germline.get_output(),

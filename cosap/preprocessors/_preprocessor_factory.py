@@ -5,6 +5,7 @@ from ._merger import BamMerger
 from ._preprocessors import _Preprocessor
 from ._sorter import SamtoolsSorter
 from ._trimmer import Trimmer
+from ._elprep_preprocess import ElprepPreprocess
 
 
 class PreprocessorFactory:
@@ -14,6 +15,7 @@ class PreprocessorFactory:
     merger = "merger"
     sorter = "sorter"
     trimmer = "trimmer"
+    elprep  = "elprep"
 
     @classmethod
     def create(cls, preprocessor_type: str) -> _Preprocessor:
@@ -31,6 +33,8 @@ class PreprocessorFactory:
             preprocessor = SamtoolsSorter
         elif preprocessor_type == cls.trimmer:
             preprocessor = Trimmer
+        elif preprocessor_type == cls.elprep:
+            preprocessor = ElprepPreprocess
         else:
             raise Exception(f"Unknown mapper type: {preprocessor_type}")
 

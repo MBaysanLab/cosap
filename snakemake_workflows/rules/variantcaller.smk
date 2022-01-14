@@ -14,7 +14,7 @@ rule variant_caller:
             wildcards.identification
         ][VariantCallingKeys.TUMOR_INPUT],
     output:
-        vcf=config[PipelineKeys.VARIANT_CALLING][VariantCallingKeys.SNAKEMAKE_OUTPUT],
+        vcf=FileFormats.GATK_SNP_OUTPUT,
     resources: variant_caller=1
     run:
         variant_caller = VariantCallerFactory.create(

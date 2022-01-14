@@ -6,6 +6,7 @@ from cosap._pipeline_config import (
     BaseRecalibratorKeys,
     TrimmingKeys,
     PipelineKeys,
+    ElprepKeys
 )
 from collections import defaultdict
 
@@ -13,7 +14,7 @@ from collections import defaultdict
 rule fastp_trim:
     output:
         fastq_outputs=expand(
-            config[PipelineKeys.TRIM][TrimmingKeys.SNAKEMAKE_OUTPUT], pair=["1", "2"]
+            FileFormats.TRIMMING_OUTPUT, pair=["1", "2"], identification="{identification}"
         ),
     resources: fastp=14
     run:
@@ -27,7 +28,7 @@ rule mark_dup:
             MDUPKeys.INPUT
         ],
     output:
-        mdup_bam=config[PipelineKeys.MDUP][MDUPKeys.SNAKEMAKE_OUTPUT],
+        mdup_bam=FileFormats.MDUP_OUTPUT,
     resources: mdup=1
     run:
         duplicate_remover = PreprocessorFactory.create(
@@ -44,9 +45,7 @@ rule gatk_base_cal:
             BaseRecalibratorKeys.INPUT
         ],
     output:
-        calibrated_bam=config[PipelineKeys.CALIBRATE][
-            BaseRecalibratorKeys.SNAKEMAKE_OUTPUT
-        ],
+        calibrated_bam=FileFormats.CALIBRATION_OUTPUT
     resources: base_cal=1
     run:
         duplicate_remover = PreprocessorFactory.create(
@@ -54,4 +53,20 @@ rule gatk_base_cal:
         )
         duplicate_remover.run_preprocessor(
             config[PipelineKeys.CALIBRATE][wildcards.identification]
+        )
+
+
+rule elprep_cal:
+    input:
+        bam=lambda wildcards: config[PipelineKeys.ELPREP_PROCESS][wildcards.identification][
+            ElprepKeys.INPUT
+        ],
+    output:
+        calibrated_bam=FileFormats.ELPREP_CALIBRATION_OUTPUT
+    run:
+        duplicate_remover = PreprocessorFactory.create(
+            preprocessor_type="elprep"
+        )
+        duplicate_remover.run_preprocessor(
+            config[PipelineKeys.ELPREP_PROCESS][wildcards.identification]
         )
