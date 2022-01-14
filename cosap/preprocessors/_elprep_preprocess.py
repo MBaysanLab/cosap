@@ -15,7 +15,7 @@ class ElprepPreprocess(_Preprocessor, _PreProcessable):
 
         command = [
             "elprep",
-            "filter",
+            "sfm",
             elrep_config[ElprepKeys.INPUT],
             elrep_config[ElprepKeys.OUTPUT],
             "--mark-duplicates",
