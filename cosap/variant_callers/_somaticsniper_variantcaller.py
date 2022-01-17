@@ -19,6 +19,8 @@ class SomaticSniperVariantCaller(_Callable, _VariantCaller):
         output_name = caller_config[VariantCallingKeys.SNP_OUTPUT]
         command = [
             "bam-somaticsniper",
+            "-G",
+            "-L"
             "-f",
             library_paths.REF_FASTA,
             "-F",
