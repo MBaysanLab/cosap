@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Pattern
 
 
 @dataclass
@@ -116,3 +117,7 @@ class DefaultValues:
     DEFAULT_ENV_PY2: str = "py2_environment"
     DEFAULT_GERMLINE_SAMPLE_NAME: str = "normal_sample"
     DEFAULT_TUMOR_SAMPLE_NAME: str = "tumor_sample"
+
+@dataclass
+class Py2ModuleConstraints:
+    VARIANT_CALLERS: list[Pattern] = [".+_strelka"]
