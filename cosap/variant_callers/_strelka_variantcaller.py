@@ -22,11 +22,9 @@ class StrelkaVariantCaller(_Callable, _VariantCaller):
             "configureStrelkaSomaticWorkflow.py",
             f"--tumorBam={tumor_bam}",
             f"--normalBam={germline_bam}",
-            f"--referenceFasta={library_paths.REF_FASTA}",
-            "--runDir ."
+            f"--referenceFasta={library_paths.REF_FASTA}"
         ]
 
-        print(" ".join(command))
         return command
 
     @classmethod
@@ -72,10 +70,11 @@ class StrelkaVariantCaller(_Callable, _VariantCaller):
         strelka_run_wf_command = cls._create_run_strelka_workflow_command(
             caller_config=caller_config, library_paths=library_paths
         )
-        move_files_command = cls._move_strelka_vcfs(
-            caller_config=caller_config, library_paths=library_paths
-        )
+        
         run(strelka_command)
         run(strelka_run_wf_command)
-        run(move_files_command)
+        
+        cls._move_strelka_vcfs(
+            caller_config=caller_config, library_paths=library_paths
+        )
         
