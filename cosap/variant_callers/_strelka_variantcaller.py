@@ -35,7 +35,7 @@ class StrelkaVariantCaller(_Callable, _VariantCaller):
     ) -> List:
 
         command = [
-            "runWorkflow.py",
+            "StrelkaSomaticWorkflow/runWorkflow.py",
             "-m",
             "local",
             "-j",
