@@ -48,7 +48,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> List:
 
-        input_name = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
+        input_name = caller_config[VariantCallingKeys.GATK_FILTERED_OUTPUT]
         output_name = caller_config[VariantCallingKeys.SNP_OUTPUT]
 
         command = [
@@ -71,7 +71,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> List:
 
-        input_name = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
+        input_name = caller_config[VariantCallingKeys.GATK_FILTERED_OUTPUT]
         output_name = caller_config[VariantCallingKeys.INDEL_OUTPUT]
 
         command = [
@@ -94,7 +94,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> List:
 
-        input_name = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
+        input_name = caller_config[VariantCallingKeys.GATK_FILTERED_OUTPUT]
         output_name = caller_config[VariantCallingKeys.OTHER_VARIANTS_OUTPUT]
 
         command = [
@@ -119,13 +119,14 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> List:
 
-        output_name = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
+        input_name = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
+        output_name = caller_config[VariantCallingKeys.FILTERED_VARIANTS_OUTPUT]
 
         command = [
             "gatk",
             "FilterMutectCalls",
             "-V",
-            output_name,
+            input_name,
             "-R",
             library_paths.REF_FASTA,
             "-O",

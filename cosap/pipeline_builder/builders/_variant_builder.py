@@ -34,6 +34,9 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
         unfiltered_variants_output_filename = FileFormats.GATK_UNFILTERED_OUTPUT.format(
             identification=self.name
         )
+        filtered_variants_output_filename = FileFormats.GATK_FILTERED_OUTPUT.format(
+            identification=self.name
+        )
         snp_output_filename = FileFormats.GATK_SNP_OUTPUT.format(
             identification=self.name
         )
@@ -50,6 +53,7 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
                 VariantCallingKeys.TUMOR_INPUT: self.tumor.get_output(),
                 VariantCallingKeys.PARAMS: self.params,
                 VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT: unfiltered_variants_output_filename,
+                VariantCallingKeys.FILTERED_VARIANTS_OUTPUT: filtered_variants_output_filename,
                 VariantCallingKeys.SNP_OUTPUT: snp_output_filename,
                 VariantCallingKeys.INDEL_OUTPUT: indel_output_filename,
                 VariantCallingKeys.OTHER_VARIANTS_OUTPUT: other_variants_output_filename,

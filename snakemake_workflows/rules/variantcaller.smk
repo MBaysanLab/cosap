@@ -2,8 +2,9 @@ from typing import List, Dict
 import os
 from cosap.variant_callers._variant_factory import VariantCallerFactory
 from cosap._formats import FileFormats
-from cosap._pipeline_config import VariantCallingKeys, PipelineKeys, Py2ModuleConstraints
+from cosap._pipeline_config import VariantCallingKeys, PipelineKeys, SnakemakeConstraints
 
+ruleorder: py2_variant_caller > variant_caller
 
 rule variant_caller:
     input:
@@ -38,7 +39,9 @@ rule py2_variant_caller:
     output:
         vcf=FileFormats.GATK_SNP_OUTPUT,
     resources: variant_caller=1
+    conda: 
+        "../../environments/py2_environment.yaml"
     wildcard_constraints:
-        identification = Py2ModuleConstraints.VARIANT_CALLERS
+        identification = SnakemakeConstraints.PY2_VARIANT_CALLERS
     script:
-        "scripts/_py2_variantcaller.py"
+        "../scripts/_py2_variantcaller.py"

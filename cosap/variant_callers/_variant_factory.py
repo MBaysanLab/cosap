@@ -7,6 +7,7 @@ from ._somaticsniper_variantcaller import SomaticSniperVariantCaller
 from ._vardict_variantcaller import VarDictVariantCaller
 from ._variantcallers import _VariantCaller
 from ._varscan_variantcaller import VarScanVariantCaller
+from ._strelka_variantcaller import StrelkaVariantCaller
 
 
 class VariantCallerFactory:
@@ -34,6 +35,8 @@ class VariantCallerFactory:
             caller = MuseVariantCaller
         elif caller_type == cls.VARDICT_CALLER:
             caller = VarDictVariantCaller
+        elif caller_type == cls.STRELKA2_CALLER:
+            caller = StrelkaVariantCaller
         else:
             raise Exception(f"Unknown caller type: {caller_type}")
 

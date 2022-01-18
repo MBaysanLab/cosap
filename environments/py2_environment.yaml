@@ -1,4 +1,4 @@
-name: strelka
+name: cosap_py2
 channels:
   - bioconda
   - conda-forge

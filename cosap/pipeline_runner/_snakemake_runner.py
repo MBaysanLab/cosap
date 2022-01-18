@@ -71,7 +71,8 @@ class SnakemakeRunner:
             str(available_cpu // AppConfig.THREADS),
             "--configfile",
             self.config_yaml_path,
-            "-r"
+            "-r",
+            "--use-conda"
         ]
         return command
 

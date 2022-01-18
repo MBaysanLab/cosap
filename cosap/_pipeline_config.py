@@ -28,6 +28,7 @@ class PipelineBaseKeys:
     INPUT: str = "input"
     OUTPUT: str = "output"
     SNAKEMAKE_OUTPUT: str = "snakemake_output"
+    OUTPUT_DIR: str = "output_dir"
 
 
 @dataclass
@@ -64,7 +65,6 @@ class IndexingKeys(PipelineBaseKeys):
 class SplitKeys(PipelineBaseKeys):
     INPUT: str = "inputs"
     OUTPUT: str = "outputs"
-    OUTPUT_DIR: str = "output-dir"
 
 
 @dataclass
@@ -78,8 +78,6 @@ class MDUPKeys(PipelineBaseKeys):
     INPUT: str = "input"
     OUTPUT: str = "output"
     METRICS: str = "metrics"
-    OUTPUT_DIR: str = "output-dir"
-
 
 @dataclass
 class BaseRecalibratorKeys(PipelineBaseKeys):
@@ -95,11 +93,11 @@ class VariantCallingKeys(PipelineBaseKeys):
     GERMLINE_SAMPLE_NAME: str = "germline_sample_name"
     TUMOR_SAMPLE_NAME: str = "tumor_sample_name"
     UNFILTERED_VARIANTS_OUTPUT: str = "unfiltered_variants"
+    FILTERED_VARIANTS_OUTPUT: str = "filtered_variants"
     SNP_OUTPUT: str = "snp_output"
     INDEL_OUTPUT: str = "indel_output"
     OTHER_VARIANTS_OUTPUT: str = "other_variants_output"
     PILEUPS: str = "pileups"
-    CONDA_ENV: str = "conda_env"
 
 
 @dataclass
@@ -119,5 +117,5 @@ class DefaultValues:
     DEFAULT_TUMOR_SAMPLE_NAME: str = "tumor_sample"
 
 @dataclass
-class Py2ModuleConstraints:
-    VARIANT_CALLERS: list[Pattern] = [".+_strelka"]
+class SnakemakeConstraints:
+    PY2_VARIANT_CALLERS: Pattern = ".+_strelka"
