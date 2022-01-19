@@ -51,8 +51,8 @@ class PipelineRunner:
             caller = VariantCallerFactory.create(config[VariantCallingKeys.LIBRARY])
             caller.call_variants(config)
 
-    def run_pipeline(self, pipeline_config: Dict, snakemake: bool):
-        if snakemake:
+    def run_pipeline(self, pipeline_config: Dict, backend: str):
+        if backend == "snakemake":
             snakemake_runner = SnakemakeRunner(pipeline_config=pipeline_config)
             snakemake_runner.run_snakemake_pipeline()
 
