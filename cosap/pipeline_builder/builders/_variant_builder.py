@@ -3,7 +3,8 @@ from dataclasses import dataclass
 from typing import Dict
 
 from ..._formats import FileFormats
-from ..._pipeline_config import MappingKeys, PipelineKeys, VariantCallingKeys,DefaultValues
+from ..._pipeline_config import (DefaultValues, MappingKeys, PipelineKeys,
+                                 VariantCallingKeys)
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
 
@@ -22,9 +23,13 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
         if self.name is None:
             self.name = f"{self.germline.name}-{self.tumor.name}_{self.library}"
         if VariantCallingKeys.GERMLINE_SAMPLE_NAME not in self.params:
-            self.params[VariantCallingKeys.GERMLINE_SAMPLE_NAME] = DefaultValues.DEFAULT_GERMLINE_SAMPLE_NAME
+            self.params[
+                VariantCallingKeys.GERMLINE_SAMPLE_NAME
+            ] = DefaultValues.DEFAULT_GERMLINE_SAMPLE_NAME
         if VariantCallingKeys.TUMOR_SAMPLE_NAME not in self.params:
-            self.params[VariantCallingKeys.TUMOR_SAMPLE_NAME] = DefaultValues.DEFAULT_TUMOR_SAMPLE_NAME
+            self.params[
+                VariantCallingKeys.TUMOR_SAMPLE_NAME
+            ] = DefaultValues.DEFAULT_TUMOR_SAMPLE_NAME
 
     def get_output(self):
         config = self.get_config()

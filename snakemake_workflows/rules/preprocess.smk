@@ -6,7 +6,7 @@ from cosap._pipeline_config import (
     BaseRecalibratorKeys,
     TrimmingKeys,
     PipelineKeys,
-    ElprepKeys
+    ElprepKeys,
 )
 from collections import defaultdict
 
@@ -14,9 +14,12 @@ from collections import defaultdict
 rule fastp_trim:
     output:
         fastq_outputs=expand(
-            FileFormats.TRIMMING_OUTPUT, pair=["1", "2"], identification="{identification}"
+            FileFormats.TRIMMING_OUTPUT,
+            pair=["1", "2"],
+            identification="{identification}",
         ),
-    resources: fastp=14
+    resources:
+        fastp=14,
     run:
         trimmer = PreprocessorFactory.create(preprocessor_type="trimmer")
         trimmer.run_preprocessor(config[PipelineKeys.TRIM][wildcards.identification])
@@ -29,7 +32,8 @@ rule mark_dup:
         ],
     output:
         mdup_bam=FileFormats.MDUP_OUTPUT,
-    resources: mdup=1
+    resources:
+        mdup=1,
     run:
         duplicate_remover = PreprocessorFactory.create(
             preprocessor_type="mark_duplicate"
@@ -45,8 +49,9 @@ rule gatk_base_cal:
             BaseRecalibratorKeys.INPUT
         ],
     output:
-        calibrated_bam=FileFormats.CALIBRATION_OUTPUT
-    resources: base_cal=1
+        calibrated_bam=FileFormats.CALIBRATION_OUTPUT,
+    resources:
+        base_cal=1,
     run:
         duplicate_remover = PreprocessorFactory.create(
             preprocessor_type="base_recalibrator"
@@ -58,15 +63,13 @@ rule gatk_base_cal:
 
 rule elprep_cal:
     input:
-        bam=lambda wildcards: config[PipelineKeys.ELPREP_PROCESS][wildcards.identification][
-            ElprepKeys.INPUT
-        ],
+        bam=lambda wildcards: config[PipelineKeys.ELPREP_PROCESS][
+            wildcards.identification
+        ][ElprepKeys.INPUT],
     output:
-        calibrated_bam=FileFormats.ELPREP_CALIBRATION_OUTPUT
+        calibrated_bam=FileFormats.ELPREP_CALIBRATION_OUTPUT,
     run:
-        duplicate_remover = PreprocessorFactory.create(
-            preprocessor_type="elprep"
-        )
+        duplicate_remover = PreprocessorFactory.create(preprocessor_type="elprep")
         duplicate_remover.run_preprocessor(
             config[PipelineKeys.ELPREP_PROCESS][wildcards.identification]
         )

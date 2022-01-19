@@ -13,7 +13,7 @@ rule mapper:
             ].values()
         ),
     output:
-        bam=FileFormats.MAPPING_OUTPUT
+        bam=FileFormats.MAPPING_OUTPUT,
     run:
         mapper = MapperFactory.create(
             config[PipelineKeys.MAPPING][wildcards.identification][MappingKeys.LIBRARY]

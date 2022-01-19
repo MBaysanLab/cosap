@@ -1,6 +1,6 @@
 from ._bowtie_mapper import Bowtie2Mapper
-from ._bwa_mapper import BWAMapper
 from ._bwa2_mapper import BWA2Mapper
+from ._bwa_mapper import BWAMapper
 from ._mappers import _Mapper
 
 

@@ -24,7 +24,7 @@ class ElprepPreprocess(_Preprocessor, _PreProcessable):
             "--bqsr",
             elrep_config[ElprepKeys.TABLE],
             "--reference",
-            library_paths.REF_ELFASTA
+            library_paths.REF_ELFASTA,
         ]
         return command
 
@@ -34,6 +34,8 @@ class ElprepPreprocess(_Preprocessor, _PreProcessable):
         library_paths = LibraryPaths()
 
         command = cls._create_command(
-            library_paths=library_paths, app_config=app_config, elrep_config=elrep_config
+            library_paths=library_paths,
+            app_config=app_config,
+            elrep_config=elrep_config,
         )
         run(command)

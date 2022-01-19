@@ -20,7 +20,7 @@ class SomaticSniperVariantCaller(_Callable, _VariantCaller):
         command = [
             "bam-somaticsniper",
             "-G",
-            "-L"
+            "-L",
             "-f",
             library_paths.REF_FASTA,
             "-F",

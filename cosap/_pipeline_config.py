@@ -79,6 +79,7 @@ class MDUPKeys(PipelineBaseKeys):
     OUTPUT: str = "output"
     METRICS: str = "metrics"
 
+
 @dataclass
 class BaseRecalibratorKeys(PipelineBaseKeys):
     INPUT: str = "input"
@@ -104,6 +105,7 @@ class VariantCallingKeys(PipelineBaseKeys):
 class AnnotatorKeys(PipelineBaseKeys):
     pass
 
+
 @dataclass
 class ElprepKeys(MDUPKeys, BaseRecalibratorKeys):
     pass
@@ -115,6 +117,7 @@ class DefaultValues:
     DEFAULT_ENV_PY2: str = "py2_environment"
     DEFAULT_GERMLINE_SAMPLE_NAME: str = "normal_sample"
     DEFAULT_TUMOR_SAMPLE_NAME: str = "tumor_sample"
+
 
 @dataclass
 class SnakemakeConstraints:

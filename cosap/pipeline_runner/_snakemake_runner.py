@@ -72,7 +72,7 @@ class SnakemakeRunner:
             "--configfile",
             self.config_yaml_path,
             "-r",
-            "--use-conda"
+            "--use-conda",
         ]
         return command
 

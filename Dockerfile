@@ -7,4 +7,4 @@ COPY . /app/.
 
 WORKDIR /app
 
-RUN conda env create -f environment.yml
+RUN conda env create -f environments/default_environment.yml

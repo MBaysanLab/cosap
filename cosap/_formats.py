@@ -19,4 +19,3 @@ class FileFormats:
     GATK_INDEL_OUTPUT: str = r"indel_{identification}.vcf"
     GATK_OTHER_VARIANTS_OUTPUT: str = r"other_variants_{identification}.vcf"
     ANNOTATING_OUTPUT: str = r"annotated_{identification}.vcf"
-

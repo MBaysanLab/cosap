@@ -1,11 +1,11 @@
 from ._base_recalibrator import BaseRecalibrator
+from ._elprep_preprocess import ElprepPreprocess
 from ._indexer import BamIndexer
 from ._mark_duplicate import MarkDuplicate
 from ._merger import BamMerger
 from ._preprocessors import _Preprocessor
 from ._sorter import SamtoolsSorter
 from ._trimmer import Trimmer
-from ._elprep_preprocess import ElprepPreprocess
 
 
 class PreprocessorFactory:
@@ -15,7 +15,7 @@ class PreprocessorFactory:
     merger = "merger"
     sorter = "sorter"
     trimmer = "trimmer"
-    elprep  = "elprep"
+    elprep = "elprep"
 
     @classmethod
     def create(cls, preprocessor_type: str) -> _Preprocessor:
