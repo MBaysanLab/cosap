@@ -179,7 +179,7 @@ pipeline.add(mutect_caller)
 pipeline.add(annotator)
 ```
 
-`Config` can be with `.build()`:
+`Config` can be created with `.build()`:
 ```python
 pipeline_config = pipeline.build(workdir="/path/to/pipeline/workdir")
 ```
