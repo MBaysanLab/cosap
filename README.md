@@ -125,7 +125,7 @@ This tool requires up to 200GB of memory therefore is only recommended to be use
 ```python
 from cosap import Elprep
 
-elprep_recalibrator_germline =  Elprep(input_step=mapper_germline_bwa)
+elprep_recalibrator_germline = Elprep(input_step=mapper_germline_bwa)
 ```
 
 #### Variant Caller
