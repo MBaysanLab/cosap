@@ -207,7 +207,7 @@ runner.run_pipeline(pipeline_config=pipeline_config,backend="snakemake")
 
 ## Opening an issue
 
-Please post bug reports and (only)
+Please post bug reports
 in [GitHub issues](https://github.com/MBaysanLab/cosap/issues).
 
 
