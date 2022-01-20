@@ -8,12 +8,12 @@ from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
 @dataclass
 class Merger(_IPipelineStep, _PipelineStep):
-    inputs: List[_PipelineStep]
+    input_step: List[_PipelineStep]
     name: str = None
 
     def __post_init__(self):
         if self.name is None:
-            self.name = self._get_name()
+            self.name = self.input_step.name
 
     def _create_config(self) -> Dict:
         files = []
