@@ -14,7 +14,7 @@ class Trimmer(_IPipelineStep, _PipelineStep):
     def __post_init__(self):
         self.key = PipelineKeys.TRIM
         if self.name == None:
-            self.name = "_".join([step.name for step in self.reads])
+            self.name = "_".join(set(step.name for step in self.reads.reverse()))
 
     def _create_config(self) -> Dict:
 

@@ -36,6 +36,9 @@ class BamReader(_IPipelineStep, _PipelineStep):
 
     def __post_init__(self):
         self.filename = os.path.normpath(self.filename)
+        
+        if self.name == None:
+            self.name = self._get_name_from_path(self.filename)
 
     def get_output(self) -> str:
         return self.filename

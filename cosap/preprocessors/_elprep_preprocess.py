@@ -10,32 +10,43 @@ from ._preprocessors import _PreProcessable, _Preprocessor
 class ElprepPreprocess(_Preprocessor, _PreProcessable):
     @classmethod
     def _create_command(
-        cls, library_paths: LibraryPaths, app_config: AppConfig, elrep_config: Dict
+        cls, library_paths: LibraryPaths, elprep_config: Dict
     ) -> List:
 
         command = [
             "elprep",
             "sfm",
-            elrep_config[ElprepKeys.INPUT],
-            elrep_config[ElprepKeys.OUTPUT],
+            elprep_config[ElprepKeys.INPUT],
+            elprep_config[ElprepKeys.OUTPUT],
             "--mark-duplicates",
             "--mark-optical-duplicates",
-            f"{elrep_config[ElprepKeys.OUTPUT]}_metrics",
+            f"{elprep_config[ElprepKeys.OUTPUT]}_metrics",
             "--bqsr",
-            elrep_config[ElprepKeys.TABLE],
+            elprep_config[ElprepKeys.TABLE],
             "--reference",
             library_paths.REF_ELFASTA,
         ]
         return command
 
     @classmethod
-    def run_preprocessor(cls, elrep_config: Dict):
-        app_config = AppConfig()
+    def _index_output(cls, elprep_config: Dict) -> List:
+        command = [
+            "samtools",
+            "index",
+            elprep_config[ElprepKeys.OUTPUT],
+        ]
+        return command
+
+    @classmethod
+    def run_preprocessor(cls, elprep_config: Dict):
         library_paths = LibraryPaths()
 
         command = cls._create_command(
             library_paths=library_paths,
-            app_config=app_config,
-            elrep_config=elrep_config,
+            elprep_config=elprep_config,
+        )
+        index_command = cls._index_output(
+            elprep_config=elprep_config
         )
         run(command)
+        run(index_command)
