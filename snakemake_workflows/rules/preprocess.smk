@@ -73,16 +73,3 @@ rule elprep_cal:
         duplicate_remover.run_preprocessor(
             config[PipelineKeys.ELPREP_PROCESS][wildcards.identification]
         )
-
-rule bam_indexer:
-    input:
-        bam=lambda wildcards: config[PipelineKeys.ELPREP_PROCESS][
-            wildcards.identification
-        ][ElprepKeys.INPUT],
-    output:
-        calibrated_bam=FileFormats.ELPREP_CALIBRATION_OUTPUT,
-    run:
-        duplicate_remover = PreprocessorFactory.create(preprocessor_type="indexer")
-        duplicate_remover.run_preprocessor(
-            config[PipelineKeys.INDEX][wildcards.identification]
-        )
