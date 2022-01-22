@@ -51,7 +51,7 @@ germline_fastqs = [
     FastqReader("/path/to/fastq_2.fastq", name="normal_sample", read=2)
 ]
 ```
-The read argument is to remark the pairs.
+The read argument is to mark the pairs.
 
 #### Trimmer
 Trimmer builder for adaptor trimming and quality control.
@@ -60,44 +60,42 @@ Takes the fastq file handler as input.
 ```python
 from cosap import Trimmer
 
-trimmer_germline = Trimmer(reads = germline_fastqs)
+trimmer_germline = Trimmer(reads=germline_fastqs)
 ```
 Here the germline_fastqs is the list of fastq file handler.
 
 #### Mapper
 Mapper builder for read mapping. Takes the Trimmer or FastqReader as input.
-Supports [BWA](https://github.com/lh3/bwa), [BWA-MEM2](https://github.com/bwa-mem2/bwa-mem2) and [Bowtie2](https://github.com/BenLangmead/bowtie2) libraries.
+Currently following libraries are supported:
+- [BWA](https://github.com/lh3/bwa)
+- [BWA-MEM2](https://github.com/bwa-mem2/bwa-mem2)
+- [Bowtie2](https://github.com/BenLangmead/bowtie2)
 
 
 
 ```python
 from cosap import Mapper
 
+germline_params = {
+    "read_groups": {
+    "ID": "H0164.2",
+    "SM": "Pt28N",
+    "PU": "0",
+    "PL": "illumina",
+    "LB": "Solexa-272222"
+}
+
 mapper_germline_bwa = Mapper(
     library="bwa",
     reads=trimmer_germline,
-    params={
-        "read_groups": {
-        "ID": "H0164.2",
-        "SM": "Pt28N",
-        "PU": "0",
-        "PL": "illumina",
-        "LB": "Solexa-272222"
-    }
+    params=germline_params
     }
 )
 
 mapper_germline_bowtie = Mapper(
     library="bowtie",
     reads=trimmer_germline,
-    params={
-        "read_groups": {
-        "ID": "H0164.2",
-        "SM": "Pt28N",
-        "PU": "0",
-        "PL": "illumina",
-        "LB": "Solexa-272222"
-    }
+    params=germline_params
     }
 )
 
@@ -127,7 +125,7 @@ This tool requires up to 200GB of memory therefore is only recommended to be use
 ```python
 from cosap import Elprep
 
-elprep_recalibrator_germline =  Elprep(input_step=mapper_germline_bwa)
+elprep_recalibrator_germline = Elprep(input_step=mapper_germline_bwa)
 ```
 
 #### Variant Caller
@@ -144,8 +142,20 @@ Currently following libraries are supported:
 ```python
 from cosap import VariantCaller
 
-mutect_caller = VariantCaller(library="mutect", germline=recalibrator_germline, tumor=recalibrator_tumor, params={"germline_sample_name":"Pt28N"}))
-strelka_caller = VariantCaller(library="strelka", germline=recalibrator_germline, tumor=recalibrator_tumor, params={"germline_sample_name":"Pt28N"}))
+sample_params = {"germline_sample_name":"Pt28N"}
+
+mutect_caller = VariantCaller(
+    library="mutect", 
+    germline=recalibrator_germline, 
+    tumor=recalibrator_tumor, 
+    params=sample_params
+)
+strelka_caller = VariantCaller(
+    library="strelka", 
+    germline=recalibrator_germline, 
+    tumor=recalibrator_tumor, 
+    params=sample_params
+)
 ```
 If sample name is provied in the Mapper as read group, it must be provided in the VariantCaller params as well.
 
@@ -178,8 +188,9 @@ pipeline.add(recalibrator_tumor)
 pipeline.add(mutect_caller)
 pipeline.add(annotator)
 ```
+> :warning: **Warning**: You need to add every pipeline step you have created!
 
-`Config` can be with `.build()`:
+`Config` can be created with `.build()`:
 ```python
 pipeline_config = pipeline.build(workdir="/path/to/pipeline/workdir")
 ```
@@ -207,7 +218,7 @@ runner.run_pipeline(pipeline_config=pipeline_config,backend="snakemake")
 
 ## Opening an issue
 
-Please post bug reports and (only)
+Please post bug reports
 in [GitHub issues](https://github.com/MBaysanLab/cosap/issues).
 
 
