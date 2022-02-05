@@ -2,10 +2,10 @@ import os
 from subprocess import run
 from typing import Dict, List
 
+from .._config import AppConfig
 from .._library_paths import LibraryPaths
 from .._pipeline_config import VariantCallingKeys
 from ._variantcallers import _Callable, _VariantCaller
-from .._config import AppConfig
 
 
 class Mutect2VariantCaller(_Callable, _VariantCaller):
@@ -19,9 +19,6 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
 
         germline_sample_name = caller_config[VariantCallingKeys.PARAMS][
             VariantCallingKeys.GERMLINE_SAMPLE_NAME
-        ]
-        tumor_sample_name = caller_config[VariantCallingKeys.PARAMS][
-            VariantCallingKeys.TUMOR_SAMPLE_NAME
         ]
 
         output_name = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
@@ -42,7 +39,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             "-O",
             output_name,
             "--native-pair-hmm-threads",
-            str(AppConfig.THREADS)
+            str(AppConfig.THREADS),
         ]
         return command
 

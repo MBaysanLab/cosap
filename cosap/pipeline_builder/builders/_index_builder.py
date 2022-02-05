@@ -4,7 +4,7 @@ from typing import Dict
 from ..._formats import FileFormats
 from ..._pipeline_config import IndexingKeys, PipelineKeys
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
- 
+
 
 @dataclass
 class Indexer(_IPipelineStep, _PipelineStep):
@@ -22,13 +22,15 @@ class Indexer(_IPipelineStep, _PipelineStep):
     def _create_config(self) -> Dict:
         filename = self.input_step.get_output()
         prefix = self._get_file_prefix(filename)
-        output_filename = FileFormats.INDEXING_OUTPUT.format(prefix=prefix, identification=self.name)
+        output_filename = FileFormats.INDEXING_OUTPUT.format(
+            prefix=prefix, identification=self.name
+        )
 
         config = {
             self.name: {
-            IndexingKeys.INPUT: filename,
-            IndexingKeys.OUTPUT: output_filename
-        }
+                IndexingKeys.INPUT: filename,
+                IndexingKeys.OUTPUT: output_filename,
+            }
         }
         return config
 

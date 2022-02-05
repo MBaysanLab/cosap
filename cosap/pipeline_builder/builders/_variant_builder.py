@@ -1,10 +1,15 @@
 from copy import copy
 from dataclasses import dataclass
+from subprocess import PIPE, STDOUT, Popen
 from typing import Dict
 
 from ..._formats import FileFormats
-from ..._pipeline_config import (DefaultValues, MappingKeys, PipelineKeys,
-                                 VariantCallingKeys)
+from ..._pipeline_config import (
+    DefaultValues,
+    MappingKeys,
+    PipelineKeys,
+    VariantCallingKeys,
+)
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
 
@@ -25,11 +30,18 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
         if VariantCallingKeys.GERMLINE_SAMPLE_NAME not in self.params:
             self.params[
                 VariantCallingKeys.GERMLINE_SAMPLE_NAME
-            ] = DefaultValues.DEFAULT_GERMLINE_SAMPLE_NAME
+            ] = self._get_sample_name_from_bam(self.germline)
+
         if VariantCallingKeys.TUMOR_SAMPLE_NAME not in self.params:
             self.params[
                 VariantCallingKeys.TUMOR_SAMPLE_NAME
-            ] = DefaultValues.DEFAULT_TUMOR_SAMPLE_NAME
+            ] = self._get_sample_name_from_bam(self.tumor)
+
+    def _get_sample_name_from_bam(self, bam) -> str:
+        cmd = f"samtools view -H {bam} | grep '^@RG' | sed 's/.*SM:\([^\t]*\).*/\1/g' | uniq"
+        ps = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT)
+        sample_name = str(ps.communicate()[0])
+        return str(sample_name)
 
     def get_output(self):
         config = self.get_config()

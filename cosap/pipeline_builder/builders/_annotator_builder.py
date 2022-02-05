@@ -11,7 +11,6 @@ class Annotator(_IPipelineStep, _PipelineStep):
     input_step: _PipelineStep
     library: str
     name: str = None
-    
 
     def __post_init__(self):
         if self.name is None:

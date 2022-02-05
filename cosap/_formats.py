@@ -5,7 +5,7 @@ from dataclasses import dataclass
 class FileFormats:
     TRIMMING_OUTPUT: str = r"trimmed_{identification}_{pair}.fastq.gz"
     MAPPING_OUTPUT: str = r"unprocessed_{identification}.bam"
-    SORTING_OUTPUT: str = r"sorted_{identification}.bam"    
+    SORTING_OUTPUT: str = r"sorted_{identification}.bam"
     INDEXING_OUTPUT: str = r"{prefix}_{identification}.bai"
     MERGING_OUTPUT: str = r"merged_{identification}.bam"
     MDUP_OUTPUT: str = r"mdup_{identification}.bam"

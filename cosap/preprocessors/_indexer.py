@@ -7,13 +7,10 @@ from .._pipeline_config import IndexingKeys
 
 class BamIndexer:
     @classmethod
-    def _create_command(
-        cls, indexing_config: Dict
-    ) -> List:
+    def _create_command(cls, indexing_config: Dict) -> List:
         # TODO: give output from config
         command = [
-            "picard"
-            "BuildBamIndex",
+            "picard" "BuildBamIndex",
             "-I=",
             indexing_config[IndexingKeys.INPUT],
             "-O",

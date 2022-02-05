@@ -9,9 +9,7 @@ from ._preprocessors import _PreProcessable, _Preprocessor
 
 class ElprepPreprocess(_Preprocessor, _PreProcessable):
     @classmethod
-    def _create_command(
-        cls, library_paths: LibraryPaths, elprep_config: Dict
-    ) -> List:
+    def _create_command(cls, library_paths: LibraryPaths, elprep_config: Dict) -> List:
 
         command = [
             "elprep",
@@ -45,8 +43,6 @@ class ElprepPreprocess(_Preprocessor, _PreProcessable):
             library_paths=library_paths,
             elprep_config=elprep_config,
         )
-        index_command = cls._index_output(
-            elprep_config=elprep_config
-        )
+        index_command = cls._index_output(elprep_config=elprep_config)
         run(command)
         run(index_command)
