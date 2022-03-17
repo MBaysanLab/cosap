@@ -18,12 +18,8 @@ class _AppConfigMeta(type):
 
 @dataclass
 class AppConfig(metaclass=_AppConfigMeta):
-    LIBRARY_PATH: str = os.path.normpath(
-        "/media/mae/Elements/arif/hg38_bundle/"
-    )
-    SNAKEFILE_PATH: str = os.path.normpath(
-        "/home/mae/Desktop/cosap/snakemake_workflows/Snakefile"
-    )
+    LIBRARY_PATH: str = os.environ.get("COSAP_LIBRARY_PATH")
+    SNAKEFILE_PATH: str = os.environ.get("COSAP_SNAKEFILE_PATH")
 
     THREADS: int = 8 #This is number of threads each job can use and not the all available threads
     WORKDIR: str = os.getcwd()
