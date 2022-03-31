@@ -103,7 +103,7 @@ class VariantCallingKeys(PipelineBaseKeys):
 
 @dataclass
 class AnnotatorKeys(PipelineBaseKeys):
-    pass
+    AVOUTPUT: str = "av_output"
 
 
 @dataclass
