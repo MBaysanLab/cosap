@@ -31,16 +31,22 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             "-R",
             library_paths.REF_FASTA,
             "-I",
-            germline_bam,
-            "-I",
             tumor_bam,
-            "-normal",
-            germline_sample_name,
             "-O",
             output_name,
             "--native-pair-hmm-threads",
             str(AppConfig.THREADS),
         ]
+
+        if germline_bam is not None:
+            command.extend(
+                [
+                    "-I",
+                    germline_bam,
+                    "-normal",
+                    germline_sample_name,
+                ]
+            )
         return command
 
     @classmethod

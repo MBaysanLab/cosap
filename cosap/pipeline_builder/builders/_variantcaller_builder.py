@@ -14,9 +14,9 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
     PY2_PACKAGES = ["strelka"]
 
     library: str
-    germline: str
     tumor: str
     params: Dict
+    germline: str = None
     name: str = None
     key: str = PipelineKeys.VARIANT_CALLING
 
@@ -62,7 +62,7 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
         vc_config = {
             self.name: {
                 VariantCallingKeys.LIBRARY: self.library,
-                VariantCallingKeys.GERMLINE_INPUT: self.germline.get_output(),
+                VariantCallingKeys.GERMLINE_INPUT: self.germline.get_output() if self.germline else "null",
                 VariantCallingKeys.TUMOR_INPUT: self.tumor.get_output(),
                 VariantCallingKeys.PARAMS: self.params,
                 VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT: unfiltered_variants_output_filename,
