@@ -1,6 +1,7 @@
+from ._annotator_builder import Annotator
 from ._calibrate_builder import Recalibrator
 from ._elprep_builder import Elprep
-from ._file_readers import BamReader, FastqReader
+from ._file_readers import BamReader, FastqReader, VCFReader
 from ._index_builder import Indexer
 from ._mapper_builder import Mapper
 from ._mdup_builder import MDUP

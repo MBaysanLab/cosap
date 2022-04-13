@@ -4,20 +4,23 @@ from typing import Dict, List
 from .._config import AppConfig
 from .._library_paths import LibraryPaths
 from .._pipeline_config import AnnotatorKeys
-from ._annotators import _Annotatable, _Annotator
 from .._utils import join_paths
+from ._annotators import _Annotatable, _Annotator
 
 
 class AnnovarAnnotator(_Annotatable, _Annotator):
     @classmethod
-    def create_av_input_command(cls,library_paths: LibraryPaths, annotator_config: Dict):
+    def create_av_input_command(
+        cls, library_paths: LibraryPaths, annotator_config: Dict
+    ):
         command = [
             join_paths(library_paths.ANNOVAR, "convert2annovar.pl"),
             "-format",
             "vcf4",
-            annotator_config[AnnotatorKeys.OUTPUT],
+            "-allsample",
+            annotator_config[AnnotatorKeys.INPUT],
             "-outfile",
-            annotator_config[AnnotatorKeys.AVOUTPUT]
+            annotator_config[AnnotatorKeys.AVOUTPUT],
         ]
         return command
 
@@ -39,11 +42,9 @@ class AnnovarAnnotator(_Annotatable, _Annotator):
             input_vcf,
             join_paths(library_paths.ANNOVAR, "humandb38"),
             "--outfile",
-            output_vcf
+            output_vcf,
         ]
-
         return command
-
 
     @classmethod
     def annotate(cls, annotator_config: Dict):

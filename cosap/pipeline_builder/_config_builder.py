@@ -7,15 +7,9 @@ from uuid import uuid4
 
 from .._config import AppConfig
 from .._formats import FileFormats
-from .._pipeline_config import (
-    BaseRecalibratorKeys,
-    IndexingKeys,
-    MappingKeys,
-    MergingKeys,
-    PipelineKeys,
-    SortingKeys,
-    VariantCallingKeys,
-)
+from .._pipeline_config import (BaseRecalibratorKeys, IndexingKeys,
+                                MappingKeys, MergingKeys, PipelineKeys,
+                                SortingKeys, VariantCallingKeys)
 from .._version import version
 from .builders import _PipelineStep
 

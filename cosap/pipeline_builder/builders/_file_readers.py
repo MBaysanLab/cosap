@@ -47,6 +47,7 @@ class BamReader(_IPipelineStep, _PipelineStep):
         # TODO: return file details here
         return {}
 
+
 @dataclass
 class VCFReader(_IPipelineStep, _PipelineStep):
     filename: str

@@ -10,11 +10,12 @@ from ._pipeline_steps import _IPipelineStep, _PipelineStep
 class Trimmer(_IPipelineStep, _PipelineStep):
     reads: List[_PipelineStep]
     name: str = None
+    key: str = PipelineKeys.TRIM
 
     def __post_init__(self):
         self.key = PipelineKeys.TRIM
         if self.name == None:
-            self.name = "_".join(set(step.name for step in self.reads.reverse()))
+            self.name = "_".join(set(step.name for step in self.reads[::-1]))
 
     def _create_config(self) -> Dict:
 

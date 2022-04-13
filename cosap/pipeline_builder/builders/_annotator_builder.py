@@ -11,16 +11,15 @@ class Annotator(_IPipelineStep, _PipelineStep):
     input_step: _PipelineStep
     library: str
     name: str = None
+    key: str = PipelineKeys.ANNOTATION
 
     def __post_init__(self):
         if self.name is None:
-            self.name = self.input_step.name
+            self.name = f"{self.input_step.name}_{self.library}"
 
     def _create_config(self) -> Dict:
-        output_filename = FileFormats.ANNOTATING_OUTPUT.format(
-            identification=self.input_step.name
-        )
-
+        output_filename = FileFormats.ANNOTATING_OUTPUT.format(identification=self.name)
+        av_output_filename = FileFormats.ANNOVAR_OUTPUT.format(identification=self.name)
         config = {
             self.name: {
                 AnnotatorKeys.LIBRARY: self.library,
@@ -28,6 +27,9 @@ class Annotator(_IPipelineStep, _PipelineStep):
                 AnnotatorKeys.OUTPUT: output_filename,
             }
         }
+        if self.library.lower() == "annovar":
+            config[self.name][AnnotatorKeys.AVOUTPUT] = av_output_filename
+
         return config
 
     def get_output(self) -> str:

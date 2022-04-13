@@ -10,6 +10,7 @@ from ._pipeline_steps import _IPipelineStep, _PipelineStep
 class Merger(_IPipelineStep, _PipelineStep):
     input_step: List[_PipelineStep]
     name: str = None
+    key: str = PipelineKeys.MERGE
 
     def __post_init__(self):
         if self.name is None:

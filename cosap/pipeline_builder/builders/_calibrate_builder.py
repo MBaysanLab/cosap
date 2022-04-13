@@ -10,6 +10,7 @@ from ._pipeline_steps import _IPipelineStep, _PipelineStep
 class Recalibrator(_IPipelineStep, _PipelineStep):
     input_step: _PipelineStep
     name: str = None
+    key: str = PipelineKeys.CALIBRATE
 
     def __post_init__(self):
         self.key = PipelineKeys.CALIBRATE

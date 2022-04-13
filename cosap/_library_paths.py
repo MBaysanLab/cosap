@@ -77,6 +77,14 @@ class _LibraryPaths38(_LibraryPaths):
     BOWTIE2_ASSEMBLY: str = os.path.join(
         AppConfig.LIBRARY_PATH, "Bowtie2", "Homo_sapiens_assembly38"
     )
+    ANNOVAR: str = os.path.join(AppConfig.LIBRARY_PATH, "Annovar")
+    INTERVAR: str = os.path.join(AppConfig.LIBRARY_PATH, "InterVar")
+    ENSEMBL_VEP: str = os.path.join(AppConfig.LIBRARY_PATH, "Ensembl-vep")
+    PHARMCAT_DIR: str = os.path.join(AppConfig.LIBRARY_PATH, "Pharmcat")
+    PHARMCAT_PREPROCESSOR: str = os.path.join(
+        PHARMCAT_DIR, "PharmCAT_VCF_Preprocess.py"
+    )
+    PHARMCAT_JAR: str = os.path.join(PHARMCAT_DIR, "pharmcat-1.6.0-all")
 
 
 @dataclass

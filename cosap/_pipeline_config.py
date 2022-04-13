@@ -104,8 +104,6 @@ class VariantCallingKeys(PipelineBaseKeys):
 @dataclass
 class AnnotatorKeys(PipelineBaseKeys):
     AVOUTPUT: str = "av_output"
-    ACMG_OUTPUT: str = "acmg_annovar"
-    PHARMGKB_OUTPUT: str = "pharmgkb_output"
 
 
 @dataclass

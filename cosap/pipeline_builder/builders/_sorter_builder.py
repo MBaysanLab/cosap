@@ -11,6 +11,7 @@ class Sorter(_IPipelineStep, _PipelineStep):
     input: _PipelineStep
     params: Dict
     name: str = None
+    key: str = PipelineKeys.SORTING
 
     def __post_init__(self):
         if self.name is None:

@@ -3,14 +3,9 @@ from dataclasses import dataclass
 from typing import Dict, List, Union
 
 from ..._formats import FileFormats
-from ..._pipeline_config import (
-    BaseRecalibratorKeys,
-    IndexingKeys,
-    MappingKeys,
-    MergingKeys,
-    PipelineKeys,
-    SortingKeys,
-)
+from ..._pipeline_config import (BaseRecalibratorKeys, IndexingKeys,
+                                 MappingKeys, MergingKeys, PipelineKeys,
+                                 SortingKeys)
 from ._file_readers import FastqReader
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 from ._trimmer_builder import Trimmer
@@ -22,6 +17,7 @@ class Mapper(_IPipelineStep, _PipelineStep):
     reads: Union[_PipelineStep, List[_PipelineStep]]
     params: Dict
     name: str = None
+    key: str = PipelineKeys.MAPPING
 
     def __post_init__(self):
         self.key = PipelineKeys.MAPPING

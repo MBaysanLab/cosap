@@ -10,6 +10,7 @@ from ._pipeline_steps import _IPipelineStep, _PipelineStep
 class MDUP(_IPipelineStep, _PipelineStep):
     input_step: _PipelineStep
     name: str = None
+    key: str = PipelineKeys.MDUP
 
     def __post_init__(self):
         self.key = PipelineKeys.MDUP

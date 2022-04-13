@@ -3,6 +3,7 @@ from ._cosap import Cosap
 from ._formats import FileFormats
 from ._library_paths import LibraryPaths
 from ._version import version
+from .annotators import *
 from .mappers import *
 from .parsers import *
 from .pipeline_builder import *

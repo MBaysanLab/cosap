@@ -33,7 +33,7 @@ class VepAnnotator(_Annotatable, _Annotator):
             "--af",
             "--biotype",
             "--symbol",
-            "--uniprot"
+            "--uniprot",
         ]
 
         return command
