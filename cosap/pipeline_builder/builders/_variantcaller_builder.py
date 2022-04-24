@@ -1,5 +1,5 @@
 from copy import copy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from subprocess import PIPE, STDOUT, Popen
 from typing import Dict
 
@@ -14,24 +14,20 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
     PY2_PACKAGES = ["strelka"]
 
     library: str
-    tumor: str
-    params: Dict
+    params: dict = field(default_factory=dict)
     germline: str = None
+    tumor: str = None
     name: str = None
     key: str = PipelineKeys.VARIANT_CALLING
 
     def __post_init__(self):
         if self.name is None:
             self.name = f"{self.germline.name}-{self.tumor.name}_{self.library}"
-        if VariantCallingKeys.GERMLINE_SAMPLE_NAME not in self.params:
+
+        if VariantCallingKeys.GERMLINE_SAMPLE_NAME not in self.params and self.germline:
             self.params[
                 VariantCallingKeys.GERMLINE_SAMPLE_NAME
             ] = self._get_sample_name_from_bam(self.germline)
-
-        if VariantCallingKeys.TUMOR_SAMPLE_NAME not in self.params:
-            self.params[
-                VariantCallingKeys.TUMOR_SAMPLE_NAME
-            ] = self._get_sample_name_from_bam(self.tumor)
 
     def _get_sample_name_from_bam(self, bam) -> str:
         cmd = f"samtools view -H {bam} | grep '^@RG' | sed 's/.*SM:\([^\t]*\).*/\1/g' | uniq"
@@ -62,8 +58,6 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
         vc_config = {
             self.name: {
                 VariantCallingKeys.LIBRARY: self.library,
-                VariantCallingKeys.GERMLINE_INPUT: self.germline.get_output() if self.germline else "null",
-                VariantCallingKeys.TUMOR_INPUT: self.tumor.get_output(),
                 VariantCallingKeys.PARAMS: self.params,
                 VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT: unfiltered_variants_output_filename,
                 VariantCallingKeys.FILTERED_VARIANTS_OUTPUT: filtered_variants_output_filename,
@@ -72,6 +66,12 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
                 VariantCallingKeys.OTHER_VARIANTS_OUTPUT: other_variants_output_filename,
             },
         }
+
+        if self.tumor:
+            vc_config[self.name][VariantCallingKeys.TUMOR_INPUT] = self.tumor.get_output()
+
+        if self.germline:
+            vc_config[self.name][VariantCallingKeys.GERMLINE_INPUT] = self.germline.get_output()
 
         config = {self.key: vc_config}
         return config

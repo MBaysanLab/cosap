@@ -19,7 +19,7 @@ class _AppConfigMeta(type):
 @dataclass
 class AppConfig(metaclass=_AppConfigMeta):
     LIBRARY_PATH: str = os.environ.get("COSAP_LIBRARY_PATH")
-    SNAKEFILE_PATH: str = os.environ.get("COSAP_SNAKEFILE_PATH")
+    SNAKEFILE_PATH: str = "/okyanus/users/aergun/cosap/snakemake_workflows/Snakefile"
 
-    THREADS: int = 8 #This is number of threads each job can use and not the all available threads
+    THREADS: int = 14 #This is number of threads each job can use and not the all available threads
     WORKDIR: str = os.getcwd()

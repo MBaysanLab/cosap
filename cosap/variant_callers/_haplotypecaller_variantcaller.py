@@ -21,7 +21,7 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
         command = [
             "gatk",
             "--java-options",
-            "'-Xmx16G'",
+            "-Xmx16G",
             "HaplotypeCaller",
             "-R",
             library_paths.REF_FASTA,
@@ -41,16 +41,21 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
 
         input_name = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
         output_name = caller_config[VariantCallingKeys.FILTERED_VARIANTS_OUTPUT]
+        input_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
 
         command = [
             "gatk",
             "CNNScoreVariants",
+            "-I",
+            input_bam,
             "-V",
             input_name,
             "-R",
             library_paths.REF_FASTA,
             "-O",
             output_name,
+            "-tensor-type",
+            "read-tensor"
         ]
 
         return command
@@ -74,7 +79,8 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
             library_paths.DBSNP,
             "--resource",
             library_paths.ONE_THOUSAND_G,
-            "--info-key CNN_1D",
+            "--info-key",
+            "CNN_1D",
             "-O",
             output_name,
         ]
