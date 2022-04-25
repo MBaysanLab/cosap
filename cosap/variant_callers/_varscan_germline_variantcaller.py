@@ -35,6 +35,9 @@ class VarScanGermlineVariantCaller(_Callable, _VariantCaller):
         command = [
             "varscan",
             "mpileup2snp",
+            "--p-value",
+            "99e-02"
+
         ]
         return command
 
@@ -50,3 +53,6 @@ class VarScanGermlineVariantCaller(_Callable, _VariantCaller):
         samtools = Popen(samtools_mpileup, stdout=PIPE)
         varscan = check_output(varscan_germline, stdin=samtools.stdout)
         samtools.wait()
+
+        with open(caller_config[VariantCallingKeys.SNP_OUTPUT], "wb+") as vcf_file:
+            vcf_file.write(varscan)

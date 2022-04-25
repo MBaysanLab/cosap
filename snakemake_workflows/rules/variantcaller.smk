@@ -8,18 +8,29 @@ from cosap._pipeline_config import (
     SnakemakeConstraints,
 )
 
+def get_bams(wildcards):
+    input_bams = []
+    if VariantCallingKeys.GERMLINE_INPUT in config[PipelineKeys.VARIANT_CALLING][
+            wildcards.identification
+        ].keys():
+        input_bams.append(config[PipelineKeys.VARIANT_CALLING][
+            wildcards.identification
+        ][VariantCallingKeys.GERMLINE_INPUT])
+
+    if VariantCallingKeys.TUMOR_INPUT in config[PipelineKeys.VARIANT_CALLING][
+            wildcards.identification
+        ].keys():
+        input_bams.append(config[PipelineKeys.VARIANT_CALLING][
+            wildcards.identification
+        ][VariantCallingKeys.TUMOR_INPUT])
+
+    return input_bams
 
 ruleorder: py2_variant_caller > variant_caller
 
-
 rule variant_caller:
     input:
-        germline_bam=lambda wildcards: config[PipelineKeys.VARIANT_CALLING][
-            wildcards.identification
-        ][VariantCallingKeys.GERMLINE_INPUT],
-        tumor_bam=lambda wildcards: config[PipelineKeys.VARIANT_CALLING][
-            wildcards.identification
-        ][VariantCallingKeys.TUMOR_INPUT],
+        bams=get_bams
     output:
         vcf=FileFormats.GATK_SNP_OUTPUT,
     resources:
