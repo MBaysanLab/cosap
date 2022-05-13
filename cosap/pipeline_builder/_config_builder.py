@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import make_dataclass
 from datetime import datetime
 from typing import Dict, List
-from uuid import uuid4
 
 from .._config import AppConfig
 from .._formats import FileFormats
@@ -33,6 +32,7 @@ class Pipeline:
             PipelineKeys.ELPREP_PROCESS: dict(),
             PipelineKeys.VARIANT_CALLING: dict(),
             PipelineKeys.ANNOTATION: dict(),
+            PipelineKeys.QUALITY_CONTROL: dict(),
             PipelineKeys.FINAL_OUTPUT: list(),
             PipelineKeys.WORKDIR: str,
         }

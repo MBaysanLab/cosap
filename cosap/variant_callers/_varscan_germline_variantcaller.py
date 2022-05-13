@@ -32,13 +32,7 @@ class VarScanGermlineVariantCaller(_Callable, _VariantCaller):
     @classmethod
     def _create_varscan_command(cls) -> List:
 
-        command = [
-            "varscan",
-            "mpileup2snp",
-            "--p-value",
-            "99e-02"
-
-        ]
+        command = ["varscan", "mpileup2snp", "--p-value", "99e-02"]
         return command
 
     @classmethod

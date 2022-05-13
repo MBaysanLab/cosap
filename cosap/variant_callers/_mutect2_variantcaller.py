@@ -14,8 +14,16 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> List:
 
-        germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT] if VariantCallingKeys.GERMLINE_INPUT in caller_config.keys() else None
-        tumor_bam = caller_config[VariantCallingKeys.TUMOR_INPUT] if VariantCallingKeys.TUMOR_INPUT in caller_config.keys() else None
+        germline_bam = (
+            caller_config[VariantCallingKeys.GERMLINE_INPUT]
+            if VariantCallingKeys.GERMLINE_INPUT in caller_config.keys()
+            else None
+        )
+        tumor_bam = (
+            caller_config[VariantCallingKeys.TUMOR_INPUT]
+            if VariantCallingKeys.TUMOR_INPUT in caller_config.keys()
+            else None
+        )
 
         output_name = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
 
@@ -36,7 +44,8 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
 
         if germline_bam is not None:
             germline_sample_name = caller_config[VariantCallingKeys.PARAMS][
-            VariantCallingKeys.GERMLINE_SAMPLE_NAME]
+                VariantCallingKeys.GERMLINE_SAMPLE_NAME
+            ]
             command.extend(
                 [
                     "-I",

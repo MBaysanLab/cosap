@@ -67,11 +67,15 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
             },
         }
 
-        if self.tumor:
-            vc_config[self.name][VariantCallingKeys.TUMOR_INPUT] = self.tumor.get_output()
+        if self.tumor is not None:
+            vc_config[self.name][
+                VariantCallingKeys.TUMOR_INPUT
+            ] = self.tumor.get_output()
 
-        if self.germline:
-            vc_config[self.name][VariantCallingKeys.GERMLINE_INPUT] = self.germline.get_output()
+        if self.germline is not None:
+            vc_config[self.name][
+                VariantCallingKeys.GERMLINE_INPUT
+            ] = self.germline.get_output()
 
         config = {self.key: vc_config}
         return config

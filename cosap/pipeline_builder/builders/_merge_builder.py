@@ -18,13 +18,13 @@ class Merger(_IPipelineStep, _PipelineStep):
 
     def _create_config(self) -> Dict:
         files = []
-        for inp in self.inputs:
+        for inp in self.input_step:
             files.append(inp.get_output())
 
         output_filename = FileFormats.MERGING_OUTPUT.format(identification=self.name)
 
         config = {
-            MergingKeys.INPUTS: files,
+            MergingKeys.INPUT: files,
             MergingKeys.OUTPUT: output_filename,
         }
         return config

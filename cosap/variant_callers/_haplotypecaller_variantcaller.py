@@ -55,7 +55,7 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
             "-O",
             output_name,
             "-tensor-type",
-            "read-tensor"
+            "read-tensor",
         ]
 
         return command
@@ -88,19 +88,94 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
         return command
 
     @classmethod
+    def _create_get_snp_variants_command(
+        cls, caller_config: Dict, library_paths: LibraryPaths
+    ) -> List:
+
+        input_name = caller_config[VariantCallingKeys.FILTERED_VARIANTS_OUTPUT]
+        output_name = caller_config[VariantCallingKeys.SNP_OUTPUT]
+
+        command = [
+            "gatk",
+            "SelectVariants",
+            "-R",
+            library_paths.REF_FASTA,
+            "-V",
+            input_name,
+            "--select-type-to-include",
+            "SNP",
+            "-O",
+            output_name,
+        ]
+
+        return command
+
+    @classmethod
+    def _create_get_indel_variants_command(
+        cls, caller_config: Dict, library_paths: LibraryPaths
+    ) -> List:
+
+        input_name = caller_config[VariantCallingKeys.FILTERED_VARIANTS_OUTPUT]
+        output_name = caller_config[VariantCallingKeys.INDEL_OUTPUT]
+
+        command = [
+            "gatk",
+            "SelectVariants",
+            "-R",
+            library_paths.REF_FASTA,
+            "-V",
+            input_name,
+            "--select-type-to-include",
+            "INDEL",
+            "-O",
+            output_name,
+        ]
+
+        return command
+
+    @classmethod
+    def _create_get_other_variants_command(
+        cls, caller_config: Dict, library_paths: LibraryPaths
+    ) -> List:
+
+        input_name = caller_config[VariantCallingKeys.FILTERED_VARIANTS_OUTPUT]
+        output_name = caller_config[VariantCallingKeys.OTHER_VARIANTS_OUTPUT]
+
+        command = [
+            "gatk",
+            "SelectVariants",
+            "-R",
+            library_paths.REF_FASTA,
+            "-V",
+            input_name,
+            "--select-type-to-exclude",
+            "SNP",
+            "--select-type-to-exclude",
+            "INDEL",
+            "-O",
+            output_name,
+        ]
+
+        return command
+
+    @classmethod
     def call_variants(cls, caller_config: Dict):
         library_paths = LibraryPaths()
 
-        mutect_command = cls._create_run_command(
+        haplotypecaller_command = cls._create_run_command(
             caller_config=caller_config, library_paths=library_paths
         )
-        cnn_score_command = cls._create_cnnscorevariants_command(
+        get_snp_command = cls._create_get_snp_variants_command(
             caller_config=caller_config, library_paths=library_paths
         )
-        filter_command = cls._create_filter_variants_command(
+        get_indel_command = cls._create_get_indel_variants_command(
+            caller_config=caller_config, library_paths=library_paths
+        )
+        get_other_variants_command = cls._create_get_other_variants_command(
             caller_config=caller_config, library_paths=library_paths
         )
 
-        run(mutect_command)
-        run(cnn_score_command)
-        run(filter_command)
+        run(haplotypecaller_command)
+        run(get_snp_command)
+        run(get_indel_command)
+        run(get_other_variants_command)

@@ -20,3 +20,9 @@ class FileFormats:
     GATK_OTHER_VARIANTS_OUTPUT: str = r"other_variants_{identification}.vcf"
     ANNOTATING_OUTPUT: str = r"annotated_{identification}.vcf"
     ANNOVAR_OUTPUT: str = r"annotated_{identification}.avinput"
+    QUALITY_CONTROLLER_OUTPUT: str = r"qualimap_{identification}.html"
+
+
+@dataclass
+class FolderFormats:
+    QUALITY_CONTROLLER_OUTPUT: str = r"qualimap_{identification}"

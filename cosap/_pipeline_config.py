@@ -18,6 +18,7 @@ class PipelineKeys:
     ELPREP_PROCESS: str = "elprep"
     VARIANT_CALLING: str = "variant-calling"
     ANNOTATION: str = "annotation"
+    QUALITY_CONTROL: str = "quality_control"
     FINAL_OUTPUT: str = "final-output"
 
 
@@ -46,6 +47,10 @@ class MappingKeys(PipelineBaseKeys):
 class TrimmingKeys(PipelineBaseKeys):
     pass
 
+@dataclass
+class QualityControlKeys(PipelineBaseKeys):
+    BED_FILE: str = "bed"
+    RAW_OUTPUT: str = "raw_output"
 
 @dataclass
 class SortingKeys(PipelineBaseKeys):
