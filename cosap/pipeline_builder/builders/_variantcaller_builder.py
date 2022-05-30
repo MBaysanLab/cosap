@@ -1,12 +1,14 @@
 from copy import copy
 from dataclasses import dataclass, field
+import imp
 from subprocess import PIPE, STDOUT, Popen
 from typing import Dict
 
-from ..._formats import FileFormats
+from ..._formats import FileFormats, OutputFolders
 from ..._pipeline_config import (DefaultValues, MappingKeys, PipelineKeys,
                                  VariantCallingKeys)
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
+from ..._utils import join_paths
 
 
 @dataclass
@@ -37,7 +39,9 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
 
     def get_output(self):
         config = self.get_config()
-        return config[self.key][self.name][VariantCallingKeys.SNP_OUTPUT]
+        return join_paths(
+            config[self.key][self.name][VariantCallingKeys.OUTPUT_DIR],
+            config[self.key][self.name][VariantCallingKeys.SNP_OUTPUT])
 
     def get_config(self) -> Dict:
         unfiltered_variants_output_filename = FileFormats.GATK_UNFILTERED_OUTPUT.format(
@@ -64,6 +68,7 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
                 VariantCallingKeys.SNP_OUTPUT: snp_output_filename,
                 VariantCallingKeys.INDEL_OUTPUT: indel_output_filename,
                 VariantCallingKeys.OTHER_VARIANTS_OUTPUT: other_variants_output_filename,
+                VariantCallingKeys.OUTPUT_DIR: join_paths(OutputFolders.VARIANT_CALLING,self.library)
             },
         }
 

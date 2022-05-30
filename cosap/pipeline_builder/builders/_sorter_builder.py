@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from typing import Dict
 
-from ..._formats import FileFormats
+from ..._formats import FileFormats, OutputFolders
 from ..._pipeline_config import PipelineKeys, SortingKeys
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
-
+from ..._utils import join_paths
 
 @dataclass
 class Sorter(_IPipelineStep, _PipelineStep):
@@ -24,13 +24,16 @@ class Sorter(_IPipelineStep, _PipelineStep):
         config = {
             SortingKeys.INPUT: filename,
             SortingKeys.OUTPUT: output_filename,
+            SortingKeys.OUTPUT_DIR: join_paths(OutputFolders.PREPROCESSOR,self.keys),
             SortingKeys.PARAMS: self.params,
         }
         return config
 
     def get_output(self) -> str:
         config = self.get_config()
-        return config[PipelineKeys.SORTING][SortingKeys.OUTPUT]
+        return join_paths(
+            config[PipelineKeys.SORTING][SortingKeys.OUTPUT_DIR],
+            config[PipelineKeys.SORTING][SortingKeys.OUTPUT])
 
     def get_config(self) -> Dict:
         sorter_config = self._create_config()

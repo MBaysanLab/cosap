@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from typing import Dict
 
-from ..._formats import FileFormats
+from ..._formats import FileFormats, OutputFolders
 from ..._pipeline_config import IndexingKeys, PipelineKeys
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
-
+from ..._utils import join_paths
 
 @dataclass
 class Indexer(_IPipelineStep, _PipelineStep):
@@ -30,13 +30,16 @@ class Indexer(_IPipelineStep, _PipelineStep):
             self.name: {
                 IndexingKeys.INPUT: filename,
                 IndexingKeys.OUTPUT: output_filename,
+                IndexingKeys.OUTPUT_DIR: join_paths(OutputFolders.PREPROCESSOR, self.key)
             }
         }
         return config
 
     def get_output(self) -> str:
         config = self.get_config()
-        return config[PipelineKeys.INDEX][self.name][IndexingKeys.OUTPUT]
+        return join_paths(
+            config[PipelineKeys.INDEX][self.name][IndexingKeys.OUTPUT_DIR],
+            config[PipelineKeys.INDEX][self.name][IndexingKeys.OUTPUT])
 
     def get_config(self) -> Dict:
         indexer_config = self._create_config()

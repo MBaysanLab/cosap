@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 from typing import Dict
 
-from ..._formats import FileFormats
+from ..._formats import FileFormats, OutputFolders
 from ..._pipeline_config import BaseRecalibratorKeys, PipelineKeys
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
+from ..._utils import join_paths
 
 
 @dataclass
@@ -29,13 +30,16 @@ class Recalibrator(_IPipelineStep, _PipelineStep):
                 BaseRecalibratorKeys.INPUT: filename,
                 BaseRecalibratorKeys.TABLE: table_filename,
                 BaseRecalibratorKeys.OUTPUT: output_filename,
+                BaseRecalibratorKeys.OUTPUT_DIR: join_paths(OutputFolders.CALIBRATION)
             },
         }
         return config
 
     def get_output(self) -> str:
         config = self.get_config()
-        return config[self.key][self.name][BaseRecalibratorKeys.OUTPUT]
+        return join_paths(
+            config[self.key][self.name][BaseRecalibratorKeys.OUTPUT_DIR],
+            config[self.key][self.name][BaseRecalibratorKeys.OUTPUT])
 
     def get_config(self) -> Dict:
         calibration_config = self._create_config()

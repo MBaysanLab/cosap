@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from typing import Dict, List
 
-from ..._formats import FileFormats
+from ..._formats import FileFormats, OutputFolders
 from ..._pipeline_config import MDUPKeys, PipelineKeys
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
-
+from ..._utils import join_paths
 
 @dataclass
 class MDUP(_IPipelineStep, _PipelineStep):
@@ -26,13 +26,16 @@ class MDUP(_IPipelineStep, _PipelineStep):
             self.name: {
                 MDUPKeys.INPUT: self.input_step.get_output(),
                 MDUPKeys.OUTPUT: output_filename,
+                MDUPKeys.OUTPUT_DIR: join_paths(OutputFolders.PREPROCESSOR, self.key)
             },
         }
         return config
 
     def get_output(self) -> str:
         config = self.get_config()
-        return config[self.key][self.name][MDUPKeys.OUTPUT]
+        return join_paths(
+            config[self.key][self.name][MDUPKeys.OUTPUT_DIR],
+            config[self.key][self.name][MDUPKeys.OUTPUT])
 
     def get_config(self) -> Dict:
         mdup_config = self._create_config()

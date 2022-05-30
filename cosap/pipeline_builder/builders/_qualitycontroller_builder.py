@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from typing import Dict, List
 
-from ..._formats import FileFormats, FolderFormats
+from ..._formats import FileFormats, FolderFormats, OutputFolders
 from ..._pipeline_config import PipelineKeys, QualityControlKeys
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
-
+from ..._utils import join_paths
 
 @dataclass
 class QualityContoller(_IPipelineStep, _PipelineStep):
@@ -31,6 +31,7 @@ class QualityContoller(_IPipelineStep, _PipelineStep):
                 QualityControlKeys.INPUT: filename,
                 QualityControlKeys.RAW_OUTPUT: raw_output_foldername,
                 QualityControlKeys.OUTPUT: output_filename,
+                QualityControlKeys.OUTPUT_DIR: OutputFolders.BAMQC
             }
         }
         if self.bed_file is not None:
@@ -39,7 +40,9 @@ class QualityContoller(_IPipelineStep, _PipelineStep):
 
     def get_output(self) -> str:
         config = self.get_config()
-        return config[PipelineKeys.QUALITY_CONTROL][QualityControlKeys.OUTPUT]
+        return join_paths(
+            config[PipelineKeys.QUALITY_CONTROL][QualityControlKeys.OUTPUT_DIR],
+            config[PipelineKeys.QUALITY_CONTROL][QualityControlKeys.OUTPUT])
 
     def get_config(self) -> Dict:
         quality_controller_config = self._create_config()

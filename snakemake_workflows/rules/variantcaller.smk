@@ -33,8 +33,6 @@ rule variant_caller:
         bams=get_bams
     output:
         vcf=FileFormats.GATK_SNP_OUTPUT,
-    resources:
-        variant_caller=1,
     run:
         variant_caller = VariantCallerFactory.create(
             caller_type=config[PipelineKeys.VARIANT_CALLING][wildcards.identification][
@@ -56,8 +54,6 @@ rule py2_variant_caller:
         ][VariantCallingKeys.TUMOR_INPUT],
     output:
         vcf=FileFormats.GATK_SNP_OUTPUT,
-    resources:
-        variant_caller=1,
     conda:
         "../../environments/py2_environment.yaml"
     wildcard_constraints:

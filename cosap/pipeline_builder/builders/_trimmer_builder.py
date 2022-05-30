@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 from typing import Dict, List
 
-from ..._formats import FileFormats
+from ..._formats import FileFormats, OutputFolders
 from ..._pipeline_config import PipelineKeys, TrimmingKeys
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
+from ..._utils import join_paths
 
 
 @dataclass
@@ -40,13 +41,19 @@ class Trimmer(_IPipelineStep, _PipelineStep):
             self.name: {
                 TrimmingKeys.INPUT: read_filenames,
                 TrimmingKeys.OUTPUT: output_filenames,
+                TrimmingKeys.OUTPUT_DIR: OutputFolders.TRIMMING
             },
         }
         return config
 
     def get_output(self) -> str:
         config = self.get_config()
-        return config[self.key][self.name][TrimmingKeys.OUTPUT]
+        output_dir = config[self.key][self.name][TrimmingKeys.OUTPUT]
+
+        for key,value in output_dir.items():
+            value = join_paths(OutputFolders.TRIMMING, value)
+            
+        return output_dir
 
     def get_config(self) -> Dict:
         trim_config = self._create_config()

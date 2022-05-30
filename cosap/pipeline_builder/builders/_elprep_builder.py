@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from typing import Dict, List
 
-from ..._formats import FileFormats
+from ..._formats import FileFormats, OutputFolders
 from ..._pipeline_config import ElprepKeys, PipelineKeys
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
-
+from ..._utils import join_paths
 
 @dataclass
 class Elprep(_IPipelineStep, _PipelineStep):
@@ -27,13 +27,16 @@ class Elprep(_IPipelineStep, _PipelineStep):
                 ElprepKeys.INPUT: self.input_step.get_output(),
                 ElprepKeys.TABLE: table_filename,
                 ElprepKeys.OUTPUT: output_filename,
+                ElprepKeys.OUTPUT_DIR: join_paths(OutputFolders.CALIBRATION, self.key)
             },
         }
         return config
 
     def get_output(self) -> str:
         config = self.get_config()
-        return config[self.key][self.name][ElprepKeys.OUTPUT]
+        return join_paths(
+            config[self.key][self.name][ElprepKeys.OUTPUT_DIR],
+            config[self.key][self.name][ElprepKeys.OUTPUT])
 
     def get_config(self) -> Dict:
         elprep_config = self._create_config()

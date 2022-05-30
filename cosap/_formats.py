@@ -26,3 +26,16 @@ class FileFormats:
 @dataclass
 class FolderFormats:
     QUALITY_CONTROLLER_OUTPUT: str = r"qualimap_{identification}"
+
+@dataclass
+class OutputFolders:
+    TRIMMING: str = "TRIMMED_FASTQ"
+    MAPPING: str = "BAM"
+    BAMQC: str = "BAMQC"
+    PREPROCESSOR: str = "PREPROCESSOR"
+    CALIBRATION: str = "CALIBRATED_BAM"
+    VARIANT_CALLING: str = "VCF"
+    ANNOTATION: str = "ANNOTATION"
+    REPORT: str = "REPORT"
+    
+    
