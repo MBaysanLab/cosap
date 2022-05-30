@@ -87,7 +87,7 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
             caller_config=caller_config, library_paths=library_paths
         )
 
-        samtools = Popen(samtools_mpileup, stdout=PIPE)
+        samtools = Popen(samtools_mpileup, stdout=PIPE, cwd=caller_config[VariantCallingKeys.OUTPUT_DIR])
         varscan = check_output(varscan_somatic, stdin=samtools.stdout)
         samtools.wait()
 
@@ -100,4 +100,4 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
             process_somatic_command = cls._create_process_somatic_command(
                 vcf=vcf_file,
             )
-            run(process_somatic_command)
+            run(process_somatic_command, cwd=caller_config[VariantCallingKeys.OUTPUT_DIR])

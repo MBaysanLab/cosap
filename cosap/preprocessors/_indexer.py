@@ -40,4 +40,4 @@ class BamIndexer:
             raise Exception("BAM file must be sorted before indexing")
 
         command = cls._create_command(indexing_config=indexing_config)
-        run(command, cwd=indexing_config.BAM_DIR)
+        run(command, cwd=indexing_config[IndexingKeys.OUTPUT_DIR])

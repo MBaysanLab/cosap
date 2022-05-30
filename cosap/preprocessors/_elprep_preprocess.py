@@ -44,5 +44,5 @@ class ElprepPreprocess(_Preprocessor, _PreProcessable):
             elprep_config=elprep_config,
         )
         index_command = cls._index_output(elprep_config=elprep_config)
-        run(command)
-        run(index_command)
+        run(command, cwd=elprep_config[ElprepKeys.OUTPUT_DIR])
+        run(index_command, cwd=elprep_config[ElprepKeys.OUTPUT_DIR])

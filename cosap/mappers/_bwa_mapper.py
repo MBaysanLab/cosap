@@ -91,6 +91,6 @@ class BWAMapper(_Mapper, _Mappable):
             library_paths=library_paths,
             app_config=app_config,
         )
-        bwa = Popen(bwa_command, stdout=PIPE)
+        bwa = Popen(bwa_command, stdout=PIPE, cwd=mapper_config[MappingKeys.OUTPUT_DIR])
         samtools = check_output(samtools_command, stdin=bwa.stdout)
         bwa.wait()

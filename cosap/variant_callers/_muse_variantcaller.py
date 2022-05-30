@@ -69,5 +69,5 @@ class MuseVariantCaller(_Callable, _VariantCaller):
             caller_config=caller_config, library_paths=library_paths
         )
 
-        run(call_command)
-        run(sump_command)
+        run(call_command, cwd=caller_config[VariantCallingKeys.OUTPUT_DIR])
+        run(sump_command, cwd=caller_config[VariantCallingKeys.OUTPUT_DIR])

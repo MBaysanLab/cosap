@@ -40,4 +40,4 @@ class SamtoolsSorter:
             library_paths=library_paths,
         )
 
-        run(command, cwd=sorting_config[SortingKeys.BAM_DIR])
+        run(command, cwd=sorting_config[SortingKeys.OUTPUT_DIR])

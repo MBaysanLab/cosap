@@ -44,7 +44,7 @@ class VarScanGermlineVariantCaller(_Callable, _VariantCaller):
         )
         varscan_germline = cls._create_varscan_command()
 
-        samtools = Popen(samtools_mpileup, stdout=PIPE)
+        samtools = Popen(samtools_mpileup, stdout=PIPE, cwd=caller_config[VariantCallingKeys.OUTPUT_DIR])
         varscan = check_output(varscan_germline, stdin=samtools.stdout)
         samtools.wait()
 
