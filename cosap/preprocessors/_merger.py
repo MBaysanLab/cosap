@@ -35,4 +35,4 @@ class BamMerger:
             library_paths=library_paths,
         )
 
-        run(command, cwd=merging_config[MergingKeys.OUTPUT_DIR])
+        run(command)

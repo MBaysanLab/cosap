@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from cosap._utils import join_paths
 
 
 @dataclass
@@ -37,5 +38,13 @@ class OutputFolders:
     VARIANT_CALLING: str = "VCF"
     ANNOTATION: str = "ANNOTATION"
     REPORT: str = "REPORT"
-    
-    
+
+@dataclass
+class SnakemakeOutputFormats:
+    GATK_SNP_OUTPUT: str = join_paths(OutputFolders.VARIANT_CALLING,"{library}", FileFormats.GATK_SNP_OUTPUT)
+    MAPPING_OUTPUT: str = join_paths(OutputFolders.MAPPING,"{library}", FileFormats.MAPPING_OUTPUT)
+    TRIMMING_OUTPUT: str = join_paths(OutputFolders.TRIMMING, FileFormats.TRIMMING_OUTPUT)
+    MDUP_OUTPUT: str = join_paths(OutputFolders.PREPROCESSOR,"{library}", FileFormats.MDUP_OUTPUT)
+    CALIBRATION_OUTPUT: str = join_paths(OutputFolders.CALIBRATION, FileFormats.CALIBRATION_OUTPUT)
+    ELPREP_CALIBRATION_OUTPUT: str = join_paths(OutputFolders.CALIBRATION, FileFormats.ELPREP_CALIBRATION_OUTPUT)
+    ANNOTATING_OUTPUT: str = join_paths(OutputFolders.ANNOTATION,"{library}", FileFormats.ANNOTATING_OUTPUT)

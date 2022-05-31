@@ -74,6 +74,6 @@ class VarDictVariantCaller(_Callable, _VariantCaller):
             caller_config=caller_config, library_paths=library_paths
         )
 
-        vardict = Popen(vardict_command, stdout=PIPE, shell=True, cwd=caller_config[VariantCallingKeys.OUTPUT_DIR])
+        vardict = Popen(vardict_command, stdout=PIPE, shell=True)
         var2vcf = check_output(var2vcf_command, stdin=vardict.stdout, shell=True)
         vardict.wait()

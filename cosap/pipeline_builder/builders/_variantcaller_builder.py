@@ -39,9 +39,7 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
 
     def get_output(self):
         config = self.get_config()
-        return join_paths(
-            config[self.key][self.name][VariantCallingKeys.OUTPUT_DIR],
-            config[self.key][self.name][VariantCallingKeys.SNP_OUTPUT])
+        return config[self.key][self.name][VariantCallingKeys.SNP_OUTPUT]
 
     def get_config(self) -> Dict:
         unfiltered_variants_output_filename = FileFormats.GATK_UNFILTERED_OUTPUT.format(
@@ -63,11 +61,11 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
             self.name: {
                 VariantCallingKeys.LIBRARY: self.library,
                 VariantCallingKeys.PARAMS: self.params,
-                VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT: unfiltered_variants_output_filename,
-                VariantCallingKeys.FILTERED_VARIANTS_OUTPUT: filtered_variants_output_filename,
-                VariantCallingKeys.SNP_OUTPUT: snp_output_filename,
-                VariantCallingKeys.INDEL_OUTPUT: indel_output_filename,
-                VariantCallingKeys.OTHER_VARIANTS_OUTPUT: other_variants_output_filename,
+                VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT: join_paths(OutputFolders.VARIANT_CALLING,self.library,unfiltered_variants_output_filename),
+                VariantCallingKeys.FILTERED_VARIANTS_OUTPUT: join_paths(OutputFolders.VARIANT_CALLING,self.library,filtered_variants_output_filename),
+                VariantCallingKeys.SNP_OUTPUT: join_paths(OutputFolders.VARIANT_CALLING,self.library,snp_output_filename),
+                VariantCallingKeys.INDEL_OUTPUT: join_paths(OutputFolders.VARIANT_CALLING,self.library,indel_output_filename),
+                VariantCallingKeys.OTHER_VARIANTS_OUTPUT: join_paths(OutputFolders.VARIANT_CALLING,self.library,other_variants_output_filename),
                 VariantCallingKeys.OUTPUT_DIR: join_paths(OutputFolders.VARIANT_CALLING,self.library)
             },
         }

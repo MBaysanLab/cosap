@@ -25,7 +25,7 @@ class MDUP(_IPipelineStep, _PipelineStep):
         config = {
             self.name: {
                 MDUPKeys.INPUT: self.input_step.get_output(),
-                MDUPKeys.OUTPUT: output_filename,
+                MDUPKeys.OUTPUT: join_paths(OutputFolders.PREPROCESSOR, self.key,output_filename),
                 MDUPKeys.OUTPUT_DIR: join_paths(OutputFolders.PREPROCESSOR, self.key)
             },
         }
@@ -33,9 +33,7 @@ class MDUP(_IPipelineStep, _PipelineStep):
 
     def get_output(self) -> str:
         config = self.get_config()
-        return join_paths(
-            config[self.key][self.name][MDUPKeys.OUTPUT_DIR],
-            config[self.key][self.name][MDUPKeys.OUTPUT])
+        return config[self.key][self.name][MDUPKeys.OUTPUT]
 
     def get_config(self) -> Dict:
         mdup_config = self._create_config()

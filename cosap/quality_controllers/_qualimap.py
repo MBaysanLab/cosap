@@ -41,4 +41,4 @@ class Qualimap(_QualityController, _QualityControllable):
             qc_config=qc_config, library_paths=library_paths
         )
 
-        run(qualimap_command, cwd=qc_config[QualityControlKeys.OUTPUT_DIR])
+        run(qualimap_command)

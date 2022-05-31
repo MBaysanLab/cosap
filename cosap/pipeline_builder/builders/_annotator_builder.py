@@ -25,7 +25,7 @@ class Annotator(_IPipelineStep, _PipelineStep):
             self.name: {
                 AnnotatorKeys.LIBRARY: self.library,
                 AnnotatorKeys.INPUT: self.input_step.get_output(),
-                AnnotatorKeys.OUTPUT: output_filename,
+                AnnotatorKeys.OUTPUT: join_paths(OutputFolders.ANNOTATION, output_filename),
                 AnnotatorKeys.OUTPUT_DIR: OutputFolders.ANNOTATION,
             }
         }
@@ -36,10 +36,7 @@ class Annotator(_IPipelineStep, _PipelineStep):
 
     def get_output(self) -> str:
         config = self.get_config()
-        return join_paths(
-            config[PipelineKeys.ANNOTATION][self.name][AnnotatorKeys.OUTPUT_DIR],
-            config[PipelineKeys.ANNOTATION][self.name][AnnotatorKeys.OUTPUT],
-            )
+        return config[PipelineKeys.ANNOTATION][self.name][AnnotatorKeys.OUTPUT]
 
     def get_config(self) -> Dict:
         annotation_config = self._create_config()

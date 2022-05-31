@@ -70,7 +70,7 @@ class StrelkaVariantCaller(_Callable, _VariantCaller):
             caller_config=caller_config, library_paths=library_paths
         )
 
-        run(strelka_command, cwd=caller_config[VariantCallingKeys.OUTPUT_DIR])
-        run(strelka_run_wf_command, cwd=caller_config[VariantCallingKeys.OUTPUT_DIR])
+        run(strelka_command)
+        run(strelka_run_wf_command)
 
         cls._move_strelka_vcfs(caller_config=caller_config, library_paths=library_paths)

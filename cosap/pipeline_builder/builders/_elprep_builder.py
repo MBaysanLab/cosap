@@ -26,7 +26,7 @@ class Elprep(_IPipelineStep, _PipelineStep):
             self.name: {
                 ElprepKeys.INPUT: self.input_step.get_output(),
                 ElprepKeys.TABLE: table_filename,
-                ElprepKeys.OUTPUT: output_filename,
+                ElprepKeys.OUTPUT: join_paths(OutputFolders.CALIBRATION, self.key,output_filename),
                 ElprepKeys.OUTPUT_DIR: join_paths(OutputFolders.CALIBRATION, self.key)
             },
         }
@@ -34,10 +34,8 @@ class Elprep(_IPipelineStep, _PipelineStep):
 
     def get_output(self) -> str:
         config = self.get_config()
-        return join_paths(
-            config[self.key][self.name][ElprepKeys.OUTPUT_DIR],
-            config[self.key][self.name][ElprepKeys.OUTPUT])
-
+        return config[self.key][self.name][ElprepKeys.OUTPUT]
+        
     def get_config(self) -> Dict:
         elprep_config = self._create_config()
         config = {self.key: elprep_config}

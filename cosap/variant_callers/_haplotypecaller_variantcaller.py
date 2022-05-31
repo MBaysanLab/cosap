@@ -175,7 +175,7 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
             caller_config=caller_config, library_paths=library_paths
         )
 
-        run(haplotypecaller_command, cwd=caller_config[VariantCallingKeys.OUTPUT_DIR])
-        run(get_snp_command, cwd=caller_config[VariantCallingKeys.OUTPUT_DIR])
-        run(get_indel_command, cwd=caller_config[VariantCallingKeys.OUTPUT_DIR])
-        run(get_other_variants_command, cwd=caller_config[VariantCallingKeys.OUTPUT_DIR])
+        run(haplotypecaller_command)
+        run(get_snp_command)
+        run(get_indel_command)
+        run(get_other_variants_command)

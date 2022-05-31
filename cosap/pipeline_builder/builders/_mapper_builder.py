@@ -52,7 +52,7 @@ class Mapper(_IPipelineStep, _PipelineStep):
             self.name: {
                 MappingKeys.LIBRARY: self.library,
                 MappingKeys.INPUT: read_filenames,
-                MappingKeys.OUTPUT: output_filename,
+                MappingKeys.OUTPUT: join_paths(OutputFolders.MAPPING,self.library, output_filename),
                 MappingKeys.OUTPUT_DIR: join_paths(OutputFolders.MAPPING,self.library),
                 MappingKeys.PARAMS: self.params,
             },
@@ -61,9 +61,7 @@ class Mapper(_IPipelineStep, _PipelineStep):
 
     def get_output(self) -> str:
         config = self.get_config()
-        return join_paths(
-            config[self.key][self.name][MappingKeys.OUTPUT_DIR],
-            config[self.key][self.name][MappingKeys.OUTPUT])
+        return config[self.key][self.name][MappingKeys.OUTPUT]
 
     def get_config(self) -> Dict:
         mapping_config = self._create_config()

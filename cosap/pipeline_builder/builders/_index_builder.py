@@ -29,7 +29,7 @@ class Indexer(_IPipelineStep, _PipelineStep):
         config = {
             self.name: {
                 IndexingKeys.INPUT: filename,
-                IndexingKeys.OUTPUT: output_filename,
+                IndexingKeys.OUTPUT: join_paths(OutputFolders.PREPROCESSOR, self.key, output_filename),
                 IndexingKeys.OUTPUT_DIR: join_paths(OutputFolders.PREPROCESSOR, self.key)
             }
         }
@@ -37,9 +37,7 @@ class Indexer(_IPipelineStep, _PipelineStep):
 
     def get_output(self) -> str:
         config = self.get_config()
-        return join_paths(
-            config[PipelineKeys.INDEX][self.name][IndexingKeys.OUTPUT_DIR],
-            config[PipelineKeys.INDEX][self.name][IndexingKeys.OUTPUT])
+        return config[PipelineKeys.INDEX][self.name][IndexingKeys.OUTPUT]
 
     def get_config(self) -> Dict:
         indexer_config = self._create_config()

@@ -33,9 +33,10 @@ class Trimmer(_IPipelineStep, _PipelineStep):
 
         output_filenames = {}
         for reader in self.reads:
-            output_filenames[reader.read] = FileFormats.TRIMMING_OUTPUT.format(
+            output_filename = FileFormats.TRIMMING_OUTPUT.format(
                 identification=reader.name, pair=reader.read
             )
+            output_filenames[reader.read] = join_paths(OutputFolders.TRIMMING, output_filename)
 
         config = {
             self.name: {
@@ -48,12 +49,8 @@ class Trimmer(_IPipelineStep, _PipelineStep):
 
     def get_output(self) -> str:
         config = self.get_config()
-        output_dir = config[self.key][self.name][TrimmingKeys.OUTPUT]
-
-        for key,value in output_dir.items():
-            value = join_paths(OutputFolders.TRIMMING, value)
-            
-        return output_dir
+           
+        return config[self.key][self.name][TrimmingKeys.OUTPUT]
 
     def get_config(self) -> Dict:
         trim_config = self._create_config()

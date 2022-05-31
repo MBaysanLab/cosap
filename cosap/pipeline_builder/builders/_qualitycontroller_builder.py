@@ -30,7 +30,7 @@ class QualityContoller(_IPipelineStep, _PipelineStep):
             self.name: {
                 QualityControlKeys.INPUT: filename,
                 QualityControlKeys.RAW_OUTPUT: raw_output_foldername,
-                QualityControlKeys.OUTPUT: output_filename,
+                QualityControlKeys.OUTPUT: join_paths(OutputFolders.BAMQC,output_filename),
                 QualityControlKeys.OUTPUT_DIR: OutputFolders.BAMQC
             }
         }
@@ -40,9 +40,7 @@ class QualityContoller(_IPipelineStep, _PipelineStep):
 
     def get_output(self) -> str:
         config = self.get_config()
-        return join_paths(
-            config[PipelineKeys.QUALITY_CONTROL][QualityControlKeys.OUTPUT_DIR],
-            config[PipelineKeys.QUALITY_CONTROL][QualityControlKeys.OUTPUT])
+        return config[PipelineKeys.QUALITY_CONTROL][QualityControlKeys.OUTPUT]
 
     def get_config(self) -> Dict:
         quality_controller_config = self._create_config()

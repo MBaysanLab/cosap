@@ -23,7 +23,7 @@ class Sorter(_IPipelineStep, _PipelineStep):
 
         config = {
             SortingKeys.INPUT: filename,
-            SortingKeys.OUTPUT: output_filename,
+            SortingKeys.OUTPUT: join_paths(OutputFolders.PREPROCESSOR,self.keys,output_filename),
             SortingKeys.OUTPUT_DIR: join_paths(OutputFolders.PREPROCESSOR,self.keys),
             SortingKeys.PARAMS: self.params,
         }
@@ -31,9 +31,7 @@ class Sorter(_IPipelineStep, _PipelineStep):
 
     def get_output(self) -> str:
         config = self.get_config()
-        return join_paths(
-            config[PipelineKeys.SORTING][SortingKeys.OUTPUT_DIR],
-            config[PipelineKeys.SORTING][SortingKeys.OUTPUT])
+        return config[PipelineKeys.SORTING][SortingKeys.OUTPUT]
 
     def get_config(self) -> Dict:
         sorter_config = self._create_config()

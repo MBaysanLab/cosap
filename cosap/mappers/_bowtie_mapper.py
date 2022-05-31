@@ -97,6 +97,6 @@ class Bowtie2Mapper(_Mapper, _Mappable):
             app_config=app_config,
         )
 
-        bowtie = Popen(bowtie_command, stdout=PIPE, cwd=mapper_config[MappingKeys.OUTPUT_DIR])
+        bowtie = Popen(bowtie_command, stdout=PIPE)
         samtools = check_output(samtools_command, stdin=bowtie.stdout)
         bowtie.wait()
