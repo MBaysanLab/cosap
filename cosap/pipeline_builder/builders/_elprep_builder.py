@@ -3,8 +3,9 @@ from typing import Dict, List
 
 from ..._formats import FileFormats, OutputFolders
 from ..._pipeline_config import ElprepKeys, PipelineKeys
-from ._pipeline_steps import _IPipelineStep, _PipelineStep
 from ..._utils import join_paths
+from ._pipeline_steps import _IPipelineStep, _PipelineStep
+
 
 @dataclass
 class Elprep(_IPipelineStep, _PipelineStep):
@@ -26,8 +27,10 @@ class Elprep(_IPipelineStep, _PipelineStep):
             self.name: {
                 ElprepKeys.INPUT: self.input_step.get_output(),
                 ElprepKeys.TABLE: table_filename,
-                ElprepKeys.OUTPUT: join_paths(OutputFolders.CALIBRATION, self.key,output_filename),
-                ElprepKeys.OUTPUT_DIR: join_paths(OutputFolders.CALIBRATION, self.key)
+                ElprepKeys.OUTPUT: join_paths(
+                    OutputFolders.CALIBRATION, self.key, output_filename
+                ),
+                ElprepKeys.OUTPUT_DIR: join_paths(OutputFolders.CALIBRATION, self.key),
             },
         }
         return config
@@ -35,7 +38,7 @@ class Elprep(_IPipelineStep, _PipelineStep):
     def get_output(self) -> str:
         config = self.get_config()
         return config[self.key][self.name][ElprepKeys.OUTPUT]
-        
+
     def get_config(self) -> Dict:
         elprep_config = self._create_config()
         config = {self.key: elprep_config}

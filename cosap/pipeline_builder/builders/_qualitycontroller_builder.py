@@ -3,8 +3,9 @@ from typing import Dict, List
 
 from ..._formats import FileFormats, FolderFormats, OutputFolders
 from ..._pipeline_config import PipelineKeys, QualityControlKeys
-from ._pipeline_steps import _IPipelineStep, _PipelineStep
 from ..._utils import join_paths
+from ._pipeline_steps import _IPipelineStep, _PipelineStep
+
 
 @dataclass
 class QualityContoller(_IPipelineStep, _PipelineStep):
@@ -22,7 +23,7 @@ class QualityContoller(_IPipelineStep, _PipelineStep):
         raw_output_foldername: FolderFormats.QUALITY_CONTROLLER_OUTPUT.format(
             identification=self.name
         )
-        output_filename = FileFormats.QUALITY_CONTROLLER_OUTPUT.format(
+        output_filename = FileFormats.QUALIMAP_HTML_OUTPUT.format(
             identification=self.name
         )
 
@@ -30,8 +31,10 @@ class QualityContoller(_IPipelineStep, _PipelineStep):
             self.name: {
                 QualityControlKeys.INPUT: filename,
                 QualityControlKeys.RAW_OUTPUT: raw_output_foldername,
-                QualityControlKeys.OUTPUT: join_paths(OutputFolders.BAMQC,output_filename),
-                QualityControlKeys.OUTPUT_DIR: OutputFolders.BAMQC
+                QualityControlKeys.OUTPUT: join_paths(
+                    OutputFolders.BAMQC, output_filename
+                ),
+                QualityControlKeys.OUTPUT_DIR: OutputFolders.BAMQC,
             }
         }
         if self.bed_file is not None:

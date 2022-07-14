@@ -1,14 +1,14 @@
+import imp
 from copy import copy
 from dataclasses import dataclass, field
-import imp
 from subprocess import PIPE, STDOUT, Popen
 from typing import Dict
 
 from ..._formats import FileFormats, OutputFolders
 from ..._pipeline_config import (DefaultValues, MappingKeys, PipelineKeys,
                                  VariantCallingKeys)
-from ._pipeline_steps import _IPipelineStep, _PipelineStep
 from ..._utils import join_paths
+from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
 
 @dataclass
@@ -61,12 +61,30 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
             self.name: {
                 VariantCallingKeys.LIBRARY: self.library,
                 VariantCallingKeys.PARAMS: self.params,
-                VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT: join_paths(OutputFolders.VARIANT_CALLING,self.library,unfiltered_variants_output_filename),
-                VariantCallingKeys.FILTERED_VARIANTS_OUTPUT: join_paths(OutputFolders.VARIANT_CALLING,self.library,filtered_variants_output_filename),
-                VariantCallingKeys.SNP_OUTPUT: join_paths(OutputFolders.VARIANT_CALLING,self.library,snp_output_filename),
-                VariantCallingKeys.INDEL_OUTPUT: join_paths(OutputFolders.VARIANT_CALLING,self.library,indel_output_filename),
-                VariantCallingKeys.OTHER_VARIANTS_OUTPUT: join_paths(OutputFolders.VARIANT_CALLING,self.library,other_variants_output_filename),
-                VariantCallingKeys.OUTPUT_DIR: join_paths(OutputFolders.VARIANT_CALLING,self.library)
+                VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT: join_paths(
+                    OutputFolders.VARIANT_CALLING,
+                    self.library,
+                    unfiltered_variants_output_filename,
+                ),
+                VariantCallingKeys.FILTERED_VARIANTS_OUTPUT: join_paths(
+                    OutputFolders.VARIANT_CALLING,
+                    self.library,
+                    filtered_variants_output_filename,
+                ),
+                VariantCallingKeys.SNP_OUTPUT: join_paths(
+                    OutputFolders.VARIANT_CALLING, self.library, snp_output_filename
+                ),
+                VariantCallingKeys.INDEL_OUTPUT: join_paths(
+                    OutputFolders.VARIANT_CALLING, self.library, indel_output_filename
+                ),
+                VariantCallingKeys.OTHER_VARIANTS_OUTPUT: join_paths(
+                    OutputFolders.VARIANT_CALLING,
+                    self.library,
+                    other_variants_output_filename,
+                ),
+                VariantCallingKeys.OUTPUT_DIR: join_paths(
+                    OutputFolders.VARIANT_CALLING, self.library
+                ),
             },
         }
 

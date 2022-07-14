@@ -1,3 +1,4 @@
+import os
 from subprocess import run
 from typing import Dict, List
 
@@ -14,6 +15,7 @@ class Trimmer(_Preprocessor, _PreProcessable):
     ) -> List:
 
         fastq_inputs = [fastq for fastq in trimmer_config[TrimmingKeys.INPUT].values()]
+        filename = fastq_inputs[0].split(".")[0]
         command = [
             "fastp",
             "-w",
@@ -26,6 +28,10 @@ class Trimmer(_Preprocessor, _PreProcessable):
             trimmer_config[TrimmingKeys.OUTPUT]["1"],
             "--out2",
             trimmer_config[TrimmingKeys.OUTPUT]["2"],
+            "-h",
+            os.devnull,
+            "-j",
+            trimmer_config[TrimmingKeys.REPORT_OUTPUT],
         ]
         return command
 

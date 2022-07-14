@@ -1,10 +1,12 @@
 from __future__ import annotations
-import imp
 
+import imp
 import os
 from dataclasses import dataclass
 from threading import Lock
+
 from ._utils import join_paths
+
 
 class _AppConfigMeta(type):
     _instances = {}

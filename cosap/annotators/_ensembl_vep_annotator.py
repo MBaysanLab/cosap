@@ -24,18 +24,10 @@ class VepAnnotator(_Annotatable, _Annotator):
             output_vcf,
             "--cache",
             "--offline",
-            "--tab",
-            "variant_class",
-            "--sift",
-            "--polyphen",
-            "--gene_phenotype",
-            "--pubmed",
-            "--af",
-            "--biotype",
-            "--symbol",
-            "--uniprot",
+            "--vcf",
+            "-e"
         ]
-
+        print(" ".join(command))
         return command
 
     @classmethod

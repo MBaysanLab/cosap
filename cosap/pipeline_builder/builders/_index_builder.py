@@ -3,8 +3,9 @@ from typing import Dict
 
 from ..._formats import FileFormats, OutputFolders
 from ..._pipeline_config import IndexingKeys, PipelineKeys
-from ._pipeline_steps import _IPipelineStep, _PipelineStep
 from ..._utils import join_paths
+from ._pipeline_steps import _IPipelineStep, _PipelineStep
+
 
 @dataclass
 class Indexer(_IPipelineStep, _PipelineStep):
@@ -29,8 +30,12 @@ class Indexer(_IPipelineStep, _PipelineStep):
         config = {
             self.name: {
                 IndexingKeys.INPUT: filename,
-                IndexingKeys.OUTPUT: join_paths(OutputFolders.PREPROCESSOR, self.key, output_filename),
-                IndexingKeys.OUTPUT_DIR: join_paths(OutputFolders.PREPROCESSOR, self.key)
+                IndexingKeys.OUTPUT: join_paths(
+                    OutputFolders.PREPROCESSOR, self.key, output_filename
+                ),
+                IndexingKeys.OUTPUT_DIR: join_paths(
+                    OutputFolders.PREPROCESSOR, self.key
+                ),
             }
         }
         return config

@@ -20,6 +20,7 @@ class PipelineKeys:
     ANNOTATION: str = "annotation"
     QUALITY_CONTROL: str = "quality_control"
     FINAL_OUTPUT: str = "final-output"
+    LOG: str = "log"
 
 
 @dataclass
@@ -45,12 +46,14 @@ class MappingKeys(PipelineBaseKeys):
 
 @dataclass
 class TrimmingKeys(PipelineBaseKeys):
-    pass
+    REPORT_OUTPUT: str = "report"
+
 
 @dataclass
 class QualityControlKeys(PipelineBaseKeys):
     BED_FILE: str = "bed"
     RAW_OUTPUT: str = "raw_output"
+
 
 @dataclass
 class SortingKeys(PipelineBaseKeys):

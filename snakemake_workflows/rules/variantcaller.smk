@@ -1,7 +1,7 @@
 from typing import List, Dict
 import os
 from cosap.variant_callers._variant_factory import VariantCallerFactory
-from cosap._formats import SnakemakeOutputFormats
+from cosap._formats import FolderedOutputs
 from cosap._pipeline_config import (
     VariantCallingKeys,
     PipelineKeys,
@@ -32,7 +32,7 @@ rule variant_caller:
     input:
         bams=get_bams
     output:
-        vcf=SnakemakeOutputFormats.GATK_SNP_OUTPUT,
+        vcf=FolderedOutputs.GATK_SNP_OUTPUT,
     run:
         variant_caller = VariantCallerFactory.create(
             caller_type=config[PipelineKeys.VARIANT_CALLING][wildcards.identification][
@@ -53,7 +53,7 @@ rule py2_variant_caller:
             wildcards.identification
         ][VariantCallingKeys.TUMOR_INPUT],
     output:
-        vcf=SnakemakeOutputFormats.GATK_SNP_OUTPUT,
+        vcf=FolderedOutputs.GATK_SNP_OUTPUT,
     conda:
         "../../environments/py2_environment.yaml"
     wildcard_constraints:

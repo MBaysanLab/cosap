@@ -1,10 +1,12 @@
 from dataclasses import dataclass
+
 from cosap._utils import join_paths
 
 
 @dataclass
 class FileFormats:
     TRIMMING_OUTPUT: str = r"trimmed_{identification}_{pair}.fastq.gz"
+    TRIMMING_REPORT_OUTPUT: str = r"{identification}_report.json"
     MAPPING_OUTPUT: str = r"unprocessed_{identification}.bam"
     SORTING_OUTPUT: str = r"sorted_{identification}.bam"
     INDEXING_OUTPUT: str = r"{prefix}_{identification}.bai"
@@ -21,12 +23,13 @@ class FileFormats:
     GATK_OTHER_VARIANTS_OUTPUT: str = r"other_variants_{identification}.vcf"
     ANNOTATING_OUTPUT: str = r"annotated_{identification}.vcf"
     ANNOVAR_OUTPUT: str = r"annotated_{identification}.avinput"
-    QUALITY_CONTROLLER_OUTPUT: str = r"qualimap_{identification}.html"
+    QUALIMAP_HTML_OUTPUT: str = r"qualimap_{identification}.html"
 
 
 @dataclass
 class FolderFormats:
-    QUALITY_CONTROLLER_OUTPUT: str = r"qualimap_{identification}"
+    QUALITY_CONTROLLER_OUTPUT: str = r"qualitycontrol_{identification}"
+
 
 @dataclass
 class OutputFolders:
@@ -38,13 +41,29 @@ class OutputFolders:
     VARIANT_CALLING: str = "VCF"
     ANNOTATION: str = "ANNOTATION"
     REPORT: str = "REPORT"
+    LOG: str = "LOG"
+
 
 @dataclass
-class SnakemakeOutputFormats:
-    GATK_SNP_OUTPUT: str = join_paths(OutputFolders.VARIANT_CALLING,"{library}", FileFormats.GATK_SNP_OUTPUT)
-    MAPPING_OUTPUT: str = join_paths(OutputFolders.MAPPING,"{library}", FileFormats.MAPPING_OUTPUT)
-    TRIMMING_OUTPUT: str = join_paths(OutputFolders.TRIMMING, FileFormats.TRIMMING_OUTPUT)
-    MDUP_OUTPUT: str = join_paths(OutputFolders.PREPROCESSOR,"{library}", FileFormats.MDUP_OUTPUT)
-    CALIBRATION_OUTPUT: str = join_paths(OutputFolders.CALIBRATION, FileFormats.CALIBRATION_OUTPUT)
-    ELPREP_CALIBRATION_OUTPUT: str = join_paths(OutputFolders.CALIBRATION, FileFormats.ELPREP_CALIBRATION_OUTPUT)
-    ANNOTATING_OUTPUT: str = join_paths(OutputFolders.ANNOTATION,"{library}", FileFormats.ANNOTATING_OUTPUT)
+class FolderedOutputs:
+    GATK_SNP_OUTPUT: str = join_paths(
+        OutputFolders.VARIANT_CALLING, "{library}", FileFormats.GATK_SNP_OUTPUT
+    )
+    MAPPING_OUTPUT: str = join_paths(
+        OutputFolders.MAPPING, "{library}", FileFormats.MAPPING_OUTPUT
+    )
+    TRIMMING_OUTPUT: str = join_paths(
+        OutputFolders.TRIMMING, FileFormats.TRIMMING_OUTPUT
+    )
+    MDUP_OUTPUT: str = join_paths(
+        OutputFolders.PREPROCESSOR, "{library}", FileFormats.MDUP_OUTPUT
+    )
+    CALIBRATION_OUTPUT: str = join_paths(
+        OutputFolders.CALIBRATION, FileFormats.CALIBRATION_OUTPUT
+    )
+    ELPREP_CALIBRATION_OUTPUT: str = join_paths(
+        OutputFolders.CALIBRATION, FileFormats.ELPREP_CALIBRATION_OUTPUT
+    )
+    ANNOTATING_OUTPUT: str = join_paths(
+        OutputFolders.ANNOTATION, "{library}", FileFormats.ANNOTATING_OUTPUT
+    )

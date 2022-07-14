@@ -1,6 +1,6 @@
 import os
 from cosap.preprocessors._preprocessor_factory import PreprocessorFactory
-from cosap._formats import SnakemakeOutputFormats
+from cosap._formats import FolderedOutputs
 from cosap._pipeline_config import (
     MDUPKeys,
     BaseRecalibratorKeys,
@@ -14,7 +14,7 @@ from collections import defaultdict
 rule fastp_trim:
     output:
         fastq_outputs=expand(
-            SnakemakeOutputFormats.TRIMMING_OUTPUT,
+            FolderedOutputs.TRIMMING_OUTPUT,
             pair=["1", "2"],
             identification="{identification}",
         ),
@@ -29,7 +29,7 @@ rule mark_dup:
             MDUPKeys.INPUT
         ],
     output:
-        mdup_bam=SnakemakeOutputFormats.MDUP_OUTPUT,
+        mdup_bam=FolderedOutputs.MDUP_OUTPUT,
     run:
         duplicate_remover = PreprocessorFactory.create(
             preprocessor_type="mark_duplicate"
@@ -45,7 +45,7 @@ rule gatk_base_cal:
             BaseRecalibratorKeys.INPUT
         ],
     output:
-        calibrated_bam=SnakemakeOutputFormats.CALIBRATION_OUTPUT,
+        calibrated_bam=FolderedOutputs.CALIBRATION_OUTPUT,
     run:
         duplicate_remover = PreprocessorFactory.create(
             preprocessor_type="base_recalibrator"
@@ -61,7 +61,7 @@ rule elprep_cal:
             wildcards.identification
         ][ElprepKeys.INPUT],
     output:
-        calibrated_bam=SnakemakeOutputFormats.ELPREP_CALIBRATION_OUTPUT,
+        calibrated_bam=FolderedOutputs.ELPREP_CALIBRATION_OUTPUT,
     run:
         duplicate_remover = PreprocessorFactory.create(preprocessor_type="elprep")
         duplicate_remover.run_preprocessor(
