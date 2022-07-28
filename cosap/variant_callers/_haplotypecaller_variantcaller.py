@@ -29,8 +29,6 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
             germline_bam,
             "-O",
             output_name,
-            "--native-pair-hmm-threads",
-            str(AppConfig.THREADS),
         ]
         return command
 

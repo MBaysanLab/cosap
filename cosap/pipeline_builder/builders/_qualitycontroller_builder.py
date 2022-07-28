@@ -20,7 +20,7 @@ class QualityContoller(_IPipelineStep, _PipelineStep):
 
     def _create_config(self) -> Dict:
         filename = self.input.get_output()
-        raw_output_foldername: FolderFormats.QUALITY_CONTROLLER_OUTPUT.format(
+        raw_output_foldername = FolderFormats.QUALITY_CONTROLLER_OUTPUT.format(
             identification=self.name
         )
         output_filename = FileFormats.QUALIMAP_HTML_OUTPUT.format(
@@ -38,7 +38,7 @@ class QualityContoller(_IPipelineStep, _PipelineStep):
             }
         }
         if self.bed_file is not None:
-            config[self.name][QualityControlKeys.BED_FILE] = self.bed_file
+            config[self.key][self.name][QualityControlKeys.BED_FILE] = self.bed_file
         return config
 
     def get_output(self) -> str:
