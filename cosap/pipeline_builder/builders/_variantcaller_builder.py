@@ -5,8 +5,12 @@ from subprocess import PIPE, STDOUT, Popen
 from typing import Dict
 
 from ..._formats import FileFormats, OutputFolders
-from ..._pipeline_config import (DefaultValues, MappingKeys, PipelineKeys,
-                                 VariantCallingKeys)
+from ..._pipeline_config import (
+    DefaultValues,
+    MappingKeys,
+    PipelineKeys,
+    VariantCallingKeys,
+)
 from ..._utils import join_paths
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 

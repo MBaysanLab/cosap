@@ -24,7 +24,7 @@ class _LibraryMeta(type):
 
 @dataclass
 class _LibraryPaths:
-    ENSEMBL_VEP: str = os.path.join(AppConfig.LIBRARY_PATH, "ensembl-vep","vep")
+    ENSEMBL_VEP: str = os.path.join(AppConfig.LIBRARY_PATH, "ensembl-vep", "vep")
     # PICARD: str = os.path.join(AppConfig.LIBRARY_PATH, "picard.jar")
     # GATK: str = os.path.join(AppConfig.LIBRARY_PATH, "GenomeAnalysisTK.jar")
     # GATK4: str = os.path.join(AppConfig.LIBRARY_PATH, "gatk-4.1.0.0", "gatk")
@@ -84,6 +84,7 @@ class _LibraryPaths38(_LibraryPaths):
         PHARMCAT_DIR, "PharmCAT_VCF_Preprocess.py"
     )
     PHARMCAT_JAR: str = os.path.join(PHARMCAT_DIR, "pharmcat-1.6.0-all")
+    INTERVALS: str = os.path.join(AppConfig.LIBRARY_PATH, "intervals")
 
 
 @dataclass

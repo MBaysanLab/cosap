@@ -2,20 +2,20 @@ import os
 from subprocess import run
 from typing import Dict, List
 
-from .._config import AppConfig
 from .._library_paths import LibraryPaths
 from .._pipeline_config import VariantCallingKeys
 from ._variantcallers import _Callable, _VariantCaller
+from ..scatter_gather import ScatterGather
 
 
 class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
     @classmethod
     def _create_run_command(
-        cls, caller_config: Dict, library_paths: LibraryPaths
+        cls, caller_config: Dict
     ) -> List:
 
+        library_paths = LibraryPaths()
         germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
-
         output_name = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
 
         command = [
@@ -160,8 +160,12 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
     def call_variants(cls, caller_config: Dict):
         library_paths = LibraryPaths()
 
-        haplotypecaller_command = cls._create_run_command(
-            caller_config=caller_config, library_paths=library_paths
+        splitted_configs = ScatterGather.split_variantcaller_configs(caller_config)
+
+        haplotypecaller_command = cls.split_and_run(
+            cls._create_run_command,
+            caller_config=caller_config,
+            library_paths=library_paths,
         )
         get_snp_command = cls._create_get_snp_variants_command(
             caller_config=caller_config, library_paths=library_paths

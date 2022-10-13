@@ -25,7 +25,7 @@ class VepAnnotator(_Annotatable, _Annotator):
             "--cache",
             "--offline",
             "--vcf",
-            "-e"
+            "-e",
         ]
         print(" ".join(command))
         return command

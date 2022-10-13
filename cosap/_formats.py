@@ -24,6 +24,7 @@ class FileFormats:
     ANNOTATING_OUTPUT: str = r"annotated_{identification}.vcf"
     ANNOVAR_OUTPUT: str = r"annotated_{identification}.avinput"
     QUALIMAP_HTML_OUTPUT: str = r"qualimap_{identification}.html"
+    SPLITTED_BAM_FILENAME: str = r"{split_no}_{name}.bam"
 
 
 @dataclass
@@ -42,6 +43,7 @@ class OutputFolders:
     ANNOTATION: str = "ANNOTATION"
     REPORT: str = "REPORT"
     LOG: str = "LOG"
+    TEMP_OUTPUT: str = "TEMP"
 
 
 @dataclass

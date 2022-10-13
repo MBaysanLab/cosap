@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+
 from .._config import AppConfig
 
 
@@ -15,11 +16,10 @@ class _Mapper(ABC):
             "-",
         ]
         return command
-    
-    def _samtools_index_command(app_config: AppConfig, input_path:str):
+
+    def _samtools_index_command(app_config: AppConfig, input_path: str):
         command = [
-            "samtools"
-            "index",
+            "samtools" "index",
             input_path,
             "-@",
             str(app_config.THREADS),

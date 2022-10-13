@@ -3,9 +3,14 @@ from dataclasses import dataclass
 from typing import Dict, List, Union
 
 from ..._formats import FileFormats, OutputFolders
-from ..._pipeline_config import (BaseRecalibratorKeys, IndexingKeys,
-                                 MappingKeys, MergingKeys, PipelineKeys,
-                                 SortingKeys)
+from ..._pipeline_config import (
+    BaseRecalibratorKeys,
+    IndexingKeys,
+    MappingKeys,
+    MergingKeys,
+    PipelineKeys,
+    SortingKeys,
+)
 from ..._utils import join_paths
 from ._file_readers import FastqReader
 from ._pipeline_steps import _IPipelineStep, _PipelineStep

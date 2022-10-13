@@ -57,41 +57,31 @@ class QualityControlKeys(PipelineBaseKeys):
 
 @dataclass
 class SortingKeys(PipelineBaseKeys):
-    INPUT: str = "input"
-    OUTPUT: str = "output"
     BAM_DIR: str = "bam-dir"
 
 
 @dataclass
 class IndexingKeys(PipelineBaseKeys):
-    INPUT: str = "input"
-    OUTPUT: str = "output"
     BAM_DIR: str = "bam-dir"
 
 
 @dataclass
 class SplitKeys(PipelineBaseKeys):
-    INPUT: str = "inputs"
-    OUTPUT: str = "outputs"
+    pass
 
 
 @dataclass
 class MergingKeys(PipelineBaseKeys):
-    INPUTS: str = "inputs"
-    OUTPUT: str = "output"
+    pass
 
 
 @dataclass
 class MDUPKeys(PipelineBaseKeys):
-    INPUT: str = "input"
-    OUTPUT: str = "output"
     METRICS: str = "metrics"
 
 
 @dataclass
 class BaseRecalibratorKeys(PipelineBaseKeys):
-    INPUT: str = "input"
-    OUTPUT: str = "output"
     TABLE: str = "table"
 
 

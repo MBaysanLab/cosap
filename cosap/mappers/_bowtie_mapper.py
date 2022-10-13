@@ -71,12 +71,10 @@ class Bowtie2Mapper(_Mapper, _Mappable):
         )
 
         sort_command = cls._samtools_sort_command(
-            app_config=app_config,
-            output_path=mapper_config[MappingKeys.OUTPUT]
+            app_config=app_config, output_path=mapper_config[MappingKeys.OUTPUT]
         )
         index_command = cls._samtools_index_command(
-            app_config=app_config,
-            input_path=mapper_config[MappingKeys.OUTPUT]
+            app_config=app_config, input_path=mapper_config[MappingKeys.OUTPUT]
         )
 
         bowtie = Popen(bowtie_command, stdout=PIPE)

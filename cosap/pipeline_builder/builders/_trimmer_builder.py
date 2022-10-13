@@ -47,7 +47,9 @@ class Trimmer(_IPipelineStep, _PipelineStep):
             self.name: {
                 TrimmingKeys.INPUT: read_filenames,
                 TrimmingKeys.OUTPUT: output_filenames,
-                TrimmingKeys.REPORT_OUTPUT: join_paths(OutputFolders.TRIMMING,report_filename),
+                TrimmingKeys.REPORT_OUTPUT: join_paths(
+                    OutputFolders.TRIMMING, report_filename
+                ),
                 TrimmingKeys.OUTPUT_DIR: OutputFolders.TRIMMING,
             },
         }
