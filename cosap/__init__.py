@@ -10,3 +10,4 @@ from .pipeline_builder import *
 from .pipeline_runner import *
 from .preprocessors import *
 from .variant_callers import *
+from .default_pipelines import *
