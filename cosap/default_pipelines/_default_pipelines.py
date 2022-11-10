@@ -1,4 +1,4 @@
-from ..pipeline_builder import QualityContoller
+from ..pipeline_builder import *
 from ..pipeline_runner import PipelineRunner
 from typing import List, Tuple
 from itertools import product

@@ -93,11 +93,13 @@ class BWA2Mapper(_Mapper, _Mappable):
             library_paths=library_paths,
             app_config=app_config,
         )
-        samtools_command = cls._create_samtools_command(
-            mapper_config=mapper_config,
-            library_paths=library_paths,
-            app_config=app_config,
+        sort_command = cls._samtools_sort_command(
+            app_config=app_config, output_path=mapper_config[MappingKeys.OUTPUT]
+        )
+        index_command = cls._samtools_index_command(
+            app_config=app_config, input_path=mapper_config[MappingKeys.OUTPUT]
         )
         bwa = Popen(bwa_command, stdout=PIPE)
-        samtools = check_output(samtools_command, stdin=bwa.stdout)
+        samtools = check_output(sort_command, stdin=bwa.stdout)
         bwa.wait()
+        run(index_command)
