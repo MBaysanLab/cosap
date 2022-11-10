@@ -43,6 +43,20 @@ rule variant_caller:
             config[PipelineKeys.VARIANT_CALLING][wildcards.identification]
         )
 
+rule variant_caller_with_gvcf_output:
+    input:
+        bams=get_bams
+    output:
+        gvcf=FileFormats.GATK_GVCF_OUTPUT
+    run:
+        variant_caller = VariantCallerFactory.create(
+            caller_type=config[PipelineKeys.VARIANT_CALLING][wildcards.identification][
+                VariantCallingKeys.LIBRARY
+            ]
+        )
+        variant_caller.call_variants(
+            config[PipelineKeys.VARIANT_CALLING][wildcards.identification]
+        )
 
 rule py2_variant_caller:
     input:

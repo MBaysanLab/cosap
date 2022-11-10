@@ -57,9 +57,17 @@ class _LibraryPaths38(_LibraryPaths):
         AppConfig.LIBRARY_PATH,
         "Homo_sapiens_assembly38.dbsnp138.vcf",
     )
+    DBSNP_ELSITES = os.path.join(
+        AppConfig.LIBRARY_PATH,
+        "Homo_sapiens_assembly38.dbsnp138.elsites",
+    )
     MILLS_INDEL: str = os.path.join(
         AppConfig.LIBRARY_PATH,
         "Mills_and_1000G_gold_standard.indels.hg38.vcf.gz",
+    )
+    MILLS_INDEL_ELSITES: str = os.path.join(
+        AppConfig.LIBRARY_PATH,
+        "Mills_and_1000G_gold_standard.indels.hg38.elsites",
     )
     COSMIC: str = os.path.join(
         AppConfig.LIBRARY_PATH,
@@ -71,14 +79,19 @@ class _LibraryPaths38(_LibraryPaths):
         AppConfig.LIBRARY_PATH,
         "1000G_phase1.snps.high_confidence.hg38.vcf.gz",
     )
+    ONE_THOUSAND_G_ELSITES: str = os.path.join(
+        AppConfig.LIBRARY_PATH,
+        "1000G_phase1.snps.high_confidence.hg38.elsites",
+    )
     BWA_ASSEMBLY: str = os.path.join(
-        AppConfig.LIBRARY_PATH, "Bwa", "Homo_sapiens_assembly38.fasta"
+        AppConfig.LIBRARY_PATH, "Homo_sapiens_assembly38.fasta"
     )
     BOWTIE2_ASSEMBLY: str = os.path.join(
-        AppConfig.LIBRARY_PATH, "Bowtie", "Homo_sapiens_assembly38"
+        AppConfig.LIBRARY_PATH, "Homo_sapiens_assembly38"
     )
     ANNOVAR: str = os.path.join(AppConfig.LIBRARY_PATH, "Annovar")
     INTERVAR: str = os.path.join(AppConfig.LIBRARY_PATH, "InterVar")
+    ENSEMBL_VEP: str = os.path.join(AppConfig.LIBRARY_PATH, "Ensembl-vep")
     PHARMCAT_DIR: str = os.path.join(AppConfig.LIBRARY_PATH, "Pharmcat")
     PHARMCAT_PREPROCESSOR: str = os.path.join(
         PHARMCAT_DIR, "PharmCAT_VCF_Preprocess.py"

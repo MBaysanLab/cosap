@@ -14,23 +14,17 @@ class SamtoolsSorter:
     ) -> str:
         command = [
             "samtools",
-            "view",
-            "-@",
-            app_config.THREADS,
-            "-bS",
-            sorting_config[SortingKeys.INPUT],
-            "|",
-            "samtools",
             "sort",
+            sorting_config[SortingKeys.INPUT],
             "-@",
-            app_config.THREADS,
+            str(app_config.THREADS),
             "-o",
             sorting_config[SortingKeys.OUTPUT],
         ]
         return command
 
     @classmethod
-    def sort(cls, sorting_config: Dict):
+    def run_preprocessor(cls, sorting_config: Dict):
         app_config = AppConfig()
         library_paths = LibraryPaths()
 

@@ -6,9 +6,9 @@ from .._pipeline_config import QualityControlKeys
 from ._quality_controllers import _QualityControllable, _QualityController
 
 
-class Qualimap(_QualityController, _QualityControllable):
+class Mosdepth(_QualityController, _QualityControllable):
     @classmethod
-    def _create_qualimap_command(
+    def _create_mosdepth_command(
         cls, qc_config=Dict, library_paths=LibraryPaths
     ) -> List:
 
@@ -18,29 +18,31 @@ class Qualimap(_QualityController, _QualityControllable):
             if QualityControlKeys.BED_FILE in qc_config.keys()
             else None
         )
-        raw_output = qc_config[QualityControlKeys.RAW_OUTPUT]
+        output = qc_config[QualityControlKeys.OUTPUT]
 
         command = [
-            "qualimap",
-            "bamqc",
-            "-bam",
+            "mosdepth",
+            "-n",
+            "--fast-mode",
+            "-t",
+            "4",
+            output,
             input_bam,
-            "--java-mem-size=8G",
-            "-outfile",
-            raw_output,
-            "-outdir",
-            raw_output,
-            "-outformat",
-            "PDF"
         ]
-        if bed_file is not None:
-            command.extend(["--feature-file", bed_file])
+        if bed_file:
+            command.extend(
+                [
+                    "--by",
+                    bed_file
+                ]
+            )
+
         return command
 
     @classmethod
     def run_qualitycontroller(cls, qc_config=Dict, library_paths=LibraryPaths):
-        qualimap_command = cls._create_qualimap_command(
+        mosdepth_command = cls._create_mosdepth_command(
             qc_config=qc_config, library_paths=library_paths
         )
 
-        run(qualimap_command)
+        run(mosdepth_command)

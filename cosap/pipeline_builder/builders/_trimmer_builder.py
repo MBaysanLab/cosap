@@ -57,7 +57,6 @@ class Trimmer(_IPipelineStep, _PipelineStep):
 
     def get_output(self) -> str:
         config = self.get_config()
-
         return config[self.key][self.name][TrimmingKeys.OUTPUT]
 
     def get_config(self) -> Dict:

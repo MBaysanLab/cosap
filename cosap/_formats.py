@@ -6,7 +6,6 @@ from cosap._utils import join_paths
 @dataclass
 class FileFormats:
     TRIMMING_OUTPUT: str = r"trimmed_{identification}_{pair}.fastq.gz"
-    TRIMMING_REPORT_OUTPUT: str = r"{identification}_report.json"
     MAPPING_OUTPUT: str = r"unprocessed_{identification}.bam"
     SORTING_OUTPUT: str = r"sorted_{identification}.bam"
     INDEXING_OUTPUT: str = r"{prefix}_{identification}.bai"
@@ -21,16 +20,16 @@ class FileFormats:
     GATK_SNP_OUTPUT: str = r"snp_{identification}.vcf"
     GATK_INDEL_OUTPUT: str = r"indel_{identification}.vcf"
     GATK_OTHER_VARIANTS_OUTPUT: str = r"other_variants_{identification}.vcf"
+    GATK_GVCF_OUTPUT: str = r"{identification}.g.vcf"
     ANNOTATING_OUTPUT: str = r"annotated_{identification}.vcf"
     ANNOVAR_OUTPUT: str = r"annotated_{identification}.avinput"
-    QUALIMAP_HTML_OUTPUT: str = r"qualimap_{identification}.html"
-    SPLITTED_BAM_FILENAME: str = r"{split_no}_{name}.bam"
+    QUALIMAP_PDF_OUTPUT: str = r"qualimap_{identification}.pdf"
+    MOSDEPTH_OUTPUT: str = r"{identification}.mosdepth.summary.txt"
 
 
 @dataclass
 class FolderFormats:
-    QUALITY_CONTROLLER_OUTPUT: str = r"qualitycontrol_{identification}"
-
+    QUALIMAP_OUTPUT: str = r"qualimap_{identification}"
 
 @dataclass
 class OutputFolders:
@@ -69,3 +68,4 @@ class FolderedOutputs:
     ANNOTATING_OUTPUT: str = join_paths(
         OutputFolders.ANNOTATION, "{library}", FileFormats.ANNOTATING_OUTPUT
     )
+    

@@ -15,7 +15,6 @@ class Trimmer(_Preprocessor, _PreProcessable):
     ) -> List:
 
         fastq_inputs = [fastq for fastq in trimmer_config[TrimmingKeys.INPUT].values()]
-        filename = fastq_inputs[0].split(".")[0]
         command = [
             "fastp",
             "-w",

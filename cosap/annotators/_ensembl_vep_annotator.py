@@ -27,7 +27,6 @@ class VepAnnotator(_Annotatable, _Annotator):
             "--vcf",
             "-e",
         ]
-        print(" ".join(command))
         return command
 
     @classmethod

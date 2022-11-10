@@ -60,12 +60,12 @@ class PipelineRunner:
         with open(config_yaml_path, "w") as config_yaml:
             yaml.dump(pipeline_config, config_yaml, default_flow_style=False)
 
-    def run_pipeline(self, pipeline_config: Dict, backend: str):
+    def run_pipeline(self, pipeline_config: Dict, runner: str = "snakemake"):
         workdir = pipeline_config[PipelineKeys.WORKDIR]
-        config_yaml_path = join_paths(workdir, "config.yaml")
+        config_yaml_path = join_paths(workdir, f"{pipeline_config[PipelineKeys.CREATION_DATE]}_config.yaml")
         self._write_config_to_yaml(config_yaml_path, pipeline_config)
 
-        if backend == "snakemake":
+        if runner.lower() == "snakemake":
             snakemake_runner = SnakemakeRunner(pipeline_config=config_yaml_path)
             snakemake_runner.run_snakemake_pipeline()
 
@@ -75,7 +75,7 @@ class PipelineRunner:
             # TODO: add trimming
             self.map(pipeline_config[PipelineKeys.MAPPING])
             self.sort(pipeline_config[PipelineKeys.SORTING])
-            self.index(pipeline_config[PipelineKeys.INDEX])
+            self.create_index(pipeline_config[PipelineKeys.INDEX])
             self.merge(pipeline_config[PipelineKeys.MERGE])
             self.calibrate(pipeline_config[PipelineKeys.CALIBRATE])
 
