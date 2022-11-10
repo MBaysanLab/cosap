@@ -84,19 +84,18 @@ germline_params = {
     "PL": "illumina",
     "LB": "Solexa-272222"
 }
+}
 
 mapper_germline_bwa = Mapper(
     library="bwa",
     reads=trimmer_germline,
     params=germline_params
-    }
 )
 
 mapper_germline_bowtie = Mapper(
     library="bowtie",
     reads=trimmer_germline,
     params=germline_params
-    }
 )
 
 ```
@@ -204,7 +203,7 @@ from cosap import PipelineRunner
 
 runner = PipelineRunner()
 
-runner.run_pipeline(pipeline_config=pipeline_config,backend="snakemake")
+runner.run_pipeline(pipeline_config=pipeline_config)
 ```
 ---
 ## Road Map
