@@ -1,3 +1,4 @@
+import os
 from subprocess import run
 from typing import Dict, List
 
@@ -26,6 +27,10 @@ class Trimmer(_Preprocessor, _PreProcessable):
             trimmer_config[TrimmingKeys.OUTPUT]["1"],
             "--out2",
             trimmer_config[TrimmingKeys.OUTPUT]["2"],
+            "-h",
+            os.devnull,
+            "-j",
+            trimmer_config[TrimmingKeys.REPORT_OUTPUT],
         ]
         return command
 

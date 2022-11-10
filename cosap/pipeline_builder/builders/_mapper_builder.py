@@ -2,10 +2,9 @@ from copy import copy
 from dataclasses import dataclass
 from typing import Dict, List, Union
 
-from ..._formats import FileFormats
-from ..._pipeline_config import (BaseRecalibratorKeys, IndexingKeys,
-                                 MappingKeys, MergingKeys, PipelineKeys,
-                                 SortingKeys)
+from ..._formats import FileFormats, OutputFolders
+from ..._pipeline_config import MappingKeys,PipelineKeys
+from ..._utils import join_paths
 from ._file_readers import FastqReader
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 from ._trimmer_builder import Trimmer
@@ -51,7 +50,10 @@ class Mapper(_IPipelineStep, _PipelineStep):
             self.name: {
                 MappingKeys.LIBRARY: self.library,
                 MappingKeys.INPUT: read_filenames,
-                MappingKeys.OUTPUT: output_filename,
+                MappingKeys.OUTPUT: join_paths(
+                    OutputFolders.MAPPING, self.library, output_filename
+                ),
+                MappingKeys.OUTPUT_DIR: join_paths(OutputFolders.MAPPING, self.library),
                 MappingKeys.PARAMS: self.params,
             },
         }

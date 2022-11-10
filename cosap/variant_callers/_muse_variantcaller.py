@@ -5,6 +5,7 @@ from pathlib import Path
 from subprocess import PIPE, Popen, check_output, run
 from typing import Dict, List, Union
 
+from .._config import AppConfig
 from .._library_paths import LibraryPaths
 from .._pipeline_config import VariantCallingKeys
 from ._variantcallers import _Callable, _VariantCaller
@@ -17,7 +18,7 @@ class MuseVariantCaller(_Callable, _VariantCaller):
 
     @classmethod
     def _create_muse_call_command(
-        cls, caller_config=Dict, library_paths=LibraryPaths
+        cls, caller_config: Dict, library_paths: LibraryPaths, app_config: AppConfig
     ) -> List:
 
         germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
@@ -34,6 +35,7 @@ class MuseVariantCaller(_Callable, _VariantCaller):
             library_paths.REF_FASTA,
             tumor_bam,
             germline_bam,
+            "-n",
         ]
         return command
 
@@ -54,16 +56,19 @@ class MuseVariantCaller(_Callable, _VariantCaller):
             "-O",
             output_name,
             "-D",
-            LibraryPaths.DBSNP,
+            library_paths.DBSNP,
         ]
         return command
 
     @classmethod
     def call_variants(cls, caller_config: Dict):
         library_paths = LibraryPaths()
+        app_config = AppConfig()
 
         call_command = cls._create_muse_call_command(
-            caller_config=caller_config, library_paths=library_paths
+            caller_config=caller_config,
+            library_paths=library_paths,
+            app_config=app_config,
         )
         sump_command = cls._create_muse_sump_command(
             caller_config=caller_config, library_paths=library_paths

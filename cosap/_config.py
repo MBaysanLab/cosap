@@ -1,10 +1,12 @@
 from __future__ import annotations
-import imp
 
+import imp
 import os
 from dataclasses import dataclass
 from threading import Lock
+
 from ._utils import join_paths
+
 
 class _AppConfigMeta(type):
     _instances = {}
@@ -23,5 +25,5 @@ class AppConfig(metaclass=_AppConfigMeta):
     LIBRARY_PATH: str = os.environ.get("COSAP_LIBRARY_PATH")
     SNAKEFILE_PATH: str = join_paths(COSAP_PATH, "snakemake_workflows","Snakefile")
 
-    THREADS: int = 14 #This is number of threads each job can use and not the all available threads
+    THREADS: int = 8 #This is number of threads each job can use and not the all available threads
     WORKDIR: str = os.getcwd()

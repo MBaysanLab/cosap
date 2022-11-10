@@ -7,20 +7,12 @@ from typing import Dict, List
 import yaml
 
 from .._config import AppConfig
-from .._pipeline_config import PipelineKeys
 from .._utils import join_paths
 
 
 class SnakemakeRunner:
     def __init__(self, pipeline_config):
         self.pipeline_config = pipeline_config
-        self.workdir = pipeline_config[PipelineKeys.WORKDIR]
-        self.config_yaml_path = join_paths(self.workdir, "config.yaml")
-        self._write_config_to_yaml()
-
-    def _write_config_to_yaml(self):
-        with open(self.config_yaml_path, "w") as config_yaml:
-            yaml.dump(self.pipeline_config, config_yaml, default_flow_style=False)
 
     def _create_unlock_dir_command(self) -> list:
         command = [
@@ -28,7 +20,7 @@ class SnakemakeRunner:
             "-s",
             AppConfig.SNAKEFILE_PATH,
             "--configfile",
-            self.config_yaml_path,
+            self.pipeline_config,
             "--unlock",
         ]
         return command
@@ -39,7 +31,7 @@ class SnakemakeRunner:
             "-s",
             AppConfig.SNAKEFILE_PATH,
             "--configfile",
-            self.config_yaml_path,
+            self.pipeline_config,
             "--dag",
             "-n",
         ]
@@ -55,7 +47,7 @@ class SnakemakeRunner:
             "-s",
             AppConfig.SNAKEFILE_PATH,
             "--configfile",
-            self.config_yaml_path,
+            self.pipeline_config,
             "-r",
             "-n",
         ]
@@ -70,7 +62,7 @@ class SnakemakeRunner:
             "-j",
             str(available_cpu // AppConfig.THREADS),
             "--configfile",
-            self.config_yaml_path,
+            self.pipeline_config,
             "-r",
             "--use-conda",
         ]
@@ -82,7 +74,7 @@ class SnakemakeRunner:
             "-s",
             AppConfig.SNAKEFILE_PATH,
             "--configfile",
-            self.config_yaml_path,
+            self.pipeline_config,
             "--report",
             "report.html",
         ]
@@ -105,4 +97,4 @@ class SnakemakeRunner:
         #     sys.exit()
         run(dry_run, cwd=self.workdir)
         run(snakemake, cwd=self.workdir)
-        run(report, cwd=self.workdir)
+        # run(report, cwd=self.workdir)

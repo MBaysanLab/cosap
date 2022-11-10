@@ -38,8 +38,6 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             tumor_bam,
             "-O",
             output_name,
-            "--native-pair-hmm-threads",
-            str(AppConfig.THREADS),
         ]
 
         if germline_bam is not None:

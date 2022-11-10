@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 from typing import Dict, List
 
-from ..._formats import FileFormats
+from ..._formats import FileFormats, OutputFolders
 from ..._pipeline_config import AnnotatorKeys, PipelineKeys
+from ..._utils import join_paths
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
 
@@ -24,7 +25,10 @@ class Annotator(_IPipelineStep, _PipelineStep):
             self.name: {
                 AnnotatorKeys.LIBRARY: self.library,
                 AnnotatorKeys.INPUT: self.input_step.get_output(),
-                AnnotatorKeys.OUTPUT: output_filename,
+                AnnotatorKeys.OUTPUT: join_paths(
+                    OutputFolders.ANNOTATION, self.library, output_filename
+                ),
+                AnnotatorKeys.OUTPUT_DIR: OutputFolders.ANNOTATION,
             }
         }
         if self.library.lower() == "annovar":

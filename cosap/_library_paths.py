@@ -24,7 +24,7 @@ class _LibraryMeta(type):
 
 @dataclass
 class _LibraryPaths:
-    ENSEMBL_VEP: str = os.path.join(AppConfig.LIBRARY_PATH, "vep")
+    ENSEMBL_VEP: str = os.path.join(AppConfig.LIBRARY_PATH, "ensembl-vep", "vep")
     # PICARD: str = os.path.join(AppConfig.LIBRARY_PATH, "picard.jar")
     # GATK: str = os.path.join(AppConfig.LIBRARY_PATH, "GenomeAnalysisTK.jar")
     # GATK4: str = os.path.join(AppConfig.LIBRARY_PATH, "gatk-4.1.0.0", "gatk")
@@ -57,9 +57,17 @@ class _LibraryPaths38(_LibraryPaths):
         AppConfig.LIBRARY_PATH,
         "Homo_sapiens_assembly38.dbsnp138.vcf",
     )
+    DBSNP_ELSITES = os.path.join(
+        AppConfig.LIBRARY_PATH,
+        "Homo_sapiens_assembly38.dbsnp138.elsites",
+    )
     MILLS_INDEL: str = os.path.join(
         AppConfig.LIBRARY_PATH,
         "Mills_and_1000G_gold_standard.indels.hg38.vcf.gz",
+    )
+    MILLS_INDEL_ELSITES: str = os.path.join(
+        AppConfig.LIBRARY_PATH,
+        "Mills_and_1000G_gold_standard.indels.hg38.elsites",
     )
     COSMIC: str = os.path.join(
         AppConfig.LIBRARY_PATH,
@@ -70,6 +78,10 @@ class _LibraryPaths38(_LibraryPaths):
     ONE_THOUSAND_G: str = os.path.join(
         AppConfig.LIBRARY_PATH,
         "1000G_phase1.snps.high_confidence.hg38.vcf.gz",
+    )
+    ONE_THOUSAND_G_ELSITES: str = os.path.join(
+        AppConfig.LIBRARY_PATH,
+        "1000G_phase1.snps.high_confidence.hg38.elsites",
     )
     BWA_ASSEMBLY: str = os.path.join(
         AppConfig.LIBRARY_PATH, "Homo_sapiens_assembly38.fasta"
@@ -85,6 +97,7 @@ class _LibraryPaths38(_LibraryPaths):
         PHARMCAT_DIR, "PharmCAT_VCF_Preprocess.py"
     )
     PHARMCAT_JAR: str = os.path.join(PHARMCAT_DIR, "pharmcat-1.6.0-all")
+    INTERVALS: str = os.path.join(AppConfig.LIBRARY_PATH, "intervals")
 
 
 @dataclass

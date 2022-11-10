@@ -5,22 +5,22 @@ channels:
   - conda-forge/label/cf201901
   - defaults
 dependencies:
-  - bbmap=38.93=he522d1c_0
-  - bowtie2=2.2.5=py39h7cff6ad_8
-  - bwa=0.7.17=h5bf99c6_8
-  - bwa-mem2=2.2.1=h9a82719_1
-  - fastp=0.20.1=h2e03b76_1
-  - fastqc=0.11.9=hdfd78af_1
-  - gatk4=4.2.2.0=hdfd78af_0
-  - octopus=0.7.4=h40a150c_0
-  - picard=2.26.0=hdfd78af_0
-  - python=3.9.7=hb7a2778_3_cpython
-  - qualimap=2.2.2a=1
-  - samtools=1.12=h9aed4be_1
-  - somatic-sniper=1.0.5.0=0
-  - tqdm=4.62.3=pyhd8ed1ab_0
-  - varscan=2.4.4=hdfd78af_1
-  - yaml=0.2.5=h516909a_0
+  - bbmap
+  - bowtie2
+  - bwa
+  - bwa-mem2
+  - fastp
+  - fastqc
+  - gatk4
+  - octopus
+  - picard
+  - python
+  - qualimap
+  - samtools
+  - somatic-sniper
+  - tqdm
+  - varscan
+  - yaml
   - black
   - numpy
   - pillow

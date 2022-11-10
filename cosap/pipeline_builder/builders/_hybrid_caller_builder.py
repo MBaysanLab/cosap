@@ -1,14 +1,13 @@
 from dataclasses import dataclass
 from typing import Dict, List
 
-from ..._formats import FileFormats, OutputFolders
+from ..._formats import FileFormats
 from ..._pipeline_config import ElprepKeys, PipelineKeys
-from ..._utils import join_paths
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
 
 @dataclass
-class Elprep(_IPipelineStep, _PipelineStep):
+class HybridCaller(_IPipelineStep, _PipelineStep):
     input_step: _PipelineStep
     name: str = None
     key: str = PipelineKeys.ELPREP_PROCESS
@@ -27,10 +26,7 @@ class Elprep(_IPipelineStep, _PipelineStep):
             self.name: {
                 ElprepKeys.INPUT: self.input_step.get_output(),
                 ElprepKeys.TABLE: table_filename,
-                ElprepKeys.OUTPUT: join_paths(
-                    OutputFolders.CALIBRATION, self.key, output_filename
-                ),
-                ElprepKeys.OUTPUT_DIR: join_paths(OutputFolders.CALIBRATION, self.key),
+                ElprepKeys.OUTPUT: output_filename,
             },
         }
         return config

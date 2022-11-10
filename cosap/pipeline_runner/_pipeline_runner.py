@@ -8,8 +8,13 @@ from .._config import AppConfig
 from .._pipeline_config import MappingKeys, PipelineKeys, VariantCallingKeys
 from .._utils import join_paths
 from ..mappers import MapperFactory
-from ..preprocessors import (BamIndexer, BamMerger, BaseRecalibrator,
-                             MarkDuplicate, SamtoolsSorter)
+from ..preprocessors import (
+    BamIndexer,
+    BamMerger,
+    BaseRecalibrator,
+    MarkDuplicate,
+    SamtoolsSorter,
+)
 from ..variant_callers import VariantCallerFactory
 from ._snakemake_runner import SnakemakeRunner
 
@@ -51,9 +56,17 @@ class PipelineRunner:
             caller = VariantCallerFactory.create(config[VariantCallingKeys.LIBRARY])
             caller.call_variants(config)
 
-    def run_pipeline(self, pipeline_config: Dict, backend: str):
-        if backend == "snakemake":
-            snakemake_runner = SnakemakeRunner(pipeline_config=pipeline_config)
+    def _write_config_to_yaml(self, config_yaml_path, pipeline_config):
+        with open(config_yaml_path, "w") as config_yaml:
+            yaml.dump(pipeline_config, config_yaml, default_flow_style=False)
+
+    def run_pipeline(self, pipeline_config: Dict, runner: str = "snakemake"):
+        workdir = pipeline_config[PipelineKeys.WORKDIR]
+        config_yaml_path = join_paths(workdir, f"{pipeline_config[PipelineKeys.CREATION_DATE]}_config.yaml")
+        self._write_config_to_yaml(config_yaml_path, pipeline_config)
+
+        if runner.lower() == "snakemake":
+            snakemake_runner = SnakemakeRunner(pipeline_config=config_yaml_path)
             snakemake_runner.run_snakemake_pipeline()
 
         else:
@@ -62,7 +75,7 @@ class PipelineRunner:
             # TODO: add trimming
             self.map(pipeline_config[PipelineKeys.MAPPING])
             self.sort(pipeline_config[PipelineKeys.SORTING])
-            self.index(pipeline_config[PipelineKeys.INDEX])
+            self.create_index(pipeline_config[PipelineKeys.INDEX])
             self.merge(pipeline_config[PipelineKeys.MERGE])
             self.calibrate(pipeline_config[PipelineKeys.CALIBRATE])
 

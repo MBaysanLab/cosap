@@ -20,6 +20,7 @@ class PipelineKeys:
     ANNOTATION: str = "annotation"
     QUALITY_CONTROL: str = "quality_control"
     FINAL_OUTPUT: str = "final-output"
+    LOG: str = "log"
 
 
 @dataclass
@@ -54,41 +55,31 @@ class QualityControlKeys(PipelineBaseKeys):
 
 @dataclass
 class SortingKeys(PipelineBaseKeys):
-    INPUT: str = "input"
-    OUTPUT: str = "output"
     BAM_DIR: str = "bam-dir"
 
 
 @dataclass
 class IndexingKeys(PipelineBaseKeys):
-    INPUT: str = "input"
-    OUTPUT: str = "output"
     BAM_DIR: str = "bam-dir"
 
 
 @dataclass
 class SplitKeys(PipelineBaseKeys):
-    INPUT: str = "inputs"
-    OUTPUT: str = "outputs"
+    pass
 
 
 @dataclass
 class MergingKeys(PipelineBaseKeys):
-    INPUTS: str = "inputs"
-    OUTPUT: str = "output"
+    pass
 
 
 @dataclass
 class MDUPKeys(PipelineBaseKeys):
-    INPUT: str = "input"
-    OUTPUT: str = "output"
     METRICS: str = "metrics"
 
 
 @dataclass
 class BaseRecalibratorKeys(PipelineBaseKeys):
-    INPUT: str = "input"
-    OUTPUT: str = "output"
     TABLE: str = "table"
 
 
@@ -100,6 +91,7 @@ class VariantCallingKeys(PipelineBaseKeys):
     TUMOR_SAMPLE_NAME: str = "tumor_sample_name"
     UNFILTERED_VARIANTS_OUTPUT: str = "unfiltered_variants"
     FILTERED_VARIANTS_OUTPUT: str = "filtered_variants"
+    GVCF_OUTPUT: str = "gvcf_output"
     SNP_OUTPUT: str = "snp_output"
     INDEL_OUTPUT: str = "indel_output"
     OTHER_VARIANTS_OUTPUT: str = "other_variants_output"

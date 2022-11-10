@@ -40,4 +40,4 @@ class SplitbyCHR:
                     chromosome=chromosome,
                     output_filename=output_filename,
                 )
-                run(command, cwd=split_config[SplitKeys.OUTPUT_DIR])
+                run(command)

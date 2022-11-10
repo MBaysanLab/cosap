@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 
+from cosap._utils import join_paths
+
 
 @dataclass
 class FileFormats:
@@ -18,11 +20,52 @@ class FileFormats:
     GATK_SNP_OUTPUT: str = r"snp_{identification}.vcf"
     GATK_INDEL_OUTPUT: str = r"indel_{identification}.vcf"
     GATK_OTHER_VARIANTS_OUTPUT: str = r"other_variants_{identification}.vcf"
+    GATK_GVCF_OUTPUT: str = r"{identification}.g.vcf"
     ANNOTATING_OUTPUT: str = r"annotated_{identification}.vcf"
     ANNOVAR_OUTPUT: str = r"annotated_{identification}.avinput"
-    QUALITY_CONTROLLER_OUTPUT: str = r"qualimap_{identification}.html"
+    QUALIMAP_PDF_OUTPUT: str = r"qualimap_{identification}.pdf"
+    MOSDEPTH_OUTPUT: str = r"{identification}.mosdepth.summary.txt"
 
 
 @dataclass
 class FolderFormats:
-    QUALITY_CONTROLLER_OUTPUT: str = r"qualimap_{identification}"
+    QUALIMAP_OUTPUT: str = r"qualimap_{identification}"
+
+@dataclass
+class OutputFolders:
+    TRIMMING: str = "TRIMMED_FASTQ"
+    MAPPING: str = "BAM"
+    BAMQC: str = "BAMQC"
+    PREPROCESSOR: str = "PREPROCESSOR"
+    CALIBRATION: str = "CALIBRATED_BAM"
+    VARIANT_CALLING: str = "VCF"
+    ANNOTATION: str = "ANNOTATION"
+    REPORT: str = "REPORT"
+    LOG: str = "LOG"
+    TEMP_OUTPUT: str = "TEMP"
+
+
+@dataclass
+class FolderedOutputs:
+    GATK_SNP_OUTPUT: str = join_paths(
+        OutputFolders.VARIANT_CALLING, "{library}", FileFormats.GATK_SNP_OUTPUT
+    )
+    MAPPING_OUTPUT: str = join_paths(
+        OutputFolders.MAPPING, "{library}", FileFormats.MAPPING_OUTPUT
+    )
+    TRIMMING_OUTPUT: str = join_paths(
+        OutputFolders.TRIMMING, FileFormats.TRIMMING_OUTPUT
+    )
+    MDUP_OUTPUT: str = join_paths(
+        OutputFolders.PREPROCESSOR, "{library}", FileFormats.MDUP_OUTPUT
+    )
+    CALIBRATION_OUTPUT: str = join_paths(
+        OutputFolders.CALIBRATION, FileFormats.CALIBRATION_OUTPUT
+    )
+    ELPREP_CALIBRATION_OUTPUT: str = join_paths(
+        OutputFolders.CALIBRATION, FileFormats.ELPREP_CALIBRATION_OUTPUT
+    )
+    ANNOTATING_OUTPUT: str = join_paths(
+        OutputFolders.ANNOTATION, "{library}", FileFormats.ANNOTATING_OUTPUT
+    )
+    

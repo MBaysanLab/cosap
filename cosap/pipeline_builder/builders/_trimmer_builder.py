@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 from typing import Dict, List
 
-from ..._formats import FileFormats
+from ..._formats import FileFormats, OutputFolders
 from ..._pipeline_config import PipelineKeys, TrimmingKeys
+from ..._utils import join_paths
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
 
@@ -32,14 +33,24 @@ class Trimmer(_IPipelineStep, _PipelineStep):
 
         output_filenames = {}
         for reader in self.reads:
-            output_filenames[reader.read] = FileFormats.TRIMMING_OUTPUT.format(
+            output_filename = FileFormats.TRIMMING_OUTPUT.format(
                 identification=reader.name, pair=reader.read
             )
+            output_filenames[reader.read] = join_paths(
+                OutputFolders.TRIMMING, output_filename
+            )
 
+        report_filename = FileFormats.TRIMMING_REPORT_OUTPUT.format(
+            identification=self.reads[0].name
+        )
         config = {
             self.name: {
                 TrimmingKeys.INPUT: read_filenames,
                 TrimmingKeys.OUTPUT: output_filenames,
+                TrimmingKeys.REPORT_OUTPUT: join_paths(
+                    OutputFolders.TRIMMING, report_filename
+                ),
+                TrimmingKeys.OUTPUT_DIR: OutputFolders.TRIMMING,
             },
         }
         return config

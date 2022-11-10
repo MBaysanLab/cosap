@@ -1,7 +1,7 @@
 from typing import List, Dict
 import os
 from cosap.variant_callers._variant_factory import VariantCallerFactory
-from cosap._formats import FileFormats
+from cosap._formats import FolderedOutputs
 from cosap._pipeline_config import (
     VariantCallingKeys,
     PipelineKeys,
@@ -32,9 +32,7 @@ rule variant_caller:
     input:
         bams=get_bams
     output:
-        vcf=FileFormats.GATK_SNP_OUTPUT,
-    resources:
-        variant_caller=1,
+        vcf=FolderedOutputs.GATK_SNP_OUTPUT,
     run:
         variant_caller = VariantCallerFactory.create(
             caller_type=config[PipelineKeys.VARIANT_CALLING][wildcards.identification][
@@ -45,6 +43,20 @@ rule variant_caller:
             config[PipelineKeys.VARIANT_CALLING][wildcards.identification]
         )
 
+rule variant_caller_with_gvcf_output:
+    input:
+        bams=get_bams
+    output:
+        gvcf=FileFormats.GATK_GVCF_OUTPUT
+    run:
+        variant_caller = VariantCallerFactory.create(
+            caller_type=config[PipelineKeys.VARIANT_CALLING][wildcards.identification][
+                VariantCallingKeys.LIBRARY
+            ]
+        )
+        variant_caller.call_variants(
+            config[PipelineKeys.VARIANT_CALLING][wildcards.identification]
+        )
 
 rule py2_variant_caller:
     input:
@@ -55,9 +67,7 @@ rule py2_variant_caller:
             wildcards.identification
         ][VariantCallingKeys.TUMOR_INPUT],
     output:
-        vcf=FileFormats.GATK_SNP_OUTPUT,
-    resources:
-        variant_caller=1,
+        vcf=FolderedOutputs.GATK_SNP_OUTPUT,
     conda:
         "../../environments/py2_environment.yaml"
     wildcard_constraints:
