@@ -1,5 +1,4 @@
-import sys
-from subprocess import PIPE, STDOUT, Popen, check_output, run
+from subprocess import PIPE, Popen, check_output, run
 from typing import Dict, List
 
 from .._config import AppConfig
@@ -58,10 +57,27 @@ class Bowtie2Mapper(_Mapper, _Mappable):
                     *read_group,
                 ]
             )
-        
-        print(" ".join(command))
         return command
 
+    @classmethod
+    def _create_samtools_command(
+        cls,
+        mapper_config: Dict,
+        read_group: str,
+        library_paths: LibraryPaths,
+        app_config: AppConfig,
+    ) -> List:
+
+        command = [
+            "samtools",
+            "sort",
+            "-@",
+            str(app_config.THREADS),
+            "-o",
+            mapper_config[MappingKeys.OUTPUT],
+            "-",
+        ]
+        return command
 
     @classmethod
     def map(cls, mapper_config: Dict):
@@ -87,10 +103,7 @@ class Bowtie2Mapper(_Mapper, _Mappable):
             app_config=app_config, input_path=mapper_config[MappingKeys.OUTPUT]
         )
 
-        bowtie = Popen(bowtie_command, stderr=STDOUT, stdout=STDOUT)
-        for line in iter(bowtie.stdout.readline, ''):
-            print(line),
-            sys.stdout.flush()
+        bowtie = Popen(bowtie_command, stdout=PIPE)
         samtools = check_output(sort_command, stdin=bowtie.stdout)
         bowtie.wait()
         run(index_command)

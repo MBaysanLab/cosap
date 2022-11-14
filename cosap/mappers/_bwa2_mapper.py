@@ -1,4 +1,3 @@
-import sys
 from subprocess import PIPE, STDOUT, Popen, check_output, run
 from typing import Dict, List
 
@@ -56,6 +55,25 @@ class BWA2Mapper(_Mapper, _Mappable):
         return command
 
     @classmethod
+    def _create_samtools_command(
+        cls,
+        mapper_config: Dict,
+        library_paths: LibraryPaths,
+        app_config: AppConfig,
+    ) -> List:
+
+        command = [
+            "samtools",
+            "sort",
+            "-@",
+            str(app_config.THREADS),
+            "-o",
+            mapper_config[MappingKeys.OUTPUT],
+            "-",
+        ]
+        return command
+
+    @classmethod
     def map(cls, mapper_config: Dict):
         library_paths = LibraryPaths()
         app_config = AppConfig()
@@ -74,10 +92,7 @@ class BWA2Mapper(_Mapper, _Mappable):
         index_command = cls._samtools_index_command(
             app_config=app_config, input_path=mapper_config[MappingKeys.OUTPUT]
         )
-        bwa = Popen(bwa_command, stderr=STDOUT, stdout=PIPE)
-        for line in iter(bwa.stdout.readline, ''):
-            print(line),
-            sys.stdout.flush() 
+        bwa = Popen(bwa_command, stdout=PIPE)
         samtools = check_output(sort_command, stdin=bwa.stdout)
         bwa.wait()
         run(index_command)
