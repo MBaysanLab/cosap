@@ -57,7 +57,7 @@ class Bowtie2Mapper(_Mapper, _Mappable):
                 [
                     *read_group,
                 ]
-            ) 
+            )
         return command
 
     @classmethod

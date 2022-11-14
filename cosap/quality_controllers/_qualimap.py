@@ -31,7 +31,7 @@ class Qualimap(_QualityController, _QualityControllable):
             "-outdir",
             raw_output,
             "-outformat",
-            "PDF"
+            "PDF",
         ]
         if bed_file is not None:
             command.extend(["--feature-file", bed_file])

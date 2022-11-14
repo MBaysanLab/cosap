@@ -1,7 +1,9 @@
 from re import I
-from ._qualimap import Qualimap
+
 from ._mosdepth import Mosdepth
+from ._qualimap import Qualimap
 from ._quality_controllers import _QualityController
+
 
 class QualityContollerFactory:
     QUALIMAP = "qualimap"

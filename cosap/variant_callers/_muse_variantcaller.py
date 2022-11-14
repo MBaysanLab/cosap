@@ -23,7 +23,7 @@ class MuseVariantCaller(_Callable, _VariantCaller):
 
         germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
         tumor_bam = caller_config[VariantCallingKeys.TUMOR_INPUT]
-        output_name = caller_config[VariantCallingKeys.SNP_OUTPUT]
+        output_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
         output_prefix = cls._create_muse_output_prefix(output_name)
 
         command = [
@@ -44,7 +44,7 @@ class MuseVariantCaller(_Callable, _VariantCaller):
         cls, caller_config=Dict, library_paths=LibraryPaths
     ) -> List:
 
-        output_name = caller_config[VariantCallingKeys.SNP_OUTPUT]
+        output_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
         output_prefix = cls._create_muse_output_prefix(output_name)
 
         command = [

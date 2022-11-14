@@ -13,6 +13,7 @@ class FastqReader(_IPipelineStep, _PipelineStep):
     read: int
     platform: str = "illumina"
     name: str = None
+    next_step: _PipelineStep = None
 
     def __post_init__(self):
         self.read = str(self.read)

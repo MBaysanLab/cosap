@@ -27,7 +27,7 @@ class OctopusVariantCaller(_Callable, _VariantCaller):
             VariantCallingKeys.TUMOR_SAMPLE_NAME
         ]
 
-        output_name = caller_config[VariantCallingKeys.SNP_OUTPUT]
+        output_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
 
         command = [
             "octopus",

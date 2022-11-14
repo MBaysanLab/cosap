@@ -46,12 +46,14 @@ class MappingKeys(PipelineBaseKeys):
 
 @dataclass
 class TrimmingKeys(PipelineBaseKeys):
-    pass
+    REPORT_OUTPUT: str = "report"
+
 
 @dataclass
 class QualityControlKeys(PipelineBaseKeys):
     BED_FILE: str = "bed"
     RAW_OUTPUT: str = "raw_output"
+
 
 @dataclass
 class SortingKeys(PipelineBaseKeys):
@@ -90,7 +92,7 @@ class VariantCallingKeys(PipelineBaseKeys):
     GERMLINE_SAMPLE_NAME: str = "germline_sample_name"
     TUMOR_SAMPLE_NAME: str = "tumor_sample_name"
     UNFILTERED_VARIANTS_OUTPUT: str = "unfiltered_variants"
-    FILTERED_VARIANTS_OUTPUT: str = "filtered_variants"
+    ALL_VARIANTS_OUTPUT: str = "all_variants"
     GVCF_OUTPUT: str = "gvcf_output"
     SNP_OUTPUT: str = "snp_output"
     INDEL_OUTPUT: str = "indel_output"

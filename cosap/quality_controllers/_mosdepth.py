@@ -30,12 +30,7 @@ class Mosdepth(_QualityController, _QualityControllable):
             input_bam,
         ]
         if bed_file:
-            command.extend(
-                [
-                    "--by",
-                    bed_file
-                ]
-            )
+            command.extend(["--by", bed_file])
 
         return command
 

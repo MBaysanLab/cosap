@@ -9,19 +9,20 @@ from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
 @dataclass
 class Trimmer(_IPipelineStep, _PipelineStep):
-    reads: List[_PipelineStep]
+    input_step: List[_PipelineStep]
     name: str = None
     key: str = PipelineKeys.TRIM
+    next_step: _PipelineStep = None
 
     def __post_init__(self):
         self.key = PipelineKeys.TRIM
         if self.name == None:
-            self.name = "_".join(set(step.name for step in self.reads[::-1]))
+            self.name = "_".join(set(step.name for step in self.input_step[::-1]))
 
     def _create_config(self) -> Dict:
 
         read_filenames = {}
-        for reader in self.reads:
+        for reader in self.input_step:
             read_filenames[reader.read] = reader.get_output()
 
         if set(read_filenames.keys()) != set(
@@ -32,7 +33,7 @@ class Trimmer(_IPipelineStep, _PipelineStep):
             )
 
         output_filenames = {}
-        for reader in self.reads:
+        for reader in self.input_step:
             output_filename = FileFormats.TRIMMING_OUTPUT.format(
                 identification=reader.name, pair=reader.read
             )
@@ -41,7 +42,7 @@ class Trimmer(_IPipelineStep, _PipelineStep):
             )
 
         report_filename = FileFormats.TRIMMING_REPORT_OUTPUT.format(
-            identification=self.reads[0].name
+            identification=self.input_step[0].name
         )
         config = {
             self.name: {

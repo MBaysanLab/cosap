@@ -12,11 +12,14 @@ class Elprep(_IPipelineStep, _PipelineStep):
     input_step: _PipelineStep
     name: str = None
     key: str = PipelineKeys.ELPREP_PROCESS
+    next_step: _PipelineStep = None
 
     def __post_init__(self):
         self.key = PipelineKeys.ELPREP_PROCESS
         if self.name is None:
             self.name = self.input_step.name
+
+        self.input_step.next_step = self
 
     def _create_config(self) -> Dict:
         output_filename = FileFormats.ELPREP_CALIBRATION_OUTPUT.format(

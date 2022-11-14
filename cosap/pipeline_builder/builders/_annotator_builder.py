@@ -13,10 +13,13 @@ class Annotator(_IPipelineStep, _PipelineStep):
     library: str
     name: str = None
     key: str = PipelineKeys.ANNOTATION
+    next_step: _PipelineStep = None
 
     def __post_init__(self):
         if self.name is None:
             self.name = f"{self.input_step.name}_{self.library}"
+
+        self.input_step.next_step = self
 
     def _create_config(self) -> Dict:
         output_filename = FileFormats.ANNOTATING_OUTPUT.format(identification=self.name)

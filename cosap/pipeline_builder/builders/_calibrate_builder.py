@@ -12,11 +12,14 @@ class Recalibrator(_IPipelineStep, _PipelineStep):
     input_step: _PipelineStep
     name: str = None
     key: str = PipelineKeys.CALIBRATE
+    next_step: _PipelineStep = None
 
     def __post_init__(self):
         self.key = PipelineKeys.CALIBRATE
         if self.name is None:
             self.name = self.input_step.name
+
+        self.input_step.next_step = self
 
     def _create_config(self) -> Dict:
         filename = self.input_step.get_output()

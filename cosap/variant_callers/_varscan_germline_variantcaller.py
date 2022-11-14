@@ -48,5 +48,7 @@ class VarScanGermlineVariantCaller(_Callable, _VariantCaller):
         varscan = check_output(varscan_germline, stdin=samtools.stdout)
         samtools.wait()
 
-        with open(caller_config[VariantCallingKeys.SNP_OUTPUT], "wb+") as vcf_file:
+        with open(
+            caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT], "wb+"
+        ) as vcf_file:
             vcf_file.write(varscan)

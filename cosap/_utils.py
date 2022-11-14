@@ -1,8 +1,8 @@
 import os
+import re
 from subprocess import run
 from typing import List
 
-import re
 import pandas as pd
 
 
@@ -10,7 +10,8 @@ def join_paths(path: str, *paths) -> str:
     """Joins and normalizes paths according to os standards"""
     return os.path.normpath(os.path.join(path, *paths))
 
-#Adapted from MultiQC https://github.com/ewels/MultiQC
+
+# Adapted from MultiQC https://github.com/ewels/MultiQC
 def parse_qualimap_genome_results(path: str) -> dict:
     """
     Parse qualimap genome_results.txt and return metrics as dict.
@@ -42,15 +43,16 @@ def parse_qualimap_genome_results(path: str) -> dict:
                     d[k] = r_search.group(1)
             else:
                 d[k] = r_search.group(1)
-    
+
     results_dict["total_reads"] = d["total_reads"]
     results_dict["mapped_reads"] = d["mapped_reads"]
     d["percentage_aligned"] = (d["mapped_reads"] / d["total_reads"]) * 100
     results_dict["percentage_aligned"] = d["percentage_aligned"]
     results_dict["general_error_rate"] = d["general_error_rate"]
     results_dict["mean_coverage"] = d["mean_coverage"]
-    
+
     return results_dict
+
 
 def parse_qualimap_coverage_histogram(path) -> dict:
     """
@@ -80,29 +82,37 @@ def parse_qualimap_coverage_histogram(path) -> dict:
         if cum_counts >= num_counts / 2:
             median_coverage = thiscov
             break
-            
+
     results_dict["median_coverage"] = median_coverage
 
     results_dict["hist"] = d
     return results_dict
 
-def read_vcf_into_df(path:str) -> pd.DataFrame:
+
+def read_vcf_into_df(path: str) -> pd.DataFrame:
     import io
 
-    with open(path, 'r') as f:
-        lines = [l for l in f if not l.startswith('##')]
+    with open(path, "r") as f:
+        lines = [l for l in f if not l.startswith("##")]
     return pd.read_csv(
-        io.StringIO(''.join(lines)),
-        dtype={'#CHROM': str, 'POS': int, 'ID': str, 'REF': str, 'ALT': str,
-               'QUAL': str, 'FILTER': str, 'INFO': str},
-        sep='\t'
-    ).rename(columns={'#Chr': 'Chr', "Ref.Gene":"Gene", "Func.refGene":"Function"})
+        io.StringIO("".join(lines)),
+        dtype={
+            "#CHROM": str,
+            "POS": int,
+            "ID": str,
+            "REF": str,
+            "ALT": str,
+            "QUAL": str,
+            "FILTER": str,
+            "INFO": str,
+        },
+        sep="\t",
+    ).rename(columns={"#Chr": "Chr", "Ref.Gene": "Gene", "Func.refGene": "Function"})
 
 
-def convert_vcf_to_json(path:str) -> list:
+def convert_vcf_to_json(path: str) -> list:
     """
     Returns list of variants as json objects.
     """
     vcf_df = read_vcf_into_df(path)
     return list(vcf_df.apply(lambda x: x.to_json(), axis=1))
-

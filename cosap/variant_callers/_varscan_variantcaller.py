@@ -36,7 +36,7 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
         cls, caller_config=Dict, library_paths=LibraryPaths
     ) -> List:
 
-        snp_output_name = caller_config[VariantCallingKeys.SNP_OUTPUT]
+        snp_output_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
         indel_output_name = caller_config[VariantCallingKeys.INDEL_OUTPUT]
 
         command = [

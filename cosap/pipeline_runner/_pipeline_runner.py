@@ -8,13 +8,8 @@ from .._config import AppConfig
 from .._pipeline_config import MappingKeys, PipelineKeys, VariantCallingKeys
 from .._utils import join_paths
 from ..mappers import MapperFactory
-from ..preprocessors import (
-    BamIndexer,
-    BamMerger,
-    BaseRecalibrator,
-    MarkDuplicate,
-    SamtoolsSorter,
-)
+from ..preprocessors import (BamIndexer, BamMerger, BaseRecalibrator,
+                             MarkDuplicate, SamtoolsSorter)
 from ..variant_callers import VariantCallerFactory
 from ._snakemake_runner import SnakemakeRunner
 
@@ -62,11 +57,16 @@ class PipelineRunner:
 
     def run_pipeline(self, pipeline_config: Dict, runner: str = "snakemake"):
         workdir = pipeline_config[PipelineKeys.WORKDIR]
-        config_yaml_path = join_paths(workdir, f"{pipeline_config[PipelineKeys.CREATION_DATE]}_config.yaml")
+        config_yaml_path = join_paths(
+            workdir, f"{pipeline_config[PipelineKeys.CREATION_DATE]}_config.yaml"
+        )
         self._write_config_to_yaml(config_yaml_path, pipeline_config)
 
         if runner.lower() == "snakemake":
-            snakemake_runner = SnakemakeRunner(pipeline_config=config_yaml_path)
+            snakemake_runner = SnakemakeRunner(
+                pipeline_config=config_yaml_path,
+                workdir=pipeline_config[PipelineKeys.WORKDIR],
+            )
             snakemake_runner.run_snakemake_pipeline()
 
         else:

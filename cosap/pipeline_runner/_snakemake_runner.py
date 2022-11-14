@@ -11,8 +11,9 @@ from .._utils import join_paths
 
 
 class SnakemakeRunner:
-    def __init__(self, pipeline_config):
+    def __init__(self, pipeline_config, workdir):
         self.pipeline_config = pipeline_config
+        self.workdir = workdir
 
     def _create_unlock_dir_command(self) -> list:
         command = [

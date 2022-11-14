@@ -52,12 +52,7 @@ class BWAMapper(_Mapper, _Mappable):
         ]
 
         if MappingKeys.READ_GROUP in mapper_config[MappingKeys.PARAMS].keys():
-            command.extend(
-                [
-                    "-R",
-                    read_group
-                ]
-            )
+            command.extend(["-R", read_group])
         return command
 
     @classmethod

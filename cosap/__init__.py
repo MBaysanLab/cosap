@@ -4,10 +4,11 @@ from ._formats import FileFormats
 from ._library_paths import LibraryPaths
 from ._version import version
 from .annotators import *
+from .default_pipelines import *
 from .mappers import *
 from .parsers import *
 from .pipeline_builder import *
 from .pipeline_runner import *
 from .preprocessors import *
+from .quality_controllers import *
 from .variant_callers import *
-from .default_pipelines import *

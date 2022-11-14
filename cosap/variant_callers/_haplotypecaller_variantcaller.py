@@ -4,15 +4,13 @@ from typing import Dict, List
 
 from .._library_paths import LibraryPaths
 from .._pipeline_config import VariantCallingKeys
-from ._variantcallers import _Callable, _VariantCaller
 from ..scatter_gather import ScatterGather
+from ._variantcallers import _Callable, _VariantCaller
 
 
 class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
     @classmethod
-    def _create_run_command(
-        cls, caller_config: Dict
-    ) -> List:
+    def _create_run_command(cls, caller_config: Dict) -> List:
 
         library_paths = LibraryPaths()
         germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
@@ -30,7 +28,7 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
             "-O",
             output_name,
             "-ERC",
-            "GVCF"
+            "GVCF",
         ]
         return command
 
@@ -40,7 +38,7 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
     ) -> List:
 
         input_name = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
-        output_name = caller_config[VariantCallingKeys.FILTERED_VARIANTS_OUTPUT]
+        output_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
         input_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
 
         command = [
@@ -65,8 +63,8 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> List:
 
-        input_name = caller_config[VariantCallingKeys.FILTERED_VARIANTS_OUTPUT]
-        output_name = caller_config[VariantCallingKeys.FILTERED_VARIANTS_OUTPUT]
+        input_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
+        output_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
 
         command = [
             "gatk",
@@ -92,7 +90,7 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> List:
 
-        input_name = caller_config[VariantCallingKeys.FILTERED_VARIANTS_OUTPUT]
+        input_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
         output_name = caller_config[VariantCallingKeys.SNP_OUTPUT]
 
         command = [
@@ -115,7 +113,7 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> List:
 
-        input_name = caller_config[VariantCallingKeys.FILTERED_VARIANTS_OUTPUT]
+        input_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
         output_name = caller_config[VariantCallingKeys.INDEL_OUTPUT]
 
         command = [
@@ -138,7 +136,7 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> List:
 
-        input_name = caller_config[VariantCallingKeys.FILTERED_VARIANTS_OUTPUT]
+        input_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
         output_name = caller_config[VariantCallingKeys.OTHER_VARIANTS_OUTPUT]
 
         command = [

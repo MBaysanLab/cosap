@@ -6,6 +6,7 @@ from cosap._utils import join_paths
 @dataclass
 class FileFormats:
     TRIMMING_OUTPUT: str = r"trimmed_{identification}_{pair}.fastq.gz"
+    TRIMMING_REPORT_OUTPUT: str = r"fastq_{identification}.json"
     MAPPING_OUTPUT: str = r"unprocessed_{identification}.bam"
     SORTING_OUTPUT: str = r"sorted_{identification}.bam"
     INDEXING_OUTPUT: str = r"{prefix}_{identification}.bai"
@@ -15,21 +16,17 @@ class FileFormats:
     CALIBRATION_TABLE: str = r"calibration_table_{identification}.table"
     CALIBRATED_INDEXING_OUTPUT: str = r"calibrated_indexed_{identification}.bam"
     ELPREP_CALIBRATION_OUTPUT: str = r"elprep_calibrated_{identification}.bam"
-    GATK_UNFILTERED_OUTPUT: str = r"all_{identification}.vcf"
-    GATK_FILTERED_OUTPUT: str = r"all_w_filters_{identification}.vcf"
-    GATK_SNP_OUTPUT: str = r"snp_{identification}.vcf"
-    GATK_INDEL_OUTPUT: str = r"indel_{identification}.vcf"
-    GATK_OTHER_VARIANTS_OUTPUT: str = r"other_variants_{identification}.vcf"
-    GATK_GVCF_OUTPUT: str = r"{identification}.g.vcf"
+    ALL_VARIANTS_OUTPUT: str = r"all_{identification}.vcf"
+    GATK_PREFILTER_OUTPUT: str = r"all_w_filters_{identification}.vcf"
+    SNP_OUTPUT: str = r"snp_{identification}.vcf"
+    INDEL_OUTPUT: str = r"indel_{identification}.vcf"
+    OTHER_VARIANTS_OUTPUT: str = r"other_variants_{identification}.vcf"
+    GVCF_OUTPUT: str = r"{identification}.g.vcf"
     ANNOTATING_OUTPUT: str = r"annotated_{identification}.vcf"
     ANNOVAR_OUTPUT: str = r"annotated_{identification}.avinput"
     QUALIMAP_PDF_OUTPUT: str = r"qualimap_{identification}.pdf"
     MOSDEPTH_OUTPUT: str = r"{identification}.mosdepth.summary.txt"
 
-
-@dataclass
-class FolderFormats:
-    QUALIMAP_OUTPUT: str = r"qualimap_{identification}"
 
 @dataclass
 class OutputFolders:
@@ -47,8 +44,8 @@ class OutputFolders:
 
 @dataclass
 class FolderedOutputs:
-    GATK_SNP_OUTPUT: str = join_paths(
-        OutputFolders.VARIANT_CALLING, "{library}", FileFormats.GATK_SNP_OUTPUT
+    VARIANT_CALLING_OUTPUT: str = join_paths(
+        OutputFolders.VARIANT_CALLING, "{library}", FileFormats.ALL_VARIANTS_OUTPUT
     )
     MAPPING_OUTPUT: str = join_paths(
         OutputFolders.MAPPING, "{library}", FileFormats.MAPPING_OUTPUT
@@ -68,4 +65,6 @@ class FolderedOutputs:
     ANNOTATING_OUTPUT: str = join_paths(
         OutputFolders.ANNOTATION, "{library}", FileFormats.ANNOTATING_OUTPUT
     )
-    
+    BAMQC_OUTPUT: str = join_paths(
+        OutputFolders.BAMQC, "{library}", FileFormats.QUALIMAP_PDF_OUTPUT
+    )

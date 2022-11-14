@@ -48,7 +48,7 @@ class StrelkaVariantCaller(_Callable, _VariantCaller):
         snvs = "StrelkaSomaticWorkflow/results/variants/somatic.snvs.vcf.gz"
         indels = "StrelkaSomaticWorkflow/results/variants/somatic.indels.vcf.gz"
 
-        snp_output_filename = caller_config[VariantCallingKeys.SNP_OUTPUT]
+        snp_output_filename = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
         indel_output_filename = caller_config[VariantCallingKeys.INDEL_OUTPUT]
 
         with gzip.open(snvs, "rb") as snv_in:

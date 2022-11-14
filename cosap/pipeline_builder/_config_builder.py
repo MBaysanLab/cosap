@@ -47,14 +47,12 @@ class Pipeline:
         if workdir:
             pipeline_config[PipelineKeys.WORKDIR] = workdir
 
-        # Final output is the outputs of latest added step
-        step_key = self._pipeline_steps[-1].key
         for step in self._pipeline_steps:
-            step_config = step.get_config()
+            if step.next_step is None:
+                pipeline_config[PipelineKeys.FINAL_OUTPUT].append(step.get_output())
 
+            step_config = step.get_config()
             for key, values in step_config.items():
-                if key == step_key:
-                    pipeline_config[PipelineKeys.FINAL_OUTPUT].append(step.get_output())
                 for k, v in values.items():
                     pipeline_config[key][k] = v
 

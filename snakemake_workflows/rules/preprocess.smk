@@ -1,6 +1,8 @@
 import os
 from cosap.preprocessors._preprocessor_factory import PreprocessorFactory
-from cosap.quality_controllers._quality_controller_factory import QualityContollerFactory
+from cosap.quality_controllers._quality_controller_factory import (
+    QualityContollerFactory,
+)
 from cosap._formats import FileFormats, FolderFormats, FolderedOutputs
 from cosap._pipeline_config import (
     MDUPKeys,
@@ -10,7 +12,7 @@ from cosap._pipeline_config import (
     ElprepKeys,
     QualityControlKeys,
     IndexingKeys,
-    SortingKeys
+    SortingKeys,
 )
 from collections import defaultdict
 
@@ -72,20 +74,24 @@ rule elprep_cal:
             config[PipelineKeys.ELPREP_PROCESS][wildcards.identification]
         )
 
+
 rule quality_control:
     input:
-        bam=lambda wildcards: config[PipelineKeys.QUALITY_CONTROL][wildcards.identification][
-            QualityControlKeys.INPUT
-        ],
+        bam=lambda wildcards: config[PipelineKeys.QUALITY_CONTROL][
+            wildcards.identification
+        ][QualityControlKeys.INPUT],
     output:
-        calibrated_bam=f"{{folder_name}}/{FileFormats.QUALIMAP_PDF_OUTPUT}"
+        qc=FolderedOutputs.BAMQC_OUTPUT,
     run:
         quality_controller = QualityContollerFactory.create(
-            quality_controller_type=config[PipelineKeys.QUALITY_CONTROL][wildcards.identification][QualityControlKeys.LIBRARY]
-            )
+            quality_controller_type=config[PipelineKeys.QUALITY_CONTROL][
+                wildcards.identification
+            ][QualityControlKeys.LIBRARY]
+        )
         quality_controller.run_qualitycontroller(
             config[PipelineKeys.QUALITY_CONTROL][wildcards.identification]
         )
+
 
 rule bam_sorting:
     input:
@@ -93,12 +99,11 @@ rule bam_sorting:
             SortingKeys.INPUT
         ],
     output:
-        sorted_bam=FileFormats.SORTING_OUTPUT
+        sorted_bam=FileFormats.SORTING_OUTPUT,
     run:
         sorter = PreprocessorFactory.create(preprocessor_type="sorter")
-        sorter.run_preprocessor(
-            config[PipelineKeys.SORTING][wildcards.identification]
-        )
+        sorter.run_preprocessor(config[PipelineKeys.SORTING][wildcards.identification])
+
 
 rule bam_indexing:
     input:
@@ -106,9 +111,7 @@ rule bam_indexing:
             IndexingKeys.INPUT
         ],
     output:
-        index=FileFormats.INDEXING_OUTPUT
+        index=FileFormats.INDEXING_OUTPUT,
     run:
         indexer = PreprocessorFactory.create(preprocessor_type="indexer")
-        indexer.run_preprocessor(
-            config[PipelineKeys.INDEX][wildcards.identification]
-        )
+        indexer.run_preprocessor(config[PipelineKeys.INDEX][wildcards.identification])

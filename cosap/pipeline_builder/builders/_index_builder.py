@@ -12,10 +12,13 @@ class Indexer(_IPipelineStep, _PipelineStep):
     input_step: _PipelineStep
     name: str = None
     key: str = PipelineKeys.INDEX
+    next_step: _PipelineStep = None
 
     def __post_init__(self):
         if self.name is None:
             self.name = self.input_step.name
+
+        self.input_step.next_step = self
 
     def _get_file_prefix(self, filename):
         return filename.split("_")[0]

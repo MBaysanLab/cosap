@@ -7,7 +7,7 @@ from ._mapper_builder import Mapper
 from ._mdup_builder import MDUP
 from ._merge_builder import Merger
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
+from ._qualitycontroller_builder import QualityController
 from ._sorter_builder import Sorter
 from ._trimmer_builder import Trimmer
 from ._variantcaller_builder import VariantCaller
-from ._qualitycontroller_builder import QualityContoller

@@ -4,12 +4,8 @@ from subprocess import PIPE, STDOUT, Popen
 from typing import Dict
 
 from ..._formats import FileFormats, OutputFolders
-from ..._pipeline_config import (
-    DefaultValues,
-    MappingKeys,
-    PipelineKeys,
-    VariantCallingKeys,
-)
+from ..._pipeline_config import (DefaultValues, MappingKeys, PipelineKeys,
+                                 VariantCallingKeys)
 from ..._utils import join_paths
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
@@ -25,6 +21,7 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
     name: str = None
     gvcf: bool = False
     key: str = PipelineKeys.VARIANT_CALLING
+    next_step: _PipelineStep = None
 
     def __post_init__(self):
         if self.name is None:
@@ -43,6 +40,11 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
                 VariantCallingKeys.GERMLINE_SAMPLE_NAME
             ] = self._get_sample_name_from_bam(self.germline.get_output())
 
+        if self.germline:
+            self.germline.next_step = self
+        if self.tumor:
+            self.tumor.next_step = self
+
     def _get_sample_name_from_bam(self, bam) -> str:
         cmd = f"samtools view -H {bam} | grep '^@RG' | sed 's/.*SM:\([^\t]*\).*/\1/g' | uniq"
         ps = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT)
@@ -52,28 +54,24 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
     def get_output(self):
         config = self.get_config()
         if self.gvcf:
-            return config[self.key][self.name][VariantCallingKeys.GVCF_OUTPUT] 
-        return config[self.key][self.name][VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
+            return config[self.key][self.name][VariantCallingKeys.GVCF_OUTPUT]
+        return config[self.key][self.name][VariantCallingKeys.ALL_VARIANTS_OUTPUT]
 
     def get_config(self) -> Dict:
-        unfiltered_variants_output_filename = FileFormats.GATK_UNFILTERED_OUTPUT.format(
+        unfiltered_variants_output_filename = FileFormats.GATK_PREFILTER_OUTPUT.format(
             identification=self.name
         )
-        filtered_variants_output_filename = FileFormats.GATK_FILTERED_OUTPUT.format(
+        all_variants_output_filename = FileFormats.ALL_VARIANTS_OUTPUT.format(
             identification=self.name
         )
-        snp_output_filename = FileFormats.GATK_SNP_OUTPUT.format(
+        snp_output_filename = FileFormats.SNP_OUTPUT.format(identification=self.name)
+        indel_output_filename = FileFormats.INDEL_OUTPUT.format(
             identification=self.name
         )
-        indel_output_filename = FileFormats.GATK_INDEL_OUTPUT.format(
+        other_variants_output_filename = FileFormats.OTHER_VARIANTS_OUTPUT.format(
             identification=self.name
         )
-        other_variants_output_filename = FileFormats.GATK_OTHER_VARIANTS_OUTPUT.format(
-            identification=self.name
-        )
-        gvcf_output_filename = FileFormats.GATK_GVCF_OUTPUT.format(
-            identification=self.name
-        )
+        gvcf_output_filename = FileFormats.GVCF_OUTPUT.format(identification=self.name)
 
         vc_config = {
             self.name: {
@@ -84,10 +82,10 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
                     self.library,
                     unfiltered_variants_output_filename,
                 ),
-                VariantCallingKeys.FILTERED_VARIANTS_OUTPUT: join_paths(
+                VariantCallingKeys.ALL_VARIANTS_OUTPUT: join_paths(
                     OutputFolders.VARIANT_CALLING,
                     self.library,
-                    filtered_variants_output_filename,
+                    all_variants_output_filename,
                 ),
                 VariantCallingKeys.SNP_OUTPUT: join_paths(
                     OutputFolders.VARIANT_CALLING, self.library, snp_output_filename
