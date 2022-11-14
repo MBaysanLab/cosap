@@ -55,25 +55,6 @@ class BWA2Mapper(_Mapper, _Mappable):
         return command
 
     @classmethod
-    def _create_samtools_command(
-        cls,
-        mapper_config: Dict,
-        library_paths: LibraryPaths,
-        app_config: AppConfig,
-    ) -> List:
-
-        command = [
-            "samtools",
-            "sort",
-            "-@",
-            str(app_config.THREADS),
-            "-o",
-            mapper_config[MappingKeys.OUTPUT],
-            "-",
-        ]
-        return command
-
-    @classmethod
     def map(cls, mapper_config: Dict):
         library_paths = LibraryPaths()
         app_config = AppConfig()
