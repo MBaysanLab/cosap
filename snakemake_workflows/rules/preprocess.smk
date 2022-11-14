@@ -3,7 +3,7 @@ from cosap.preprocessors._preprocessor_factory import PreprocessorFactory
 from cosap.quality_controllers._quality_controller_factory import (
     QualityContollerFactory,
 )
-from cosap._formats import FileFormats, FolderFormats, FolderedOutputs
+from cosap._formats import FileFormats, FolderedOutputs
 from cosap._pipeline_config import (
     MDUPKeys,
     BaseRecalibratorKeys,

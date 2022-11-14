@@ -1,4 +1,4 @@
-import os
+import sys
 from posixpath import commonpath
 from subprocess import PIPE, STDOUT, Popen, check_output, run
 from typing import Dict, List
@@ -53,26 +53,6 @@ class BWAMapper(_Mapper, _Mappable):
 
         if MappingKeys.READ_GROUP in mapper_config[MappingKeys.PARAMS].keys():
             command.extend(["-R", read_group])
-        return command
-
-    @classmethod
-    def _create_samtools_command(
-        cls,
-        mapper_config: Dict,
-        read_group: str,
-        library_paths: LibraryPaths,
-        app_config: AppConfig,
-    ) -> List:
-
-        command = [
-            "samtools",
-            "sort",
-            "-@",
-            str(app_config.THREADS),
-            "-o",
-            mapper_config[MappingKeys.OUTPUT],
-            "-",
-        ]
         return command
 
     @classmethod
