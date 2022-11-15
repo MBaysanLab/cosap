@@ -60,7 +60,7 @@ Takes the fastq file handler as input.
 ```python
 from cosap import Trimmer
 
-trimmer_germline = Trimmer(reads=germline_fastqs)
+trimmer_germline = Trimmer(input_step=germline_fastqs)
 ```
 Here the germline_fastqs is the list of fastq file handler.
 
@@ -88,13 +88,13 @@ germline_params = {
 
 mapper_germline_bwa = Mapper(
     library="bwa",
-    reads=trimmer_germline,
+    input_step=trimmer_germline,
     params=germline_params
 )
 
 mapper_germline_bowtie = Mapper(
     library="bowtie",
-    reads=trimmer_germline,
+    input_step=trimmer_germline,
     params=germline_params
 )
 
