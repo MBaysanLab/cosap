@@ -5,7 +5,7 @@ from .._config import AppConfig
 
 class _Mapper(ABC):
     @classmethod
-    def _samtools_sort_command(app_config: AppConfig, output_path: str):
+    def _samtools_sort_command(cls, app_config: AppConfig, output_path: str):
         command = [
             "samtools",
             "sort",
@@ -17,7 +17,8 @@ class _Mapper(ABC):
         ]
         return command
 
-    def _samtools_index_command(app_config: AppConfig, input_path: str):
+    @classmethod
+    def _samtools_index_command(cls, app_config: AppConfig, input_path: str):
         command = [
             "samtools",
             "index",
@@ -25,6 +26,7 @@ class _Mapper(ABC):
             "-@",
             str(app_config.THREADS),
         ]
+        return command
 
     @abstractmethod
     def map(self):
