@@ -70,7 +70,7 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
             "varscan",
             "processSomatic",
             vcf,
-            "--min-tumor-freq 0.10",
+            "--min-tumor-freq 0.1",
             "--max-normal-freq 0.05",
             "--p-value 0.07",
         ]
@@ -92,7 +92,7 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
         samtools.wait()
 
         unfiltered_vcfs = [
-            caller_config[VariantCallingKeys.SNP_OUTPUT],
+            caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT],
             caller_config[VariantCallingKeys.INDEL_OUTPUT],
         ]
 

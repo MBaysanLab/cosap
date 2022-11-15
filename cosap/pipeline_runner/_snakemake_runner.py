@@ -35,6 +35,7 @@ class SnakemakeRunner:
             self.pipeline_config,
             "--dag",
             "-n",
+            "--rerun-incomplete"
         ]
         return command
 
@@ -51,6 +52,7 @@ class SnakemakeRunner:
             self.pipeline_config,
             "-r",
             "-n",
+            "--rerun-incomplete"
         ]
         return command
 
@@ -66,6 +68,7 @@ class SnakemakeRunner:
             self.pipeline_config,
             "-r",
             "--use-conda",
+            "--rerun-incomplete"
         ]
         return command
 
