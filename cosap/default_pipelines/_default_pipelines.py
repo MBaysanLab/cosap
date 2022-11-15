@@ -17,6 +17,8 @@ class DNAPipeline:
         variant_callers: List[str] = [""],
         normal_sample_name="normal",
         tumor_sample_name="tumor",
+        bam_qc=None,
+        annotation=None
     ):
         self.analysis_type = analysis_type
         self.normal_sample = normal_sample
@@ -26,6 +28,8 @@ class DNAPipeline:
         self.bed_file = bed_file
         self.mappers = mappers
         self.variant_callers = variant_callers
+        self.bam_qc = bam_qc
+        self.annotation = annotation
         self.workdir = workdir
         self.pipeline = Pipeline()
         self.config = None
@@ -124,16 +128,18 @@ class DNAPipeline:
                     tumor=bqsr_tumor,
                     params={"germline_sample_name": self.normal_sample_name},
                 )
-
-                annotator = Annotator(input_step=variant_caller, library="cancervar")
-
                 self.pipeline.add(variant_caller)
-                self.pipeline.add(annotator)
 
-                quality_controller_tumor = QualityController(
-                    library="qualimap", input_step=bqsr_tumor
-                )
-                self.pipeline.add(quality_controller_tumor)
+                if self.annotation is not None:
+                    annotator = Annotator(input_step=variant_caller, library=self.annotation)
+                    self.pipeline.add(annotator)
+
+
+                if self.bam_qc is not None:
+                    quality_controller_tumor = QualityController(
+                        library=self.bam_qc, input_step=bqsr_tumor
+                    )
+                    self.pipeline.add(quality_controller_tumor)
 
     def _create_germline_pipeline(self):
         possible_pipelines = list(product(self.mappers, self.variant_callers))
@@ -179,14 +185,17 @@ class DNAPipeline:
                 tumor=None,
                 params={"germline_sample_name": self.normal_sample_name},
             )
-
-            annotator = Annotator(input_step=variant_caller, library="intervar")
-
             self.pipeline.add(variant_caller)
-            self.pipeline.add(annotator)
 
-            quality_controller = QualityController(input_step=quality_controller)
-            self.pipeline.add(quality_controller)
+            if self.annotation is not None:
+                annotator = Annotator(input_step=variant_caller, library=self.annotation)
+                self.pipeline.add(annotator)
+
+            if self.bam_qc is not None:
+                quality_controller_tumor = QualityController(
+                    library=self.bam_qc, input_step=bqsr_normal
+                )
+                self.pipeline.add(quality_controller_tumor)
 
     def _build_config(self):
         self.config = self.pipeline.build(workdir=self.workdir)
