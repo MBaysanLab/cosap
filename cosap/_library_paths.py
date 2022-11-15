@@ -61,7 +61,7 @@ class _LibraryPaths38(_LibraryPaths):
     REF_BED: str = os.path.join(AppConfig.LIBRARY_PATH, "hg38_intervals.bed")
     DBSNP: str = os.path.join(
         AppConfig.LIBRARY_PATH,
-        "Homo_sapiens_assembly38.dbsnp138.vcf",
+        "Homo_sapiens_assembly38.dbsnp138.vcf.gz",
     )
     DBSNP_ELSITES = os.path.join(
         AppConfig.LIBRARY_PATH,
