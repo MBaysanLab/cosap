@@ -1,13 +1,8 @@
 import multiprocessing
-import os
-import sys
 from subprocess import PIPE, Popen, check_output, run
-from typing import Dict, List
 
-import yaml
 
 from .._config import AppConfig
-from .._utils import join_paths
 
 
 class SnakemakeRunner:
