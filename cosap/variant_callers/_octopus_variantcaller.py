@@ -23,9 +23,6 @@ class OctopusVariantCaller(_Callable, _VariantCaller):
         germline_sample_name = caller_config[VariantCallingKeys.PARAMS][
             VariantCallingKeys.GERMLINE_SAMPLE_NAME
         ]
-        tumor_sample_name = caller_config[VariantCallingKeys.PARAMS][
-            VariantCallingKeys.TUMOR_SAMPLE_NAME
-        ]
 
         output_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
 

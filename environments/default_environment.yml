@@ -28,3 +28,6 @@ dependencies:
   - snakefmt
   - snakemake
   - elprep
+  - muse
+  - vardict
+
