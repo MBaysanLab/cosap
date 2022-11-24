@@ -29,5 +29,5 @@ dependencies:
   - snakemake
   - elprep
   - muse
-  - vardict
+  - vardict-java
 

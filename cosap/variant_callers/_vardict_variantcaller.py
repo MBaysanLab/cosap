@@ -24,7 +24,7 @@ class VarDictVariantCaller(_Callable, _VariantCaller):
         command = [
             "VarDict",
             "-G",
-            LibraryPaths.REF_FASTA,
+            library_paths.REF_FASTA,
             "-f 0.05",
             "-N",
             tumor_sample_name,
@@ -35,7 +35,7 @@ class VarDictVariantCaller(_Callable, _VariantCaller):
             "-S 2",
             "-E 3",
             "g 4",
-            LibraryPaths.REF_BED,
+            library_paths.REF_BED,
             "|",
             "testsomatic.R",
         ]
@@ -57,11 +57,12 @@ class VarDictVariantCaller(_Callable, _VariantCaller):
         command = [
             "var2vcf_paired.pl",
             "-N",
-            f"'{tumor_sample_name}|{tumor_sample_name}'",
+            f"'{tumor_sample_name}|{germline_sample_name}'",
             "-f 0.05",
             ">",
             output_name,
         ]
+        return command
 
     @classmethod
     def call_variants(cls, caller_config: Dict):
