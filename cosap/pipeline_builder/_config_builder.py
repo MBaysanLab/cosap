@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from dataclasses import make_dataclass
 from datetime import datetime
 from typing import Dict, List
@@ -41,7 +42,7 @@ class Pipeline:
 
         return self
 
-    def build(self, workdir: str = None) -> Dict:
+    def build(self, workdir: str = os.getcwd()) -> Dict:
         pipeline_config = self._create_config()
 
         if workdir:

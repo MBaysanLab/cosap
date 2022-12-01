@@ -15,5 +15,9 @@ setup(
         "cosap/preprocessors",
         "cosap/variant_callers",
         "cosap/pipeline_builder/builders",
+        "cosap/scatter_gather",
+        "cosap/annotators",
+        "cosap/default_pipelines",
+        "cosap/quality_controllers",
     ],
 )

@@ -30,7 +30,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         command = [
             "gatk",
             "--java-options",
-            "-Xmx16G",
+            "-Xmx8G",
             "Mutect2",
             "-R",
             library_paths.REF_FASTA,

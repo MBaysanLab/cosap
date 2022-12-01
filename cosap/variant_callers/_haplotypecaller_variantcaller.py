@@ -19,7 +19,7 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
         command = [
             "gatk",
             "--java-options",
-            "-Xmx16G",
+            "-Xmx8G",
             "HaplotypeCaller",
             "-R",
             library_paths.REF_FASTA,

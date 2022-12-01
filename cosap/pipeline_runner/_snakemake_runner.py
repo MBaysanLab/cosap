@@ -1,7 +1,6 @@
 import multiprocessing
 from subprocess import PIPE, Popen, check_output, run
 
-
 from .._config import AppConfig
 
 
@@ -30,7 +29,7 @@ class SnakemakeRunner:
             self.pipeline_config,
             "--dag",
             "-n",
-            "--rerun-incomplete"
+            "--rerun-incomplete",
         ]
         return command
 
@@ -47,7 +46,7 @@ class SnakemakeRunner:
             self.pipeline_config,
             "-r",
             "-n",
-            "--rerun-incomplete"
+            "--rerun-incomplete",
         ]
         return command
 
@@ -63,7 +62,7 @@ class SnakemakeRunner:
             self.pipeline_config,
             "-r",
             "--use-conda",
-            "--rerun-incomplete"
+            "--rerun-incomplete",
         ]
         return command
 

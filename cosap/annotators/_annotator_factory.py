@@ -3,11 +3,13 @@ from ._annovar_annotator import AnnovarAnnotator
 from ._ensembl_vep_annotator import VepAnnotator
 from ._intervar_annotator import IntervarAnnotator
 from ._pharmcat_annotator import PharmcatAnnotator
+from ._cancervar_annotatator import CancervarAnnotator
 
 
 class AnnotatorFactory:
     ANNOVAR_ANNOTATOR = "annovar"
     INTERVAR_ANNOTATOR = "intervar"
+    CANCERVAR_ANNOTATOR = "cancervar"
     VEP_ANNOTATOR = "vep"
     PHARMGKB_ANNOTATOR = "pharmgkb"
 
@@ -23,6 +25,8 @@ class AnnotatorFactory:
             annotator = VepAnnotator
         elif annotator_tpye == cls.PHARMGKB_ANNOTATOR:
             annotator = PharmcatAnnotator
+        elif annotator_tpye == cls.CANCERVAR_ANNOTATOR:
+            annotator = CancervarAnnotator
         else:
             raise Exception(f"Unknown annotator type: {annotator_tpye}")
 

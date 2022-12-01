@@ -25,9 +25,10 @@ class _LibraryMeta(type):
 @dataclass
 class _LibraryPaths:
     ENSEMBL_VEP: str = os.path.join(AppConfig.LIBRARY_PATH, "ensembl-vep", "vep")
-    ANNOVAR: str = os.path.join(AppConfig.LIBRARY_PATH, "Annovar")
-    INTERVAR: str = os.path.join(AppConfig.LIBRARY_PATH, "InterVar")
-    PHARMCAT_DIR: str = os.path.join(AppConfig.LIBRARY_PATH, "Pharmcat")
+    ANNOVAR: str = os.path.join(AppConfig.LIBRARY_PATH, "annovar")
+    INTERVAR: str = os.path.join(AppConfig.LIBRARY_PATH, "intervar")
+    CANCERVAR: str = os.path.join(AppConfig.LIBRARY_PATH, "cancervar")
+    PHARMCAT_DIR: str = os.path.join(AppConfig.LIBRARY_PATH, "pharmcat")
     PHARMCAT_PREPROCESSOR: str = os.path.join(
         PHARMCAT_DIR, "PharmCAT_VCF_Preprocess.py"
     )
@@ -79,8 +80,6 @@ class _LibraryPaths38(_LibraryPaths):
         AppConfig.LIBRARY_PATH,
         "cosmic_hg19_lifted_over.vcf",
     )
-    ANNOVAR: str = os.path.join(AppConfig.LIBRARY_PATH, "annovar")
-    ANNOVAR_DB: str = os.path.join(AppConfig.LIBRARY_PATH, "annovar", "humandb_38")
     ONE_THOUSAND_G: str = os.path.join(
         AppConfig.LIBRARY_PATH,
         "1000G_phase1.snps.high_confidence.hg38.vcf.gz",
@@ -90,10 +89,10 @@ class _LibraryPaths38(_LibraryPaths):
         "1000G_phase1.snps.high_confidence.hg38.elsites",
     )
     BWA_ASSEMBLY: str = os.path.join(
-        AppConfig.LIBRARY_PATH, "Bwa", "Homo_sapiens_assembly38.fasta"
+        AppConfig.LIBRARY_PATH, "Homo_sapiens_assembly38.fasta"
     )
     BOWTIE2_ASSEMBLY: str = os.path.join(
-        AppConfig.LIBRARY_PATH, "Bowtie", "Homo_sapiens_assembly38"
+        AppConfig.LIBRARY_PATH, "Homo_sapiens_assembly38"
     )
     INTERVALS: str = os.path.join(AppConfig.LIBRARY_PATH, "intervals")
 
@@ -121,8 +120,6 @@ class _LibraryPaths19(_LibraryPaths):
         "hg19_bundle",
         "cosmic_hg19_lifted_over.vcf",
     )
-    ANNOVAR: str = os.path.join(AppConfig.LIBRARY_PATH, "annovar")
-    ANNOVAR_DB: str = os.path.join(AppConfig.LIBRARY_PATH, "annovar", "humandb")
     ONE_THOUSAND_G: str = os.path.join(
         AppConfig.LIBRARY_PATH,
         "ref_genome_indexes",

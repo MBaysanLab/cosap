@@ -18,7 +18,7 @@ class DNAPipeline:
         normal_sample_name="normal",
         tumor_sample_name="tumor",
         bam_qc=None,
-        annotation=None
+        annotation=None,
     ):
         self.analysis_type = analysis_type
         self.normal_sample = normal_sample
@@ -131,9 +131,10 @@ class DNAPipeline:
                 self.pipeline.add(variant_caller)
 
                 if self.annotation is not None:
-                    annotator = Annotator(input_step=variant_caller, library=self.annotation)
+                    annotator = Annotator(
+                        input_step=variant_caller, library=self.annotation
+                    )
                     self.pipeline.add(annotator)
-
 
                 if self.bam_qc is not None:
                     quality_controller_tumor = QualityController(
@@ -188,7 +189,9 @@ class DNAPipeline:
             self.pipeline.add(variant_caller)
 
             if self.annotation is not None:
-                annotator = Annotator(input_step=variant_caller, library=self.annotation)
+                annotator = Annotator(
+                    input_step=variant_caller, library=self.annotation
+                )
                 self.pipeline.add(annotator)
 
             if self.bam_qc is not None:

@@ -1,6 +1,6 @@
 from subprocess import run
 from typing import Dict, List
-
+import os
 from .._config import AppConfig
 from .._library_paths import LibraryPaths
 from .._pipeline_config import AnnotatorKeys
@@ -13,6 +13,7 @@ class AnnovarAnnotator(_Annotatable, _Annotator):
     def create_av_input_command(
         cls, library_paths: LibraryPaths, annotator_config: Dict
     ):
+        avinput_filename = annotator_config[AnnotatorKeys.AVOUTPUT].split(".")[0]
         command = [
             join_paths(library_paths.ANNOVAR, "convert2annovar.pl"),
             "-format",
@@ -20,7 +21,7 @@ class AnnovarAnnotator(_Annotatable, _Annotator):
             "-allsample",
             annotator_config[AnnotatorKeys.INPUT],
             "-outfile",
-            annotator_config[AnnotatorKeys.AVOUTPUT],
+            avinput_filename,
         ]
         return command
 
@@ -29,22 +30,33 @@ class AnnovarAnnotator(_Annotatable, _Annotator):
         cls, library_paths: LibraryPaths, annotator_config: Dict
     ) -> List:
 
-        input_vcf = annotator_config[AnnotatorKeys.AVOUTPUT]
-        output_vcf = annotator_config[AnnotatorKeys.OUTPUT]
+        avinput = annotator_config[AnnotatorKeys.AVOUTPUT]
+        output_filename = annotator_config[AnnotatorKeys.OUTPUT].split(".")[0]
 
         command = [
-            join_paths(library_paths.ANNOVAR, "annotate_variation.pl"),
-            "-geneanno",
-            "-dbtype",
-            "refGene",
-            "-buildver",
-            "hg38",
-            input_vcf,
+            join_paths(library_paths.ANNOVAR, "table_annovar.pl"),
+            avinput,
             join_paths(library_paths.ANNOVAR, "humandb38"),
-            "--outfile",
-            output_vcf,
+            "--buildver",
+            "hg38",
+            "--out",
+            output_filename,
+            "--remove",
+            "--protocol",
+            "refGene,esp6500siv2_all,1000g2015aug_all,avsnp147,dbnsfp42a,"\
+                "clinvar_20210501,gnomad_genome,dbscsnv11,rmsk,ensGene,knownGene",
+            "--operation",
+            "g,f,f,f,f,f,f,f,r,g,g",
+            "--nastring",
+            ".",
         ]
         return command
+
+    @classmethod
+    def _rename_annovar_output(self,annotator_config: Dict):
+        annotation_output = annotator_config[AnnotatorKeys.OUTPUT]
+        output_filename = annotator_config[AnnotatorKeys.OUTPUT].split(".")[0]
+        os.rename(f"{output_filename}.hg38_multianno.txt", annotation_output)
 
     @classmethod
     def annotate(cls, annotator_config: Dict):
@@ -60,3 +72,4 @@ class AnnovarAnnotator(_Annotatable, _Annotator):
         )
         run(create_input_command)
         run(annovar_command)
+        cls._rename_annovar_output(annotator_config=annotator_config)

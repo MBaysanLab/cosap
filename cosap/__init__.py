@@ -11,4 +11,5 @@ from .pipeline_builder import *
 from .pipeline_runner import *
 from .preprocessors import *
 from .quality_controllers import *
+from .scatter_gather import *
 from .variant_callers import *

@@ -6,4 +6,3 @@ channels:
 dependencies:
   - python=2.7.15
   - strelka=2.9.10
-
