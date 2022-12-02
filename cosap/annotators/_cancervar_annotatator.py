@@ -16,7 +16,9 @@ class CancervarAnnotator(_Annotatable, _Annotator):
         input_vcf = annotator_config[AnnotatorKeys.INPUT]
         output_vcf = annotator_config[AnnotatorKeys.OUTPUT]
 
-        annotate_variation = annovar_db = join_paths(library_paths.ANNOVAR, "annotate_variation.pl")
+        annotate_variation = annovar_db = join_paths(
+            library_paths.ANNOVAR, "annotate_variation.pl"
+        )
         annovar_db = join_paths(library_paths.ANNOVAR, "humandb38")
         cancervar_db = join_paths(library_paths.CANCERVAR, "cancervardb")
 
@@ -34,7 +36,7 @@ class CancervarAnnotator(_Annotatable, _Annotator):
             "-d",
             annovar_db,
             "--skip_annovar",
-            f"--annotate_variation={annotate_variation}"
+            f"--annotate_variation={annotate_variation}",
         ]
         return command
 

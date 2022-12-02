@@ -1,9 +1,9 @@
 from ._annotators import _Annotator
 from ._annovar_annotator import AnnovarAnnotator
+from ._cancervar_annotatator import CancervarAnnotator
 from ._ensembl_vep_annotator import VepAnnotator
 from ._intervar_annotator import IntervarAnnotator
 from ._pharmcat_annotator import PharmcatAnnotator
-from ._cancervar_annotatator import CancervarAnnotator
 
 
 class AnnotatorFactory:

@@ -12,7 +12,7 @@ from ._variantcaller_builder import VariantCaller
 class Annotator(_IPipelineStep, _PipelineStep):
     input_step: _PipelineStep
     library: str
-    tumor_sample_name: str = None
+    sample_name: str = None
     name: str = None
     key: str = PipelineKeys.ANNOTATION
     next_step: _PipelineStep = None
@@ -21,11 +21,17 @@ class Annotator(_IPipelineStep, _PipelineStep):
         if self.name is None:
             self.name = f"{self.input_step.name}_{self.library}"
         if self.input_step.__class__ == VariantCaller:
-            self.tumor_sample_name = self.input_step.tumor
-        if self.tumor_sample_name is None:
+            self.sample_name = (
+                self.input_step.tumor
+                if self.input_step.tumor is not None
+                else self.input_step.normal
+            )
+        elif self.input_step.__class__ == Annotator:
+            self.sample_name = self.input_step.sample_name
+        if self.sample_name is None:
             raise Exception(
-                "Tumor sample name cannot be read from input, please specify it by setting"\
-                "tumor_sample_name argument."
+                "Sample name cannot be read from input, please specify it by setting"
+                "sample_name argument."
             )
 
         self.input_step.next_step = self
@@ -43,7 +49,7 @@ class Annotator(_IPipelineStep, _PipelineStep):
     def _create_config(self) -> Dict:
         output_filename = self._create_output_filename()
         av_output_filename = FileFormats.ANNOVAR_OUTPUT.format(
-            identification=self.name, sample=self.tumor_sample_name
+            identification=self.name, sample=self.sample_name
         )
         config = {
             self.name: {

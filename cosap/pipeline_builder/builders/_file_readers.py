@@ -17,7 +17,7 @@ class FastqReader(_IPipelineStep, _PipelineStep):
 
     def __post_init__(self):
         self.read = str(self.read)
-        self.filename = os.path.normpath(self.filename)
+        self.filename = os.path.abspath(os.path.normpath(self.filename))
 
         if self.name == None:
             self.name = self._get_name_from_path(self.filename)
@@ -36,7 +36,7 @@ class BamReader(_IPipelineStep, _PipelineStep):
     name: str = None
 
     def __post_init__(self):
-        self.filename = os.path.normpath(self.filename)
+        self.filename = os.path.abspath(os.path.normpath(self.filename))
 
         if self.name == None:
             self.name = self._get_name_from_path(self.filename)
@@ -55,7 +55,7 @@ class VCFReader(_IPipelineStep, _PipelineStep):
     name: str = None
 
     def __post_init__(self):
-        self.filename = os.path.normpath(self.filename)
+        self.filename = os.path.abspath(os.path.normpath(self.filename))
 
         if self.name == None:
             self.name = self._get_name_from_path(self.filename)

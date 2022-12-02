@@ -1,6 +1,7 @@
+import os
 from subprocess import run
 from typing import Dict, List
-import os
+
 from .._config import AppConfig
 from .._library_paths import LibraryPaths
 from .._pipeline_config import AnnotatorKeys
@@ -43,8 +44,8 @@ class AnnovarAnnotator(_Annotatable, _Annotator):
             output_filename,
             "--remove",
             "--protocol",
-            "refGene,esp6500siv2_all,1000g2015aug_all,avsnp147,dbnsfp42a,"\
-                "clinvar_20210501,gnomad_genome,dbscsnv11,rmsk,ensGene,knownGene",
+            "refGene,esp6500siv2_all,1000g2015aug_all,avsnp147,dbnsfp42a,"
+            "clinvar_20210501,gnomad_genome,dbscsnv11,rmsk,ensGene,knownGene",
             "--operation",
             "g,f,f,f,f,f,f,f,r,g,g",
             "--nastring",
@@ -53,7 +54,7 @@ class AnnovarAnnotator(_Annotatable, _Annotator):
         return command
 
     @classmethod
-    def _rename_annovar_output(self,annotator_config: Dict):
+    def _rename_annovar_output(self, annotator_config: Dict):
         annotation_output = annotator_config[AnnotatorKeys.OUTPUT]
         output_filename = annotator_config[AnnotatorKeys.OUTPUT].split(".")[0]
         os.rename(f"{output_filename}.hg38_multianno.txt", annotation_output)
