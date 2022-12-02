@@ -13,6 +13,9 @@ RUN echo >> $OPT/.profile && \
     echo PATH=$PATH:\$PATH >> $OPT/.profile && \
     echo export PATH >> $OPT/.profile
 
+RUN echo 'alias conda="micromamba"' >> ~/.bashrc
+
+
 RUN mkdir /app
 COPY . /app/.
 
@@ -25,5 +28,5 @@ RUN pip install .
 ENV COSAP /app
 ENV COSAP_LIBRARY_PATH /cosap_data
 
-RUN mkdir /workdir
-WORKDIR /workdir
+ENTRYPOINT ["tail"]
+CMD ["-f","/dev/null"]

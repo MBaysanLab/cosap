@@ -14,7 +14,7 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
     ) -> List:
 
         command = [
-            "picard",
+            "gatk",
             "MarkDuplicatesSpark",
             "--input",
             mdup_config[MDUPKeys.INPUT],
@@ -22,7 +22,8 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
             mdup_config[MDUPKeys.OUTPUT],
             "--metrics-file",
             f"{mdup_config[MDUPKeys.OUTPUT]}_metrics",
-            "--remove-sequencing-duplicates" "--create-output-bam-index",
+            "--remove-sequencing-duplicates",
+            "--create-output-bam-index",
         ]
         return command
 
