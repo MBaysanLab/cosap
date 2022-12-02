@@ -28,5 +28,5 @@ RUN pip install .
 ENV COSAP /app
 ENV COSAP_LIBRARY_PATH /cosap_data
 
-ENTRYPOINT ["tail"]
-CMD ["-f","/dev/null"]
+RUN mkdir /workdir
+WORKDIR /workdir
