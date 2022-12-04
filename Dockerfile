@@ -13,8 +13,6 @@ RUN echo >> $OPT/.profile && \
     echo PATH=$PATH:\$PATH >> $OPT/.profile && \
     echo export PATH >> $OPT/.profile
 
-RUN echo 'alias conda="micromamba"' >> ~/.bashrc
-
 
 RUN mkdir /app
 COPY . /app/.

@@ -26,3 +26,4 @@ vardict-java
 snpeff
 perl-dbi
 perl-lwp-simple
+conda

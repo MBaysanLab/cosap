@@ -24,7 +24,7 @@ class _LibraryMeta(type):
 
 @dataclass
 class _LibraryPaths:
-    ENSEMBL_VEP: str = os.path.join(AppConfig.LIBRARY_PATH, "ensembl-vep", "vep")
+    ENSEMBL_VEP: str = os.path.join(AppConfig.LIBRARY_PATH, "ensembl-vep")
     ANNOVAR: str = os.path.join(AppConfig.LIBRARY_PATH, "annovar")
     INTERVAR: str = os.path.join(AppConfig.LIBRARY_PATH, "intervar")
     CANCERVAR: str = os.path.join(AppConfig.LIBRARY_PATH, "cancervar")
