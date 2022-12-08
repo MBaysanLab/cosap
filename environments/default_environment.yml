@@ -12,7 +12,7 @@ dependencies:
   - fastp
   - fastqc
   - gatk4
-  - octopus
+  - octopus==0.6.3b
   - picard
   - python
   - qualimap
@@ -28,10 +28,7 @@ dependencies:
   - snakefmt
   - snakemake
   - elprep
-  - muse
   - vardict-java
   - snpeff
   - perl-dbi
   - perl-lwp-simple
-
-

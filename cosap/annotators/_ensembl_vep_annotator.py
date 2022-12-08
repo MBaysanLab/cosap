@@ -36,6 +36,8 @@ class VepAnnotator(_Annotatable, _Annotator):
             "-e",
             "--fork",
             str(app_config.THREADS),
+            "--plugin",
+            "Phenotypes"
         ]
         return command
 

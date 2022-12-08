@@ -12,7 +12,7 @@ from ._variantcallers import _Callable, _VariantCaller
 class VarDictVariantCaller(_Callable, _VariantCaller):
     @classmethod
     def _create_vardict_command(
-        cls, caller_config=Dict, library_paths=LibraryPaths
+        cls, caller_config:Dict, library_paths:LibraryPaths
     ) -> List:
 
         germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
@@ -22,28 +22,23 @@ class VarDictVariantCaller(_Callable, _VariantCaller):
         ]
 
         command = [
-            "VarDict",
+            "vardict-java",
             "-G",
             library_paths.REF_FASTA,
-            "-f 0.05",
+            "-f 0.01",
             "-N",
             tumor_sample_name,
             "-b",
             f"'{tumor_bam}|{germline_bam}'",
-            "-Q 1",
-            "-c 1",
-            "-S 2",
-            "-E 3",
-            "g 4",
-            library_paths.REF_BED,
             "|",
             "testsomatic.R",
         ]
+        print(" ".join(command))
         return command
 
     @classmethod
     def _create_var2vcf_command(
-        cls, caller_config=Dict, library_paths=LibraryPaths
+        cls, caller_config:Dict, library_paths:LibraryPaths
     ) -> List:
 
         tumor_sample_name = caller_config[VariantCallingKeys.PARAMS][

@@ -10,7 +10,7 @@ class _Mapper(ABC):
             "samtools",
             "sort",
             "-@",
-            str(app_config.THREADS),
+            "6",
             "-o",
             output_path,
             "-",
@@ -24,7 +24,7 @@ class _Mapper(ABC):
             "index",
             input_path,
             "-@",
-            str(app_config.THREADS),
+            "6",
         ]
         return command
 

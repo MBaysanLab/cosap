@@ -1,6 +1,5 @@
-FROM mambaorg/micromamba
+FROM condaforge/mambaforge
 
-USER root
 # Set ensembl-vep
 COPY --from=ensemblorg/ensembl-vep /opt/vep/ /opt/vep/
 COPY --from=ensemblorg/ensembl-vep /etc/perl/ /etc/perl/
@@ -13,15 +12,12 @@ RUN echo >> $OPT/.profile && \
     echo PATH=$PATH:\$PATH >> $OPT/.profile && \
     echo export PATH >> $OPT/.profile
 
-
 RUN mkdir /app
 COPY . /app/.
 
 WORKDIR /app
-RUN micromamba install -c bioconda -c conda-forge --yes --name base --file requirements.txt && \
-    micromamba clean --all --yes
-ARG MAMBA_DOCKERFILE_ACTIVATE=1
-RUN pip install .
+RUN --mount=type=cache,target=/opt/conda/pkgs mamba install -c bioconda -c conda-forge --yes --name base --file requirements.txt
+RUN mamba run --no-capture-output -n base pip install -e .
 
 ENV COSAP /app
 ENV COSAP_LIBRARY_PATH /cosap_data

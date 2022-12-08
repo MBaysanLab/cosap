@@ -46,6 +46,7 @@ class Pipeline:
         pipeline_config = self._create_config()
 
         if workdir:
+            workdir = os.path.abspath(os.path.normpath(workdir))
             pipeline_config[PipelineKeys.WORKDIR] = workdir
 
         for step in self._pipeline_steps:
