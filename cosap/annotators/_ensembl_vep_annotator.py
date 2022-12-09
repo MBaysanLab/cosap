@@ -35,9 +35,9 @@ class VepAnnotator(_Annotatable, _Annotator):
             "--vcf",
             "-e",
             "--fork",
-            str(app_config.THREADS),
+            str(app_config.MAX_THREADS_PER_JOB),
             "--plugin",
-            "Phenotypes"
+            "Phenotypes",
         ]
         return command
 

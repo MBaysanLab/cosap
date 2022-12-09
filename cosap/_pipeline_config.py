@@ -31,6 +31,7 @@ class PipelineBaseKeys:
     OUTPUT: str = "output"
     SNAKEMAKE_OUTPUT: str = "snakemake_output"
     OUTPUT_DIR: str = "output_dir"
+    BED_FILE: str = "bed"
 
 
 @dataclass
@@ -51,7 +52,6 @@ class TrimmingKeys(PipelineBaseKeys):
 
 @dataclass
 class QualityControlKeys(PipelineBaseKeys):
-    BED_FILE: str = "bed"
     RAW_OUTPUT: str = "raw_output"
 
 

@@ -36,7 +36,7 @@ class MuseVariantCaller(_Callable, _VariantCaller):
             tumor_bam,
             germline_bam,
             "-n",
-            str(app_config.THREADS),
+            str(app_config.MAX_THREADS_PER_JOB),
         ]
         return command
 
@@ -59,7 +59,7 @@ class MuseVariantCaller(_Callable, _VariantCaller):
             "-D",
             f"{library_paths.DBSNP}.gz",
             "-n",
-            str(app_config.THREADS),
+            str(app_config.MAX_THREADS_PER_JOB),
         ]
         return command
 

@@ -57,7 +57,7 @@ class SnakemakeRunner:
             "-s",
             AppConfig.SNAKEFILE_PATH,
             "-j",
-            str(available_cpu // AppConfig.THREADS),
+            str(available_cpu // AppConfig.MAX_THREADS_PER_JOB),
             "--configfile",
             self.pipeline_config,
             "-r",

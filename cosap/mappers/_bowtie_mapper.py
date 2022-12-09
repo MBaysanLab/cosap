@@ -47,7 +47,7 @@ class Bowtie2Mapper(_Mapper, _Mappable):
         command = [
             "bowtie2",
             "-p",
-            str(app_config.THREADS),
+            str(app_config.MAX_THREADS_PER_JOB),
             "-x",
             library_paths.BOWTIE2_ASSEMBLY,
             *fastq_reads,

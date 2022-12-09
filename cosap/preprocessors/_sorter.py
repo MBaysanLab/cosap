@@ -17,7 +17,7 @@ class SamtoolsSorter:
             "sort",
             sorting_config[SortingKeys.INPUT],
             "-@",
-            str(app_config.THREADS),
+            str(app_config.MAX_THREADS_PER_JOB),
             "-o",
             sorting_config[SortingKeys.OUTPUT],
         ]

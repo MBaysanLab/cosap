@@ -14,6 +14,8 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> List:
 
+        MAX_MEMORY_IN_GB = int(AppConfig.MAX_MEMORY_PER_JOBS // (1024**3))
+
         germline_bam = (
             caller_config[VariantCallingKeys.GERMLINE_INPUT]
             if VariantCallingKeys.GERMLINE_INPUT in caller_config.keys()
@@ -27,10 +29,12 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
 
         output_name = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
 
+
+
         command = [
             "gatk",
             "--java-options",
-            "-Xmx8G",
+            f"-Xmx{MAX_MEMORY_IN_GB}G",
             "Mutect2",
             "-R",
             library_paths.REF_FASTA,

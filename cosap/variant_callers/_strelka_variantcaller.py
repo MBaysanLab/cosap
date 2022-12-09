@@ -38,7 +38,7 @@ class StrelkaVariantCaller(_Callable, _VariantCaller):
             "-m",
             "local",
             "-j",
-            str(AppConfig.THREADS),
+            str(AppConfig.MAX_THREADS_PER_JOB),
         ]
         return command
 

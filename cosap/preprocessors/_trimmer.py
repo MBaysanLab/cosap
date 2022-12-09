@@ -18,7 +18,7 @@ class Trimmer(_Preprocessor, _PreProcessable):
         command = [
             "fastp",
             "-w",
-            str(app_config.THREADS),
+            str(app_config.MAX_THREADS_PER_JOB),
             "--in1",
             fastq_inputs[0],
             "--in2",

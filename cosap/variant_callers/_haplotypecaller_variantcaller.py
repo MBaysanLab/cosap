@@ -6,11 +6,14 @@ from .._library_paths import LibraryPaths
 from .._pipeline_config import VariantCallingKeys
 from ..scatter_gather import ScatterGather
 from ._variantcallers import _Callable, _VariantCaller
+from .._config import AppConfig
 
 
 class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
     @classmethod
     def _create_run_command(cls, caller_config: Dict) -> List:
+        
+        MAX_MEMORY_IN_GB = int(AppConfig.MAX_MEMORY_PER_JOBS // (1024.**3))
 
         library_paths = LibraryPaths()
         germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
@@ -19,7 +22,7 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
         command = [
             "gatk",
             "--java-options",
-            "-Xmx8G",
+            f"-Xmx{MAX_MEMORY_IN_GB}G",
             "HaplotypeCaller",
             "-R",
             library_paths.REF_FASTA,

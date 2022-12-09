@@ -67,5 +67,7 @@ class ScatterGather:
     @staticmethod
     def run_splitted_configs(run_function: Callable, configs: List[Dict]):
         app_config = AppConfig()
-        with ProcessPoolExecutor(max_workers=app_config.THREADS) as executor:
+        with ProcessPoolExecutor(
+            max_workers=app_config.MAX_THREADS_PER_JOB
+        ) as executor:
             executor.map(run_function, configs)

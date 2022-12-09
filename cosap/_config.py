@@ -5,6 +5,8 @@ import os
 from dataclasses import dataclass
 from threading import Lock
 
+import psutil
+
 from ._utils import join_paths
 
 
@@ -25,6 +27,8 @@ class AppConfig(metaclass=_AppConfigMeta):
     LIBRARY_PATH: str = os.environ.get("COSAP_LIBRARY_PATH")
     SNAKEFILE_PATH: str = join_paths(COSAP_PATH, "snakemake_workflows","Snakefile")
 
-    #This is number of threads each job can use and not the all available threads
-    THREADS: int = multiprocessing.cpu_count() 
+    MAX_THREADS_PER_JOB: int = multiprocessing.cpu_count()
+
+    # Max memory is avaliable memory / number of parallel jobs in bytes
+    MAX_MEMORY_PER_JOBS: int = psutil.virtual_memory().total / (multiprocessing.cpu_count() // MAX_THREADS_PER_JOB)
     WORKDIR: str = os.getcwd()

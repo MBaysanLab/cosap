@@ -59,7 +59,7 @@ def split_bam_by_intervals(bam_path: str) -> list:
     library_paths: LibraryPaths()
     output_list = []
 
-    threads = app_config.THREADS
+    threads = app_config.MAX_THREADS_PER_JOB
 
     if int(threads) == 1:
         return bam_path

@@ -45,6 +45,12 @@ class DNAPipeline:
         else:
             raise Exception("analysis_type can be either 'somatic' or 'germline'.")
 
+        if "vardict" in list(map(str.lower, self.variant_callers)):
+            if self.bed_file is None:
+                raise Exception(
+                    "Bed file should be provided for VarDict variant caller"
+                )
+
         self._build_config()
 
     def _create_somatic_pipeline(self):
@@ -126,7 +132,11 @@ class DNAPipeline:
                     library=variant_caller,
                     germline=bqsr_normal if self.normal_sample else None,
                     tumor=bqsr_tumor,
-                    params={"germline_sample_name": self.normal_sample_name},
+                    bed_file=self.bed_file,
+                    params={
+                        "germline_sample_name": self.normal_sample_name,
+                        "tumor_sample_name": self.tumor_sample_name,
+                    },
                 )
                 self.pipeline.add(variant_caller)
 
@@ -184,7 +194,11 @@ class DNAPipeline:
                 library=variant_caller,
                 germline=bqsr_normal if self.normal_sample else None,
                 tumor=None,
-                params={"germline_sample_name": self.normal_sample_name},
+                bed_file=self.bed_file,
+                params={
+                    "germline_sample_name": self.normal_sample_name,
+                    "tumor_sample_name": self.tumor_sample_name,
+                },
             )
             self.pipeline.add(variant_caller)
 

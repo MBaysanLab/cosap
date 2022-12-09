@@ -46,7 +46,7 @@ class BWA2Mapper(_Mapper, _Mappable):
             "bwa-mem2",
             "mem",
             "-t",
-            str(app_config.THREADS),
+            str(app_config.MAX_THREADS_PER_JOB),
             library_paths.BWA_ASSEMBLY,
             *fastq_inputs,
         ]
