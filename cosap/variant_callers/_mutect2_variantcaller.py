@@ -29,8 +29,6 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
 
         output_name = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
 
-
-
         command = [
             "gatk",
             "--java-options",

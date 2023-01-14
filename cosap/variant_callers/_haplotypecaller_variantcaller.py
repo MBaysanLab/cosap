@@ -2,20 +2,21 @@ import os
 from subprocess import run
 from typing import Dict, List
 
+from .._config import AppConfig
 from .._library_paths import LibraryPaths
 from .._pipeline_config import VariantCallingKeys
 from ..scatter_gather import ScatterGather
 from ._variantcallers import _Callable, _VariantCaller
-from .._config import AppConfig
 
 
 class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
     @classmethod
-    def _create_run_command(cls, caller_config: Dict) -> List:
-        
-        MAX_MEMORY_IN_GB = int(AppConfig.MAX_MEMORY_PER_JOBS // (1024.**3))
+    def _create_run_command(
+        cls, caller_config: Dict, library_paths: LibraryPaths
+    ) -> List:
 
-        library_paths = LibraryPaths()
+        MAX_MEMORY_IN_GB = int(AppConfig.MAX_MEMORY_PER_JOBS // (1024.0**3))
+
         germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
         output_name = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
 
@@ -163,10 +164,9 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
     def call_variants(cls, caller_config: Dict):
         library_paths = LibraryPaths()
 
-        splitted_configs = ScatterGather.split_variantcaller_configs(caller_config)
+        # splitted_configs = ScatterGather.split_variantcaller_configs(caller_config)
 
-        haplotypecaller_command = cls.split_and_run(
-            cls._create_run_command,
+        haplotypecaller_command = cls._create_run_command(
             caller_config=caller_config,
             library_paths=library_paths,
         )
@@ -180,7 +180,7 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
             caller_config=caller_config, library_paths=library_paths
         )
 
-        # run(haplotypecaller_command)
-        # run(get_snp_command)
-        # run(get_indel_command)
-        # run(get_other_variants_command)
+        run(haplotypecaller_command)
+        run(get_snp_command)
+        run(get_indel_command)
+        run(get_other_variants_command)

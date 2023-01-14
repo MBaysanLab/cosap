@@ -4,8 +4,8 @@ from pathlib import Path
 from subprocess import PIPE, Popen, check_output, run
 from typing import Dict, List, Union
 
-from .._library_paths import LibraryPaths
 from .._config import AppConfig
+from .._library_paths import LibraryPaths
 from .._pipeline_config import VariantCallingKeys
 from ._variantcallers import _Callable, _VariantCaller
 
@@ -13,7 +13,10 @@ from ._variantcallers import _Callable, _VariantCaller
 class VarDictVariantCaller(_Callable, _VariantCaller):
     @classmethod
     def _create_vardict_command(
-        cls, caller_config: Dict, library_paths: LibraryPaths, app_config:AppConfig,
+        cls,
+        caller_config: Dict,
+        library_paths: LibraryPaths,
+        app_config: AppConfig,
     ) -> List:
 
         germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
@@ -45,7 +48,7 @@ class VarDictVariantCaller(_Callable, _VariantCaller):
             "4",
             bed_file,
             "-th",
-            str(app_config.MAX_THREADS_PER_JOB)
+            str(app_config.MAX_THREADS_PER_JOB),
         ]
         return command
 
@@ -79,7 +82,9 @@ class VarDictVariantCaller(_Callable, _VariantCaller):
         app_config = AppConfig()
 
         vardict_command = cls._create_vardict_command(
-            caller_config=caller_config, library_paths=library_paths, app_config=app_config
+            caller_config=caller_config,
+            library_paths=library_paths,
+            app_config=app_config,
         )
         testsomatic_command = cls._create_testsomatic_command()
         var2vcf_command = cls._create_var2vcf_command(caller_config=caller_config)

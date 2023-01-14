@@ -1,6 +1,7 @@
 from subprocess import run
 from typing import Dict, List
 
+from .._config import AppConfig
 from .._library_paths import LibraryPaths
 from .._pipeline_config import QualityControlKeys
 from ._quality_controllers import _QualityControllable, _QualityController
@@ -11,6 +12,8 @@ class Qualimap(_QualityController, _QualityControllable):
     def _create_qualimap_command(
         cls, qc_config=Dict, library_paths=LibraryPaths
     ) -> List:
+
+        MAX_MEMORY_IN_GB = int(AppConfig.MAX_MEMORY_PER_JOBS // (1024.0**3))
 
         input_bam = qc_config[QualityControlKeys.INPUT]
         bed_file = (
@@ -25,7 +28,7 @@ class Qualimap(_QualityController, _QualityControllable):
             "bamqc",
             "-bam",
             input_bam,
-            "--java-mem-size=8G",
+            f"--java-mem-size={MAX_MEMORY_IN_GB}G",
             "-outfile",
             raw_output,
             "-outdir",
