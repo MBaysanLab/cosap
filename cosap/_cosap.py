@@ -19,7 +19,7 @@ class Cosap:
 @click.option(
     "--analysis_type",
     help="Type of the analysis, can be somatic or germline",
-    require=True,
+    required=True,
 )
 @click.option("--workdir", help="Directory that outputs will be saved", required=True)
 @click.option("--normal_sample", help="Path to normal sample", required=False)
@@ -52,12 +52,12 @@ class Cosap:
 )
 @click.option(
     "--bam_qc",
-    help="Qaulity control algorithm for .bam quality check. Default is qaulimap",
+    help="Qaulity control algorithm for .bam quality check.",
     required=False,
 )
 @click.option(
     "--annotation",
-    help="Annotation source to annotate variants in vcf files. Default is Ensembl VEP",
+    help="Annotation source to annotate variants in vcf files.",
     required=True,
 )
 def cosap_cli(
