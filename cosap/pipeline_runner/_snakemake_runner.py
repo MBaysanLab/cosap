@@ -52,6 +52,7 @@ class SnakemakeRunner:
 
     def _create_snakemake_run_command(self) -> list:
         available_cpu = multiprocessing.cpu_count()
+        slurm = AppConfig.SLURM_CLUSTER
         command = [
             "snakemake",
             "-s",
@@ -64,6 +65,8 @@ class SnakemakeRunner:
             "--use-conda",
             "--rerun-incomplete",
         ]
+        if slurm:
+            command.append("--slurm")
         return command
 
     def _create_snakemake_report_command(self) -> list:

@@ -55,7 +55,7 @@ class PipelineRunner:
         with open(config_yaml_path, "w") as config_yaml:
             yaml.dump(pipeline_config, config_yaml, default_flow_style=False)
 
-    def run_pipeline(self, pipeline_config: Dict, runner: str = "snakemake"):
+    def run_pipeline(self, pipeline_config: Dict, runner: str = "snakemake") -> str:
         workdir = pipeline_config[PipelineKeys.WORKDIR]
         config_yaml_path = join_paths(
             workdir, f"{pipeline_config[PipelineKeys.CREATION_DATE]}_config.yaml"
@@ -80,3 +80,5 @@ class PipelineRunner:
             self.calibrate(pipeline_config[PipelineKeys.CALIBRATE])
 
             self.call_variants(pipeline_config[PipelineKeys.VARIANT_CALLING])
+
+        return config_yaml_path
