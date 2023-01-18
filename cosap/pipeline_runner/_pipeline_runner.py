@@ -81,4 +81,4 @@ class PipelineRunner:
 
             self.call_variants(pipeline_config[PipelineKeys.VARIANT_CALLING])
 
-        return config_yaml_path
+        return pipeline_config

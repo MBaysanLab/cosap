@@ -1,4 +1,4 @@
-from itertools import product
+from itertools import product, groupby
 from typing import List, Tuple
 
 from ..pipeline_builder import *
@@ -33,6 +33,7 @@ class DNAPipeline:
         self.workdir = workdir
         self.pipeline = Pipeline()
         self.config = None
+        self.pipeline_groups = self._get_all_pipeline_combs()
 
         # Do not force user for list of tuples, convert instead.
         if isinstance(self.tumor_samples, tuple):
@@ -53,8 +54,18 @@ class DNAPipeline:
 
         self._build_config()
 
-    def _create_somatic_pipeline(self):
+    def _get_all_pipeline_combs(self) -> dict:
         possible_pipelines = list(product(self.mappers, self.variant_callers))
+        gb_iter = groupby(possible_pipelines, lambda x: x[0])
+
+        pipeline_groups = {}
+        for key, group in gb_iter:
+            key_and_group = {key: list(map(lambda x: x[1], list(group)))}
+            pipeline_groups |= key_and_group
+
+        return pipeline_groups
+
+    def _create_somatic_pipeline(self):
 
         if self.normal_sample is not None:
 
@@ -82,9 +93,7 @@ class DNAPipeline:
             )
             self.pipeline.add(trimmer_tumor)
 
-            for pipeline_perm in possible_pipelines:
-                mapper = pipeline_perm[0]
-                variant_caller = pipeline_perm[1]
+            for mapper, variant_callers in self.pipeline_groups.items():
 
                 # If normal sample suplied, add related steps to pipeline
                 if self.normal_sample:
@@ -128,32 +137,32 @@ class DNAPipeline:
                 self.pipeline.add(mdup_tumor)
                 self.pipeline.add(bqsr_tumor)
 
-                variant_caller = VariantCaller(
-                    library=variant_caller,
-                    germline=bqsr_normal if self.normal_sample else None,
-                    tumor=bqsr_tumor,
-                    bed_file=self.bed_file,
-                    params={
-                        "germline_sample_name": self.normal_sample_name,
-                        "tumor_sample_name": self.tumor_sample_name,
-                    },
-                )
-                self.pipeline.add(variant_caller)
-
-                if self.annotation is not None:
-                    annotator = Annotator(
-                        input_step=variant_caller, library=self.annotation
-                    )
-                    self.pipeline.add(annotator)
-
                 if self.bam_qc is not None:
                     quality_controller_tumor = QualityController(
                         library=self.bam_qc, input_step=bqsr_tumor
                     )
                     self.pipeline.add(quality_controller_tumor)
 
+                for variant_caller in variant_callers:
+                    variant_caller = VariantCaller(
+                        library=variant_caller,
+                        germline=bqsr_normal if self.normal_sample else None,
+                        tumor=bqsr_tumor,
+                        bed_file=self.bed_file,
+                        params={
+                            "germline_sample_name": self.normal_sample_name,
+                            "tumor_sample_name": self.tumor_sample_name,
+                        },
+                    )
+                    self.pipeline.add(variant_caller)
+
+                    if self.annotation is not None:
+                        annotator = Annotator(
+                            input_step=variant_caller, library=self.annotation
+                        )
+                        self.pipeline.add(annotator)
+
     def _create_germline_pipeline(self):
-        possible_pipelines = list(product(self.mappers, self.variant_callers))
 
         normal_sample_reader = [
             FastqReader(self.normal_sample[0], name=self.normal_sample_name, read=1),
@@ -164,10 +173,7 @@ class DNAPipeline:
         )
         self.pipeline.add(trimmer_normal)
 
-        for pipeline_perm in possible_pipelines:
-            mapper = pipeline_perm[0]
-            variant_caller = pipeline_perm[1]
-
+        for mapper, variant_callers in self.pipeline_groups.items():
             # If normal sample suplied, add related steps to pipeline
 
             mapper_normal = Mapper(
@@ -190,29 +196,30 @@ class DNAPipeline:
             self.pipeline.add(mdup_normal)
             self.pipeline.add(bqsr_normal)
 
-            variant_caller = VariantCaller(
-                library=variant_caller,
-                germline=bqsr_normal if self.normal_sample else None,
-                tumor=None,
-                bed_file=self.bed_file,
-                params={
-                    "germline_sample_name": self.normal_sample_name,
-                    "tumor_sample_name": self.tumor_sample_name,
-                },
-            )
-            self.pipeline.add(variant_caller)
-
-            if self.annotation is not None:
-                annotator = Annotator(
-                    input_step=variant_caller, library=self.annotation
-                )
-                self.pipeline.add(annotator)
-
             if self.bam_qc is not None:
                 quality_controller_tumor = QualityController(
                     library=self.bam_qc, input_step=bqsr_normal
                 )
                 self.pipeline.add(quality_controller_tumor)
+
+            for variant_caller in variant_callers:
+                variant_caller = VariantCaller(
+                    library=variant_caller,
+                    germline=bqsr_normal if self.normal_sample else None,
+                    tumor=None,
+                    bed_file=self.bed_file,
+                    params={
+                        "germline_sample_name": self.normal_sample_name,
+                        "tumor_sample_name": self.tumor_sample_name,
+                    },
+                )
+                self.pipeline.add(variant_caller)
+
+                if self.annotation is not None:
+                    annotator = Annotator(
+                        input_step=variant_caller, library=self.annotation
+                    )
+                    self.pipeline.add(annotator)
 
     def _build_config(self):
         self.config = self.pipeline.build(workdir=self.workdir)

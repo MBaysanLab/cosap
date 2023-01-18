@@ -17,6 +17,7 @@ COPY . /app/.
 
 WORKDIR /app
 RUN --mount=type=cache,target=/opt/conda/pkgs mamba install -c bioconda -c conda-forge --yes --name base --file requirements.txt
+RUN mamba run --no-capture-output -n base pip install celery redis
 RUN mamba run --no-capture-output -n base pip install -e .
 
 ENV COSAP /app
