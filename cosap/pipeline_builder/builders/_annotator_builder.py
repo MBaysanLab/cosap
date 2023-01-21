@@ -20,19 +20,22 @@ class Annotator(_IPipelineStep, _PipelineStep):
     def __post_init__(self):
         if self.name is None:
             self.name = f"{self.input_step.name}_{self.library}"
-        if self.input_step.__class__ == VariantCaller:
-            self.sample_name = (
-                self.input_step.tumor
-                if self.input_step.tumor is not None
-                else self.input_step.normal
-            )
-        elif self.input_step.__class__ == Annotator:
-            self.sample_name = self.input_step.sample_name
+
+        #Retrieve sample name from input step if possible.
         if self.sample_name is None:
-            raise Exception(
-                "Sample name cannot be read from input, please specify it by setting"
-                "sample_name argument."
-            )
+            if self.input_step.__class__ == VariantCaller:
+                self.sample_name = (
+                    self.input_step.tumor
+                    if self.input_step.tumor is not None
+                    else self.input_step.normal
+                )
+            elif self.input_step.__class__ == Annotator:
+                self.sample_name = self.input_step.sample_name
+            else:
+                raise Exception(
+                    "Sample name cannot be read from input, please specify it by setting"
+                    "sample_name argument."
+                )
 
         self.input_step.next_step = self
 

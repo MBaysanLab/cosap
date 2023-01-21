@@ -25,6 +25,7 @@ class FileFormats:
     ANNOTATION_OUTPUT: str = r"annotated_{identification}.{custom_ext}"
     ANNOVAR_OUTPUT: str = r"annovar_{identification}.{sample}.avinput"
     QUALIMAP_PDF_OUTPUT: str = r"qualimap_{identification}.pdf"
+    QUALIMAP_COVERAGE_HISTOGRAM_OUTPUT: str = r"qualimap_{identification}_coverage_histogram.txt"
     MOSDEPTH_OUTPUT: str = r"{identification}.mosdepth.summary.txt"
 
 

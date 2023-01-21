@@ -35,7 +35,6 @@ class CancervarAnnotator(_Annotatable, _Annotator):
             f"--database_cancervar={cancervar_db}",
             "-d",
             annovar_db,
-            "--skip_annovar",
             f"--annotate_variation={annotate_variation}",
         ]
         return command

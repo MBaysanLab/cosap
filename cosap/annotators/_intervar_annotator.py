@@ -31,7 +31,6 @@ class IntervarAnnotator(_Annotatable, _Annotator):
             f"--database_intervar={intervar_db}",
             "-d",
             annovar_db,
-            "--skip_annovar",
         ]
         return command
 

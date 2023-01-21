@@ -139,7 +139,7 @@ class DNAPipeline:
 
                 if self.bam_qc is not None:
                     quality_controller_tumor = QualityController(
-                        library=self.bam_qc, input_step=bqsr_tumor
+                        library=self.bam_qc, input_step=bqsr_tumor, bed_file=self.bed_file
                     )
                     self.pipeline.add(quality_controller_tumor)
 

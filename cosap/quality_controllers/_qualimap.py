@@ -5,12 +5,12 @@ from .._config import AppConfig
 from .._library_paths import LibraryPaths
 from .._pipeline_config import QualityControlKeys
 from ._quality_controllers import _QualityControllable, _QualityController
-
+import os
 
 class Qualimap(_QualityController, _QualityControllable):
     @classmethod
     def _create_qualimap_command(
-        cls, qc_config=Dict, library_paths=LibraryPaths
+        cls, qc_config=Dict, app_config=AppConfig
     ) -> List:
 
         MAX_MEMORY_IN_GB = int(AppConfig.MAX_MEMORY_PER_JOBS // (1024.0**3))
@@ -22,6 +22,7 @@ class Qualimap(_QualityController, _QualityControllable):
             else None
         )
         raw_output = qc_config[QualityControlKeys.RAW_OUTPUT]
+        output_file = qc_config[QualityControlKeys.OUTPUT]
 
         command = [
             "qualimap",
@@ -30,11 +31,16 @@ class Qualimap(_QualityController, _QualityControllable):
             input_bam,
             f"--java-mem-size={MAX_MEMORY_IN_GB}G",
             "-outfile",
-            raw_output,
+            output_file,
             "-outdir",
             raw_output,
             "-outformat",
             "PDF",
+            "--output-genome-coverage",
+            f"{raw_output}/coverage_histogram.txt",
+            "--nt",
+            str(app_config.MAX_THREADS_PER_JOB)
+
         ]
         if bed_file is not None:
             command.extend(["--feature-file", bed_file])
@@ -42,8 +48,9 @@ class Qualimap(_QualityController, _QualityControllable):
 
     @classmethod
     def run_qualitycontroller(cls, qc_config=Dict, library_paths=LibraryPaths):
+        app_config = AppConfig()
         qualimap_command = cls._create_qualimap_command(
-            qc_config=qc_config, library_paths=library_paths
+            qc_config=qc_config, app_config=app_config
         )
 
         run(qualimap_command)

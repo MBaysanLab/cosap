@@ -30,13 +30,19 @@ class QualityController(_IPipelineStep, _PipelineStep):
             output_filename = FileFormats.QUALIMAP_PDF_OUTPUT.format(
                 identification=self.name
             )
+            coverage_histogram_output = (
+                FileFormats.QUALIMAP_COVERAGE_HISTOGRAM_OUTPUT.format(
+                    identification=self.name
+                )
+            )
             config = {
                 self.name: {
                     QualityControlKeys.LIBRARY: self.library,
                     QualityControlKeys.INPUT: filename,
                     QualityControlKeys.RAW_OUTPUT: raw_output_folderdir,
-                    QualityControlKeys.OUTPUT: join_paths(
-                        raw_output_folderdir, output_filename
+                    QualityControlKeys.OUTPUT: output_filename,
+                    QualityControlKeys.COVERAGE_HISTOGRAM_OUTPUT: join_paths(
+                        raw_output_folderdir, coverage_histogram_output
                     ),
                 }
             }

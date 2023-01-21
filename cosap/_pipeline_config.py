@@ -7,7 +7,7 @@ class PipelineKeys:
     WORKDIR: str = "workdir"
     LIBRARY_PATH: str = "library_path"
     CREATION_DATE: str = "creation-date"
-    VERSION: str = "version"
+    VERSION: str = "cosap_version"
     MAPPING: str = "mapping"
     SORTING: str = "sorting"
     INDEX: str = "index"
@@ -53,6 +53,7 @@ class TrimmingKeys(PipelineBaseKeys):
 @dataclass
 class QualityControlKeys(PipelineBaseKeys):
     RAW_OUTPUT: str = "raw_output"
+    COVERAGE_HISTOGRAM_OUTPUT: str = "coverage_histogram"
 
 
 @dataclass
