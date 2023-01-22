@@ -33,22 +33,19 @@ class ProjectResultsParser:
 
         # If there are multiple combinations, parse the first one
         # TODO: Taking the first one might not be the preferred way.
-        coverage_histogram = self.pipeline_config[PipelineKeys.QUALITY_CONTROL][
+        qc_dir = self.pipeline_config[PipelineKeys.QUALITY_CONTROL][
             list(self.pipeline_config[PipelineKeys.QUALITY_CONTROL].keys())[0]
-        ][QualityControlKeys.COVERAGE_HISTOGRAM_OUTPUT]
+        ][QualityControlKeys.OUTPUT]
         return parse_qualimap_coverage_histogram(
-            join_paths(self.pipeline_workdir, coverage_histogram)
+            join_paths(self.pipeline_workdir, qc_dir, "raw_data_qualimapReport", "coverage_histogram.txt")
         )
 
     def _parse_qc_genome_results(self):
-        genome_results = join_paths(
-            self.pipeline_config[PipelineKeys.QUALITY_CONTROL][
+        qc_dir = self.pipeline_config[PipelineKeys.QUALITY_CONTROL][
                 list(self.pipeline_config[PipelineKeys.QUALITY_CONTROL].keys())[0]
-            ][QualityControlKeys.RAW_OUTPUT],
-            "genome_results.txt",
-        )
+            ][QualityControlKeys.OUTPUT]
         return parse_qualimap_genome_results(
-            join_paths(self.pipeline_workdir, genome_results)
+            join_paths(self.pipeline_workdir, qc_dir, "genome_results.txt")
         )
 
     def _parse_vcf(self):
@@ -61,13 +58,13 @@ class ProjectResultsParser:
         if "Classification" in vcf_df.columns:
             significant_variants = (
                 vcf_df[
-                    vcf_df.Classification.str.lower.contains("strong")
-                    or vcf_df.Classification.str.lower.contains("pathogenic")
+                    vcf_df.Classification.str.contains("strong", case=False)
+                    or vcf_df.Classification.str.contains("pathogenic", case=False)
                 ]
-            ).sum()
+            ).shape[0]
             uncertain_variants = (
-                vcf_df[vcf_df.Classification.str.lower.contains("uncertain")]
-            ).sum()
+                vcf_df[vcf_df.Classification.str.contains("uncertain", case=False)]
+            ).shape[0]
 
         return {
             "total_variants": total_variants,

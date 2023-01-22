@@ -26,12 +26,12 @@ class QualityController(_IPipelineStep, _PipelineStep):
         input_filename = self.input_step.get_output()
 
         if self.library.lower() == "qualimap":
-            raw_output_folderdir = join_paths(OutputFolders.BAMQC, self.library, self.name)
+            raw_output_dir = join_paths(OutputFolders.BAMQC, self.library, self.name)
             config = {
                 self.name: {
                     QualityControlKeys.LIBRARY: self.library,
                     QualityControlKeys.INPUT: input_filename,
-                    QualityControlKeys.OUTPUT: raw_output_folderdir,
+                    QualityControlKeys.OUTPUT: raw_output_dir,
                 }
             }
         elif self.library.lower() == "mosdepth":
