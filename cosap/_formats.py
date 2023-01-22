@@ -24,8 +24,7 @@ class FileFormats:
     GVCF_OUTPUT: str = r"{identification}.g.vcf"
     ANNOTATION_OUTPUT: str = r"annotated_{identification}.{custom_ext}"
     ANNOVAR_OUTPUT: str = r"annovar_{identification}.{sample}.avinput"
-    QUALIMAP_PDF_OUTPUT: str = r"qualimap_{identification}.pdf"
-    QUALIMAP_COVERAGE_HISTOGRAM_OUTPUT: str = r"qualimap_{identification}_coverage_histogram.txt"
+    QUALIMAP_OUTPUT: str = r"qualimap_{identification}"
     MOSDEPTH_OUTPUT: str = r"{identification}.mosdepth.summary.txt"
 
 
@@ -67,5 +66,5 @@ class FolderedOutputs:
         OutputFolders.ANNOTATION, "{library}", FileFormats.ANNOTATION_OUTPUT
     )
     BAMQC_OUTPUT: str = join_paths(
-        OutputFolders.BAMQC, "{library}", FileFormats.QUALIMAP_PDF_OUTPUT
+        OutputFolders.BAMQC, "{library}", "{identification}"
     )

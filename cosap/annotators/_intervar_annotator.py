@@ -18,6 +18,9 @@ class IntervarAnnotator(_Annotatable, _Annotator):
 
         annovar_db = join_paths(library_paths.ANNOVAR, "humandb38")
         intervar_db = join_paths(library_paths.INTERVAR, "intervardb")
+        table_annovar = annotate_variation = annovar_db = join_paths(
+            library_paths.ANNOVAR, "table_annovar.pl"
+        )
 
         command = [
             join_paths(library_paths.INTERVAR, "Intervar.py"),
@@ -31,6 +34,8 @@ class IntervarAnnotator(_Annotatable, _Annotator):
             f"--database_intervar={intervar_db}",
             "-d",
             annovar_db,
+            "--table-annovar",
+            table_annovar
         ]
         return command
 

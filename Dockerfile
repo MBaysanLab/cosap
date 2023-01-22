@@ -12,11 +12,12 @@ RUN echo >> $OPT/.profile && \
     echo PATH=$PATH:\$PATH >> $OPT/.profile && \
     echo export PATH >> $OPT/.profile
 
+COPY requirements.txt /tmp/requirements.txt
+RUN --mount=type=cache,target=/opt/conda/pkgs mamba install -c bioconda -c conda-forge --yes --name base --file /tmp/requirements.txt
 RUN mkdir /app
 COPY . /app/.
 
 WORKDIR /app
-RUN --mount=type=cache,target=/opt/conda/pkgs mamba install -c bioconda -c conda-forge --yes --name base --file requirements.txt
 RUN mamba run --no-capture-output -n base pip install celery redis
 RUN mamba run --no-capture-output -n base pip install -e .
 

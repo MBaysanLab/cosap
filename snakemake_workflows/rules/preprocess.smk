@@ -81,7 +81,7 @@ rule quality_control:
             wildcards.identification
         ][QualityControlKeys.INPUT],
     output:
-        qc=FolderedOutputs.BAMQC_OUTPUT,
+        qc=directory(FolderedOutputs.BAMQC_OUTPUT),
     run:
         quality_controller = QualityContollerFactory.create(
             quality_controller_type=config[PipelineKeys.QUALITY_CONTROL][

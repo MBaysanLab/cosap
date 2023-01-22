@@ -21,8 +21,7 @@ class Qualimap(_QualityController, _QualityControllable):
             if QualityControlKeys.BED_FILE in qc_config.keys()
             else None
         )
-        raw_output = qc_config[QualityControlKeys.RAW_OUTPUT]
-        output_file = qc_config[QualityControlKeys.OUTPUT]
+        output = qc_config[QualityControlKeys.OUTPUT]
 
         command = [
             "qualimap",
@@ -30,14 +29,10 @@ class Qualimap(_QualityController, _QualityControllable):
             "-bam",
             input_bam,
             f"--java-mem-size={MAX_MEMORY_IN_GB}G",
-            "-outfile",
-            output_file,
             "-outdir",
-            raw_output,
+            output,
             "-outformat",
-            "PDF",
-            "--output-genome-coverage",
-            f"{raw_output}/coverage_histogram.txt",
+            "HTML",
             "--nt",
             str(app_config.MAX_THREADS_PER_JOB)
 

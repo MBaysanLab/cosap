@@ -19,6 +19,9 @@ class CancervarAnnotator(_Annotatable, _Annotator):
         annotate_variation = annovar_db = join_paths(
             library_paths.ANNOVAR, "annotate_variation.pl"
         )
+        table_annovar = annotate_variation = annovar_db = join_paths(
+            library_paths.ANNOVAR, "table_annovar.pl"
+        )
         annovar_db = join_paths(library_paths.ANNOVAR, "humandb38")
         cancervar_db = join_paths(library_paths.CANCERVAR, "cancervardb")
 
@@ -36,6 +39,8 @@ class CancervarAnnotator(_Annotatable, _Annotator):
             "-d",
             annovar_db,
             f"--annotate_variation={annotate_variation}",
+            "--table_annovar",
+            table_annovar,
         ]
         return command
 

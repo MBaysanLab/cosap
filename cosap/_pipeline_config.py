@@ -53,7 +53,6 @@ class TrimmingKeys(PipelineBaseKeys):
 @dataclass
 class QualityControlKeys(PipelineBaseKeys):
     RAW_OUTPUT: str = "raw_output"
-    COVERAGE_HISTOGRAM_OUTPUT: str = "coverage_histogram"
 
 
 @dataclass

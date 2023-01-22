@@ -34,7 +34,7 @@ class ProjectResultsParser:
         # If there are multiple combinations, parse the first one
         # TODO: Taking the first one might not be the preferred way.
         coverage_histogram = self.pipeline_config[PipelineKeys.QUALITY_CONTROL][
-            self.pipeline_config[PipelineKeys.QUALITY_CONTROL.keys()[0]]
+            list(self.pipeline_config[PipelineKeys.QUALITY_CONTROL].keys())[0]
         ][QualityControlKeys.COVERAGE_HISTOGRAM_OUTPUT]
         return parse_qualimap_coverage_histogram(
             join_paths(self.pipeline_workdir, coverage_histogram)
@@ -43,7 +43,7 @@ class ProjectResultsParser:
     def _parse_qc_genome_results(self):
         genome_results = join_paths(
             self.pipeline_config[PipelineKeys.QUALITY_CONTROL][
-                self.pipeline_config[PipelineKeys.QUALITY_CONTROL.keys()[0]]
+                list(self.pipeline_config[PipelineKeys.QUALITY_CONTROL].keys())[0]
             ][QualityControlKeys.RAW_OUTPUT],
             "genome_results.txt",
         )
@@ -78,10 +78,10 @@ class ProjectResultsParser:
     def _get_vcf(self):
         if PipelineKeys.ANNOTATION in self.pipeline_config.keys():
             vcf = self.pipeline_config[PipelineKeys.ANNOTATION][
-                self.pipeline_config[PipelineKeys.ANNOTATION.keys()[0]]
+                list(self.pipeline_config[PipelineKeys.ANNOTATION].keys())[0]
             ][AnnotatorKeys.OUTPUT]
         elif PipelineKeys.VARIANT_CALLING in self.pipeline_config.keys():
             vcf = self.pipeline_config[PipelineKeys.VARIANT_CALLING][
-                self.pipeline_config[PipelineKeys.VARIANT_CALLING.keys()[0]]
+                list(self.pipeline_config[PipelineKeys.VARIANT_CALLING].keys())[0]
             ][VariantCallingKeys.SNP_OUTPUT]
         return vcf

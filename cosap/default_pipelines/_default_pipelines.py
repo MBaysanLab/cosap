@@ -228,3 +228,4 @@ class DNAPipeline:
     def run_pipeline(self):
         pipeline_runner = PipelineRunner()
         pipeline_runner.run_pipeline(self.config)
+        return self.config
