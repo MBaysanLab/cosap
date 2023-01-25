@@ -54,18 +54,21 @@ class ProjectResultsParser:
     def _parse_variant_stats(self):
         vcf_df = read_vcf_into_df(self.vcf)
         total_variants = vcf_df.shape[0]
+        significant_variants = None
+        uncertain_variants = None
 
         if "Classification" in vcf_df.columns:
             significant_variants = (
                 vcf_df[
-                    vcf_df.Classification.str.contains("strong", case=False)
-                    or vcf_df.Classification.str.contains("pathogenic", case=False)
+                    (vcf_df.Classification.str.contains("strong", case=False))
+                    | (vcf_df.Classification.str.contains("pathogenic", case=False))
+                    | (vcf_df.Classification.str.contains("potential", case=False))
                 ]
             ).shape[0]
             uncertain_variants = (
                 vcf_df[vcf_df.Classification.str.contains("uncertain", case=False)]
             ).shape[0]
-
+        
         return {
             "total_variants": total_variants,
             "significant_variants": significant_variants,

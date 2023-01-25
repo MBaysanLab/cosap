@@ -16,26 +16,35 @@ class IntervarAnnotator(_Annotatable, _Annotator):
         input_vcf = annotator_config[AnnotatorKeys.INPUT]
         output_vcf = annotator_config[AnnotatorKeys.OUTPUT]
 
-        annovar_db = join_paths(library_paths.ANNOVAR, "humandb38")
         intervar_db = join_paths(library_paths.INTERVAR, "intervardb")
-        table_annovar = annotate_variation = annovar_db = join_paths(
+        annovar_db = join_paths(library_paths.ANNOVAR, "humandb38")
+        annotate_variation = join_paths(
+            library_paths.ANNOVAR, "annotate_variation.pl"
+        )
+        table_annovar = join_paths(
             library_paths.ANNOVAR, "table_annovar.pl"
         )
+        convert2annovar = join_paths(
+            library_paths.ANNOVAR, "convert2annovar.pl"
+        )
+
+        filtered_input = cls.chr_filter_vcf(input_vcf)
 
         command = [
             join_paths(library_paths.INTERVAR, "Intervar.py"),
             "-b",
             "hg38",
             "-i",
-            input_vcf,
+            filtered_input,
             "--input_type=VCF",
             "-o",
             output_vcf,
             f"--database_intervar={intervar_db}",
             "-d",
             annovar_db,
-            "--table-annovar",
-            table_annovar
+            f"--annotate_variation={annotate_variation}",
+            f"--table_annovar={table_annovar}",
+            f"--convert2annovar={convert2annovar}"
         ]
         return command
 

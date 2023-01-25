@@ -40,7 +40,7 @@ class Annotator(_IPipelineStep, _PipelineStep):
         self.input_step.next_step = self
 
     def _create_output_filename(self) -> str:
-        if self.library.lower() == "annovar":
+        if self.library.lower() in ["annovar", "intervar","cancervar"]:
             return FileFormats.ANNOTATION_OUTPUT.format(
                 identification=self.name, custom_ext="txt"
             )

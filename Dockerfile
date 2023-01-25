@@ -13,7 +13,7 @@ RUN echo >> $OPT/.profile && \
     echo export PATH >> $OPT/.profile
 
 COPY requirements.txt /tmp/requirements.txt
-RUN --mount=type=cache,target=/opt/conda/pkgs mamba install -c bioconda -c conda-forge --yes --name base --file /tmp/requirements.txt
+RUN --mount=type=cache,target=/opt/conda/pkgs mamba install -c conda-forge -c bioconda --yes --name base --file /tmp/requirements.txt
 RUN mkdir /app
 COPY . /app/.
 

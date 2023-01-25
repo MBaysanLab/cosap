@@ -26,6 +26,7 @@ class FileFormats:
     ANNOVAR_OUTPUT: str = r"annovar_{identification}.{sample}.avinput"
     QUALIMAP_OUTPUT: str = r"qualimap_{identification}"
     MOSDEPTH_OUTPUT: str = r"{identification}.mosdepth.summary.txt"
+    SPLITTED_BAM_FILENAME: str = "{name}_{split_no}.bam"
 
 
 @dataclass
@@ -68,3 +69,4 @@ class FolderedOutputs:
     BAMQC_OUTPUT: str = join_paths(
         OutputFolders.BAMQC, "{library}", "{identification}"
     )
+    REGIONS_FILE_OUTPUT: str = join_paths(OutputFolders.TEMP_OUTPUT, "regions")

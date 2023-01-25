@@ -10,6 +10,7 @@ from ._vardict_variantcaller import VarDictVariantCaller
 from ._variantcallers import _VariantCaller
 from ._varscan_germline_variantcaller import VarScanGermlineVariantCaller
 from ._varscan_variantcaller import VarScanVariantCaller
+from ._varnet_variantcaller import VarNetVariantCaller
 
 
 class VariantCallerFactory:
@@ -22,6 +23,7 @@ class VariantCallerFactory:
     VARDICT_CALLER = "vardict"
     HAPLOTYPECALLER = "haplotypecaller"
     VARSCAN_GERMLINE_CALLER = "varscan_germline"
+    VARNET = "varnet"
 
     @classmethod
     def create(cls, caller_type: str) -> _VariantCaller:
@@ -45,6 +47,8 @@ class VariantCallerFactory:
             caller = HaplotypeCallerVariantCaller
         elif caller_type == cls.VARSCAN_GERMLINE_CALLER:
             caller = VarScanGermlineVariantCaller
+        elif caller_type == cls.VARNET:
+            caller = VarNetVariantCaller
         else:
             raise Exception(f"Unknown caller type: {caller_type}")
 

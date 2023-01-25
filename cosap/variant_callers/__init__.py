@@ -6,3 +6,4 @@ from ._strelka_variantcaller import StrelkaVariantCaller
 from ._vardict_variantcaller import VarDictVariantCaller
 from ._variant_factory import VariantCallerFactory
 from ._varscan_variantcaller import VarScanVariantCaller
+from ._varnet_variantcaller import VarNetVariantCaller

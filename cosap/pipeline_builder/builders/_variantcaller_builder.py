@@ -7,6 +7,7 @@ from ..._formats import FileFormats, OutputFolders
 from ..._pipeline_config import PipelineKeys, VariantCallingKeys
 from ..._utils import join_paths
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
+import os
 
 
 @dataclass

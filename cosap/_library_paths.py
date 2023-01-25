@@ -33,6 +33,7 @@ class _LibraryPaths:
         PHARMCAT_DIR, "PharmCAT_VCF_Preprocess.py"
     )
     PHARMCAT_JAR: str = os.path.join(PHARMCAT_DIR, "pharmcat-1.6.0-all")
+    VARNET: str = os.path.join(AppConfig.LIBRARY_PATH, "varnet")
     # PICARD: str = os.path.join(AppConfig.LIBRARY_PATH, "picard.jar")
     # GATK: str = os.path.join(AppConfig.LIBRARY_PATH, "GenomeAnalysisTK.jar")
     # GATK4: str = os.path.join(AppConfig.LIBRARY_PATH, "gatk-4.1.0.0", "gatk")

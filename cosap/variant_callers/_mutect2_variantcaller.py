@@ -6,6 +6,7 @@ from .._config import AppConfig
 from .._library_paths import LibraryPaths
 from .._pipeline_config import VariantCallingKeys
 from ._variantcallers import _Callable, _VariantCaller
+from ..scatter_gather import ScatterGather
 
 
 class Mutect2VariantCaller(_Callable, _VariantCaller):
@@ -54,6 +55,14 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
                     germline_sample_name,
                 ]
             )
+        
+        bed_file = (
+            caller_config[VariantCallingKeys.BED_FILE]
+            if VariantCallingKeys.BED_FILE in caller_config.keys()
+            else None
+        )
+        if bed_file is not None:
+            command.extend(["--intervals", bed_file])
         return command
 
     @classmethod
@@ -152,9 +161,14 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
     def call_variants(cls, caller_config: Dict):
         library_paths = LibraryPaths()
 
-        mutect_command = cls._create_run_command(
-            caller_config=caller_config, library_paths=library_paths
-        )
+        splitted_configs = ScatterGather.split_variantcaller_configs(caller_config)
+        scattered_commands = [
+            cls._create_run_command(caller_config=cfg, library_paths=library_paths)
+            for cfg in splitted_configs
+        ]
+        ScatterGather.run_splitted_configs(run, scattered_commands)
+
+
         filter_command = cls._filter_mutect_calls(
             caller_config=caller_config, library_paths=library_paths
         )
@@ -168,8 +182,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             caller_config=caller_config, library_paths=library_paths
         )
 
-        run(mutect_command)
-        run(filter_command)
-        run(get_snp_command)
-        run(get_indel_command)
-        run(get_other_variants_command)
+        # run(filter_command)
+        # run(get_snp_command)
+        # run(get_indel_command)
+        # run(get_other_variants_command)
