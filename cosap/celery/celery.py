@@ -1,6 +1,9 @@
 from celery import Celery, shared_task
-from .._utils import parse_qualimap_coverage_histogram, parse_qualimap_genome_results
+from ..parsers import ProjectResultsParser
 from ..default_pipelines import DNAPipeline
+import glob
+import os
+import yaml
 
 celery_app = Celery("cosap")
 celery_app.config_from_object("cosap.celery.celeryconfig")
@@ -32,14 +35,19 @@ def cosap_dna_pipeline_task(
         bam_qc=bam_qc,
         annotation=annotation,
     )
-    config_path = dna_pipeline.run_pipeline()
-    return config_path
+    config = dna_pipeline.run_pipeline()
+    return config
 
-@shared_task(name="parse_qc_coverage_hist_task")
-def parse_qc_coverage_hist_task(path):
-    return parse_qualimap_coverage_histogram(path)
+@shared_task(name="parse_project_results")
+def parse_project_data(path):
+    configs = glob.glob(f"{path}/*_config.yaml")
+    latest_config = max(configs, key=os.path.getctime)
 
-
-@shared_task(name="parse_qc_genome_results_task")
-def parse_qc_genome_results_task(path):
-    return parse_qualimap_genome_results(path)
+    config_dict = yaml.load(latest_config, Loader=yaml.Loader)
+    parser = ProjectResultsParser(pipeline_config=config_dict)
+    return {
+        "qc_coverage_histogram": parser.qc_coverage_histogram,
+        "variant_stats": parser.variant_stats,
+        "variants": parser.variants,
+        "qc_results": parser.qc_genome_results
+    }

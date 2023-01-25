@@ -55,7 +55,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
                     germline_sample_name,
                 ]
             )
-        
+
         bed_file = (
             caller_config[VariantCallingKeys.BED_FILE]
             if VariantCallingKeys.BED_FILE in caller_config.keys()
@@ -161,13 +161,14 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
     def call_variants(cls, caller_config: Dict):
         library_paths = LibraryPaths()
 
-        splitted_configs = ScatterGather.split_variantcaller_configs(caller_config)
+        splitted_configs = ScatterGather.split_variantcaller_configs(
+            caller_config
+        )
         scattered_commands = [
             cls._create_run_command(caller_config=cfg, library_paths=library_paths)
             for cfg in splitted_configs
         ]
         ScatterGather.run_splitted_configs(run, scattered_commands)
-
 
         filter_command = cls._filter_mutect_calls(
             caller_config=caller_config, library_paths=library_paths
