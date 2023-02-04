@@ -16,17 +16,11 @@ class CancervarAnnotator(_Annotatable, _Annotator):
         input_vcf = annotator_config[AnnotatorKeys.INPUT]
         output_vcf = annotator_config[AnnotatorKeys.OUTPUT]
 
-        annotate_variation = join_paths(
-            library_paths.ANNOVAR, "annotate_variation.pl"
-        )
-        table_annovar = join_paths(
-            library_paths.ANNOVAR, "table_annovar.pl"
-        )
+        annotate_variation = join_paths(library_paths.ANNOVAR, "annotate_variation.pl")
+        table_annovar = join_paths(library_paths.ANNOVAR, "table_annovar.pl")
         annovar_db = join_paths(library_paths.ANNOVAR, "humandb38")
         cancervar_db = join_paths(library_paths.CANCERVAR, "cancervardb")
-        convert2annovar = join_paths(
-            library_paths.ANNOVAR, "convert2annovar.pl"
-        )
+        convert2annovar = join_paths(library_paths.ANNOVAR, "convert2annovar.pl")
 
         filtered_input = cls.chr_filter_vcf(input_vcf)
 
@@ -45,7 +39,7 @@ class CancervarAnnotator(_Annotatable, _Annotator):
             annovar_db,
             f"--annotate_variation={annotate_variation}",
             f"--table_annovar={table_annovar}",
-            f"--convert2annovar={convert2annovar}"
+            f"--convert2annovar={convert2annovar}",
         ]
         return command
 

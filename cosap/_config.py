@@ -26,6 +26,7 @@ class AppConfig(metaclass=_AppConfigMeta):
     COSAP_PATH: str = os.environ.get("COSAP")
     LIBRARY_PATH: str = os.environ.get("COSAP_LIBRARY_PATH")
     SNAKEFILE_PATH: str = join_paths(COSAP_PATH, "snakemake_workflows","Snakefile")
+    RAMDISK_PATH: str = os.environ.get("COSAP_RAMDISK_PATH")
 
     MAX_THREADS_PER_JOB: int = multiprocessing.cpu_count()
 
@@ -35,3 +36,4 @@ class AppConfig(metaclass=_AppConfigMeta):
     
     #Set this to True if you are running cosap on a slurm cluster.
     SLURM_CLUSTER = False
+    IN_MEMORY_MODE = True

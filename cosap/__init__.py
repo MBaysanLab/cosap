@@ -6,6 +6,7 @@ from ._version import version
 from .annotators import *
 from .default_pipelines import *
 from .mappers import *
+from .memory_handler import *
 from .parsers import *
 from .pipeline_builder import *
 from .pipeline_runner import *

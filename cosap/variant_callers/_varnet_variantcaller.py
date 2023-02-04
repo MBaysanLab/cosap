@@ -5,8 +5,8 @@ from typing import Dict, List
 from .._config import AppConfig
 from .._library_paths import LibraryPaths
 from .._pipeline_config import VariantCallingKeys
-from ._variantcallers import _Callable, _VariantCaller
 from .._utils import join_paths
+from ._variantcallers import _Callable, _VariantCaller
 
 
 class VarNetVariantCaller(_Callable, _VariantCaller):

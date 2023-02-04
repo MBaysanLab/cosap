@@ -1,12 +1,9 @@
 from abc import ABC, abstractmethod
-from .._utils import (
-    parse_qualimap_coverage_histogram,
-    parse_qualimap_genome_results,
-    convert_vcf_to_json,
-    join_paths,
-    read_vcf_into_df,
-)
+
 from .._pipeline_config import *
+from .._utils import (convert_vcf_to_json, join_paths,
+                      parse_qualimap_coverage_histogram,
+                      parse_qualimap_genome_results, read_vcf_into_df)
 
 
 class _Parser(ABC):
@@ -37,13 +34,18 @@ class ProjectResultsParser:
             list(self.pipeline_config[PipelineKeys.QUALITY_CONTROL].keys())[0]
         ][QualityControlKeys.OUTPUT]
         return parse_qualimap_coverage_histogram(
-            join_paths(self.pipeline_workdir, qc_dir, "raw_data_qualimapReport", "coverage_histogram.txt")
+            join_paths(
+                self.pipeline_workdir,
+                qc_dir,
+                "raw_data_qualimapReport",
+                "coverage_histogram.txt",
+            )
         )
 
     def _parse_qc_genome_results(self):
         qc_dir = self.pipeline_config[PipelineKeys.QUALITY_CONTROL][
-                list(self.pipeline_config[PipelineKeys.QUALITY_CONTROL].keys())[0]
-            ][QualityControlKeys.OUTPUT]
+            list(self.pipeline_config[PipelineKeys.QUALITY_CONTROL].keys())[0]
+        ][QualityControlKeys.OUTPUT]
         return parse_qualimap_genome_results(
             join_paths(self.pipeline_workdir, qc_dir, "genome_results.txt")
         )
@@ -68,7 +70,7 @@ class ProjectResultsParser:
             uncertain_variants = (
                 vcf_df[vcf_df.Classification.str.contains("uncertain", case=False)]
             ).shape[0]
-        
+
         return {
             "total_variants": total_variants,
             "significant_variants": significant_variants,

@@ -14,18 +14,18 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
     ) -> List:
 
         command = [
-            "picard",
-            "MarkDuplicates",
-            "--INPUT",
+            "gatk",
+            "MarkDuplicatesSpark",
+            "-I",
             mdup_config[MDUPKeys.INPUT],
-            "--OUTPUT",
+            "-O",
             mdup_config[MDUPKeys.OUTPUT],
-            "--METRICS_FILE",
+            "-M",
             f"{mdup_config[MDUPKeys.OUTPUT]}_metrics",
-            "--REMOVE_DUPLICATES",
-            "true",
-            "--CREATE_INDEX",
-            "true",
+            "--remove-sequencing-duplicates",
+            "--create-output-bam-index",
+            "--spark-master",
+            f"local[{app_config.MAX_THREADS_PER_JOB}]",
         ]
         return command
 

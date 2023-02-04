@@ -21,7 +21,7 @@ class Annotator(_IPipelineStep, _PipelineStep):
         if self.name is None:
             self.name = f"{self.input_step.name}_{self.library}"
 
-        #Retrieve sample name from input step if possible.
+        # Retrieve sample name from input step if possible.
         if self.sample_name is None:
             if self.input_step.__class__ == VariantCaller:
                 self.sample_name = (
@@ -40,7 +40,7 @@ class Annotator(_IPipelineStep, _PipelineStep):
         self.input_step.next_step = self
 
     def _create_output_filename(self) -> str:
-        if self.library.lower() in ["annovar", "intervar","cancervar"]:
+        if self.library.lower() in ["annovar", "intervar", "cancervar"]:
             return FileFormats.ANNOTATION_OUTPUT.format(
                 identification=self.name, custom_ext="txt"
             )

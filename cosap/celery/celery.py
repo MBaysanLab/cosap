@@ -1,12 +1,15 @@
-from celery import Celery, shared_task
-from ..parsers import ProjectResultsParser
-from ..default_pipelines import DNAPipeline
 import glob
 import os
+
 import yaml
+from celery import Celery, shared_task
+
+from ..default_pipelines import DNAPipeline
+from ..parsers import ProjectResultsParser
 
 celery_app = Celery("cosap")
 celery_app.config_from_object("cosap.celery.celeryconfig")
+
 
 @shared_task(name="cosap_dna_pipeline_task")
 def cosap_dna_pipeline_task(
@@ -21,7 +24,7 @@ def cosap_dna_pipeline_task(
     tumor_sample_name,
     bam_qc,
     annotation,
-    ):
+):
     dna_pipeline = DNAPipeline(
         analysis_type=analysis_type,
         workdir=workdir,
@@ -38,6 +41,7 @@ def cosap_dna_pipeline_task(
     config = dna_pipeline.run_pipeline()
     return config
 
+
 @shared_task(name="parse_project_results")
 def parse_project_data(path):
     configs = glob.glob(f"{path}/*_config.yaml")
@@ -49,5 +53,5 @@ def parse_project_data(path):
         "qc_coverage_histogram": parser.qc_coverage_histogram,
         "variant_stats": parser.variant_stats,
         "variants": parser.variants,
-        "qc_results": parser.qc_genome_results
+        "qc_results": parser.qc_genome_results,
     }

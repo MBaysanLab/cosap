@@ -1,3 +1,4 @@
+import os
 from copy import copy
 from dataclasses import dataclass, field
 from subprocess import PIPE, STDOUT, Popen
@@ -7,7 +8,6 @@ from ..._formats import FileFormats, OutputFolders
 from ..._pipeline_config import PipelineKeys, VariantCallingKeys
 from ..._utils import join_paths
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
-import os
 
 
 @dataclass
@@ -66,7 +66,7 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
         return config[self.key][self.name][VariantCallingKeys.ALL_VARIANTS_OUTPUT]
 
     def get_config(self) -> Dict:
-        unfiltered_variants_output_filename = FileFormats.GATK_PREFILTER_OUTPUT.format(
+        unfiltered_variants_output_filename = FileFormats.GATK_UNFILTERED_OUTPUT.format(
             identification=self.name
         )
         all_variants_output_filename = FileFormats.ALL_VARIANTS_OUTPUT.format(

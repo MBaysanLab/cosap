@@ -17,7 +17,7 @@ class FileFormats:
     CALIBRATED_INDEXING_OUTPUT: str = r"calibrated_indexed_{identification}.bam"
     ELPREP_CALIBRATION_OUTPUT: str = r"elprep_calibrated_{identification}.bam"
     ALL_VARIANTS_OUTPUT: str = r"all_{identification}.vcf"
-    GATK_PREFILTER_OUTPUT: str = r"all_w_filters_{identification}.vcf"
+    GATK_UNFILTERED_OUTPUT: str = r"all_unfiltered_{identification}.vcf"
     SNP_OUTPUT: str = r"snp_{identification}.vcf"
     INDEL_OUTPUT: str = r"indel_{identification}.vcf"
     OTHER_VARIANTS_OUTPUT: str = r"other_variants_{identification}.vcf"
@@ -66,7 +66,5 @@ class FolderedOutputs:
     ANNOTATING_OUTPUT: str = join_paths(
         OutputFolders.ANNOTATION, "{library}", FileFormats.ANNOTATION_OUTPUT
     )
-    BAMQC_OUTPUT: str = join_paths(
-        OutputFolders.BAMQC, "{library}", "{identification}"
-    )
+    BAMQC_OUTPUT: str = join_paths(OutputFolders.BAMQC, "{library}", "{identification}")
     REGIONS_FILE_OUTPUT: str = join_paths(OutputFolders.TEMP_OUTPUT, "regions")

@@ -1,4 +1,4 @@
-from itertools import product, groupby
+from itertools import groupby, product
 from typing import List, Tuple
 
 from ..pipeline_builder import *
@@ -139,7 +139,9 @@ class DNAPipeline:
 
                 if self.bam_qc is not None:
                     quality_controller_tumor = QualityController(
-                        library=self.bam_qc, input_step=bqsr_tumor, bed_file=self.bed_file
+                        library=self.bam_qc,
+                        input_step=bqsr_tumor,
+                        bed_file=self.bed_file,
                     )
                     self.pipeline.add(quality_controller_tumor)
 

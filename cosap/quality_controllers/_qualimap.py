@@ -1,3 +1,4 @@
+import os
 from subprocess import run
 from typing import Dict, List
 
@@ -5,13 +6,11 @@ from .._config import AppConfig
 from .._library_paths import LibraryPaths
 from .._pipeline_config import QualityControlKeys
 from ._quality_controllers import _QualityControllable, _QualityController
-import os
+
 
 class Qualimap(_QualityController, _QualityControllable):
     @classmethod
-    def _create_qualimap_command(
-        cls, qc_config=Dict, app_config=AppConfig
-    ) -> List:
+    def _create_qualimap_command(cls, qc_config=Dict, app_config=AppConfig) -> List:
 
         MAX_MEMORY_IN_GB = int(AppConfig.MAX_MEMORY_PER_JOBS // (1024.0**3))
 
@@ -34,8 +33,7 @@ class Qualimap(_QualityController, _QualityControllable):
             "-outformat",
             "HTML",
             "--nt",
-            str(app_config.MAX_THREADS_PER_JOB)
-
+            str(app_config.MAX_THREADS_PER_JOB),
         ]
         if bed_file is not None:
             command.extend(["--feature-file", bed_file])

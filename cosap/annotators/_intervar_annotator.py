@@ -18,15 +18,9 @@ class IntervarAnnotator(_Annotatable, _Annotator):
 
         intervar_db = join_paths(library_paths.INTERVAR, "intervardb")
         annovar_db = join_paths(library_paths.ANNOVAR, "humandb38")
-        annotate_variation = join_paths(
-            library_paths.ANNOVAR, "annotate_variation.pl"
-        )
-        table_annovar = join_paths(
-            library_paths.ANNOVAR, "table_annovar.pl"
-        )
-        convert2annovar = join_paths(
-            library_paths.ANNOVAR, "convert2annovar.pl"
-        )
+        annotate_variation = join_paths(library_paths.ANNOVAR, "annotate_variation.pl")
+        table_annovar = join_paths(library_paths.ANNOVAR, "table_annovar.pl")
+        convert2annovar = join_paths(library_paths.ANNOVAR, "convert2annovar.pl")
 
         filtered_input = cls.chr_filter_vcf(input_vcf)
 
@@ -44,7 +38,7 @@ class IntervarAnnotator(_Annotatable, _Annotator):
             annovar_db,
             f"--annotate_variation={annotate_variation}",
             f"--table_annovar={table_annovar}",
-            f"--convert2annovar={convert2annovar}"
+            f"--convert2annovar={convert2annovar}",
         ]
         return command
 

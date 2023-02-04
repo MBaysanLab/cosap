@@ -8,9 +8,9 @@ from ._somaticsniper_variantcaller import SomaticSniperVariantCaller
 from ._strelka_variantcaller import StrelkaVariantCaller
 from ._vardict_variantcaller import VarDictVariantCaller
 from ._variantcallers import _VariantCaller
+from ._varnet_variantcaller import VarNetVariantCaller
 from ._varscan_germline_variantcaller import VarScanGermlineVariantCaller
 from ._varscan_variantcaller import VarScanVariantCaller
-from ._varnet_variantcaller import VarNetVariantCaller
 
 
 class VariantCallerFactory:

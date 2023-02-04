@@ -1,4 +1,5 @@
 import os
+from glob import glob
 from subprocess import run
 from typing import List
 
@@ -6,7 +7,6 @@ from .._config import AppConfig
 from .._formats import FileFormats, FolderedOutputs
 from .._library_paths import LibraryPaths
 from .._utils import join_paths
-from glob import glob
 
 
 def merge_bam_files(bam_list: List, output_path: str):
@@ -31,9 +31,10 @@ def convert_region_file_to_bed(interval_file_path: str):
     ]
     run(command)
 
+
 def create_gatk_intervals(
-    library_path: LibraryPaths, scatter_count: int, output_dir: str
-):  
+    library_path: LibraryPaths, scatter_count: int, output_dir: str, bed_file=None
+):
     command = [
         "gatk",
         "SplitIntervals",
@@ -44,27 +45,33 @@ def create_gatk_intervals(
         "-O",
         output_dir,
     ]
+    if bed_file:
+        command.extend(["-L", bed_file])
     run(command)
 
     for interval_file in os.listdir(output_dir):
-        convert_region_file_to_bed(join_paths(output_dir,interval_file))
+        convert_region_file_to_bed(join_paths(output_dir, interval_file))
 
-def get_region_file_list(file_type="bed") -> list:
+
+def get_region_file_list(file_type="bed", bed_file=None) -> list:
     library_paths = LibraryPaths()
     app_config = AppConfig()
 
     region_files_dir = FolderedOutputs.REGIONS_FILE_OUTPUT
     if not os.path.exists(region_files_dir):
+        os.makedirs(region_files_dir)
         create_gatk_intervals(
             library_path=library_paths,
             scatter_count=app_config.MAX_THREADS_PER_JOB,
             output_dir=region_files_dir,
+            bed_file=bed_file,
         )
-    
+
     interval_files = glob(f"{region_files_dir}/*.{file_type}")
     return interval_files
 
-def split_bam_by_intervals(bam_path: str) -> list:
+
+def split_bam_by_intervals(bam_path: str, bed_file=None) -> list:
     """Splits bam by the number of threads and returns list of names of splitted bams"""
 
     app_config = AppConfig()
@@ -74,7 +81,7 @@ def split_bam_by_intervals(bam_path: str) -> list:
     if int(threads) == 1:
         return bam_path
 
-    interval_files = get_region_file_list()
+    interval_files = get_region_file_list(bed_file=bed_file)
     for interval_index in range(len(interval_files)):
         splitted_bam_filename = FileFormats.SPLITTED_BAM_FILENAME.format(
             split_no=interval_index, name=bam_path.split(".")[0]
@@ -96,18 +103,19 @@ def split_bam_by_intervals(bam_path: str) -> list:
             splitted_bam_filename,
         ]
         run(command)
-
         samtools_index_bam(splitted_bam_filename)
 
     return output_list
 
+
 def samtools_index_bam(path: str):
     app_config = AppConfig()
-    command = [
-        "samtools",
-        "index",
-        "-@",
-        str(app_config.MAX_THREADS_PER_JOB),
-        path
-    ]
+    command = ["samtools", "index", "-@", str(app_config.MAX_THREADS_PER_JOB), path]
     run(command)
+
+
+def create_tmp_filename(filename: str, index: int = 0) -> str:
+    filename_without_extension = os.path.splitext(filename)[0]
+    file_ext = os.path.splitext(filename)[1]
+    tmp_filename = f"{filename_without_extension}.tmp{index}{file_ext}"
+    return tmp_filename
