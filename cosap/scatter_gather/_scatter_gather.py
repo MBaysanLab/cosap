@@ -1,13 +1,14 @@
+import glob
+import os
 from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor
+from itertools import chain, repeat
+from subprocess import run
 
 from .._config import AppConfig
 from .._pipeline_config import PipelineBaseKeys, VariantCallingKeys
-from .utils import split_bam_by_intervals, get_region_file_list, create_tmp_filename
-from itertools import repeat
-from subprocess import run
-from itertools import chain
-import os
+from .utils import (create_tmp_filename, get_region_file_list,
+                    split_bam_by_intervals)
 
 
 class ScatterGather:
@@ -15,6 +16,14 @@ class ScatterGather:
     def split_variantcaller_configs(
         config: dict, bed_file, split_bams: bool = False
     ) -> list[dict]:
+
+        # If the number of threads is not suitable for parellelization, return the original config
+        app_config = AppConfig()
+        threads = app_config.MAX_THREADS_PER_JOB
+
+        if int(threads) == 1:
+            return [config]
+            
         germline_bam = (
             config[VariantCallingKeys.GERMLINE_INPUT]
             if VariantCallingKeys.GERMLINE_INPUT in config.keys()
@@ -45,9 +54,9 @@ class ScatterGather:
         splitted_configs = []
 
         for i in range(len(interval_files)):
-            unfiltered_output_file = create_tmp_filename(config[
-                VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT
-            ],i)
+            unfiltered_output_file = create_tmp_filename(
+                config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT], i
+            )
             snp_output_file = create_tmp_filename(
                 config[VariantCallingKeys.SNP_OUTPUT], i
             )
@@ -94,8 +103,13 @@ class ScatterGather:
 
         command = ["gatk", "MergeVcfs", "-O", output_path]
         command.extend(list(chain(*zip(repeat("-I"), vcfs))))
-        print(command)
         run(command)
+
+    @staticmethod
+    def clean_temp_files(path):
+        temp_files = glob.glob(f"{path}/*tmp*")
+        for tmp in temp_files:
+            os.remove(tmp)
 
     @staticmethod
     def split_bam_process_configs(config: dict) -> list[dict]:

@@ -7,6 +7,7 @@ from .._pipeline_config import VariantCallingKeys
 from ..memory_handler import MemoryHandler
 from ..scatter_gather import ScatterGather
 from ._variantcallers import _Callable, _VariantCaller
+from itertools import repeat, chain
 
 
 class Mutect2VariantCaller(_Callable, _VariantCaller):
@@ -23,21 +24,21 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         germline_bam = None
         if VariantCallingKeys.GERMLINE_INPUT in caller_config.keys():
             germline_input = caller_config[VariantCallingKeys.GERMLINE_INPUT]
-            germline_bam = memory_handler.get_path(germline_input)
-            _ = memory_handler.get_path(germline_input.replace("bam", "bai"))
+            germline_bam = memory_handler.get_path(germline_input, temp=True)
+            _ = memory_handler.get_path(germline_input.replace("bam", "bai"), temp=True)
 
         tumor_bam = None
         if VariantCallingKeys.TUMOR_INPUT in caller_config.keys():
             tumor_input = caller_config[VariantCallingKeys.TUMOR_INPUT]
-            tumor_bam = memory_handler.get_path(tumor_input)
-            _ = memory_handler.get_path(tumor_input.replace("bam", "bai"))
+            tumor_bam = memory_handler.get_path(tumor_input, temp=True)
+            _ = memory_handler.get_path(tumor_input.replace("bam", "bai"), temp=True)
 
         output_name = memory_handler.get_path(
             caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT], load=False
         )
 
         # Load ref fasta and index to the memory,
-        ref_fasta = memory_handler.load_ref_into_mem()
+        ref_fasta = memory_handler.get_ref_fasta_path()
 
         command = [
             "gatk",
@@ -148,12 +149,15 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         return command
 
     @classmethod
-    def _gather_mutect_stats_command(cls, configs: list, output, memory_handler) -> list:
-        stats_files = [
-            f"{cfg[VariantCallingKeys.ALL_VARIANTS_OUTPUT]}.stats" for cfg in configs
-        ]
+    def _gather_mutect_stats_command(cls, configs: list, output) -> list:
+        stats_files = []
+        for cfg in configs:
+            stats_file = f"{cfg[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]}.stats"
+            if os.path.exists(stats_file):
+                stats_files.append(stats_file)
+                
         command = ["gatk", "MergeMutectStats", "-O", output]
-        command.extend([f"--stats {st}" for st in stats_files])
+        command.extend(list(chain(*zip(repeat("--stats"), stats_files))))
         return command
 
     @classmethod
@@ -201,11 +205,10 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             ]
             ScatterGather.run_parallel(run, scattered_commands)
 
-            ScatterGather.gather_vcfs(
-                splitted_configs,
-                output_path=caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT],
-                memory_handler=memory_handler
-            )
+        ScatterGather.gather_vcfs(
+            splitted_configs,
+            output_path=caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT],
+        )
 
         stats_output = (
             f"{caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]}.stats"
@@ -213,7 +216,10 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         gather_stats_command = cls._gather_mutect_stats_command(
             splitted_configs, stats_output
         )
+
         run(gather_stats_command)
+
+        ScatterGather.clean_temp_files(caller_config[VariantCallingKeys.OUTPUT_DIR])
 
         filter_command = cls._filter_mutect_calls(
             caller_config=caller_config, library_paths=library_paths
