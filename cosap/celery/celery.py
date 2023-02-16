@@ -45,7 +45,10 @@ def cosap_dna_pipeline_task(
 @shared_task(name="parse_project_results")
 def parse_project_data(path):
     configs = glob.glob(f"{path}/*_config.yaml")
-    latest_config = max(configs, key=os.path.getctime)
+    latest_config = max(configs, key=os.path.getctime) or None
+    
+    if latest_config is None:
+        raise FileNotFoundError
 
     config_dict = yaml.load(latest_config, Loader=yaml.Loader)
     parser = ProjectResultsParser(pipeline_config=config_dict)
