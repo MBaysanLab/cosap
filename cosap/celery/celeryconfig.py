@@ -1,2 +1,2 @@
-broker_url = "amqp://guest:guest@rabbitmq:5672/vhost"
-result_backend = "redis://redis:6379/0"
+broker_url = "amqp://guest:guest@localhost:5672/vhost"
+result_backend = "redis://localhost:6379/0"

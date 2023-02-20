@@ -86,4 +86,4 @@ class ProjectResultsParser:
             vcf = self.pipeline_config[PipelineKeys.VARIANT_CALLING][
                 list(self.pipeline_config[PipelineKeys.VARIANT_CALLING].keys())[0]
             ][VariantCallingKeys.SNP_OUTPUT]
-        return vcf
+        return join_paths(self.pipeline_workdir, vcf)

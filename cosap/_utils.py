@@ -4,6 +4,7 @@ from subprocess import run
 from typing import List
 
 import pandas as pd
+import json
 
 
 def join_paths(path: str, *paths) -> str:
@@ -46,10 +47,10 @@ def parse_qualimap_genome_results(path: str) -> dict:
 
     results_dict["total_reads"] = d["total_reads"]
     results_dict["mapped_reads"] = d["mapped_reads"]
-    d["percentage_aligned"] = (d["mapped_reads"] / d["total_reads"]) * 100
+    d["percentage_aligned"] = round((d["mapped_reads"] / d["total_reads"]) * 100, 2)
     results_dict["percentage_aligned"] = d["percentage_aligned"]
     results_dict["general_error_rate"] = d["general_error_rate"]
-    results_dict["mean_coverage"] = d["mean_coverage"]
+    results_dict["mean_coverage"] = int(d["mean_coverage"])
 
     return results_dict
 
@@ -94,7 +95,7 @@ def read_vcf_into_df(path: str) -> pd.DataFrame:
 
     with open(path, "r") as f:
         lines = [l for l in f if not l.startswith("##")]
-    return pd.read_csv(
+        df = pd.read_csv(
         io.StringIO("".join(lines)),
         dtype={
             "#CHROM": str,
@@ -109,10 +110,14 @@ def read_vcf_into_df(path: str) -> pd.DataFrame:
         sep="\t",
     ).rename(columns={"#Chr": "Chr", "Ref.Gene": "Gene", "Func.refGene": "Function"})
 
+    df.reset_index(inplace=True)
+    df.rename(columns={"index": "id"}, inplace=True)
+    return df
+
 
 def convert_vcf_to_json(path: str) -> list:
     """
     Returns list of variants as json objects.
     """
     vcf_df = read_vcf_into_df(path)
-    return list(vcf_df.apply(lambda x: x.to_json(), axis=1))
+    return vcf_df.to_dict('records')

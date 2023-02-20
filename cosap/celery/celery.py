@@ -6,6 +6,7 @@ from celery import Celery, shared_task
 
 from ..default_pipelines import DNAPipeline
 from ..parsers import ProjectResultsParser
+from pathlib import Path
 
 celery_app = Celery("cosap")
 celery_app.config_from_object("cosap.celery.celeryconfig")
@@ -45,12 +46,10 @@ def cosap_dna_pipeline_task(
 @shared_task(name="parse_project_results")
 def parse_project_data(path):
     configs = glob.glob(f"{path}/*_config.yaml")
-    latest_config = max(configs, key=os.path.getctime) or None
-    
+    latest_config = max(configs, key=os.path.getctime, default=None)
     if latest_config is None:
         raise FileNotFoundError
-
-    config_dict = yaml.load(latest_config, Loader=yaml.Loader)
+    config_dict = yaml.load(Path(latest_config).read_text(), Loader=yaml.Loader)
     parser = ProjectResultsParser(pipeline_config=config_dict)
     return {
         "qc_coverage_histogram": parser.qc_coverage_histogram,
