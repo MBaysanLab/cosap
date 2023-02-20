@@ -112,7 +112,7 @@ class DNAPipeline:
                         },
                     )
                     mdup_normal = MDUP(input_step=mapper_normal)
-                    bqsr_normal = Recalibrator(input_step=mdup_normal)
+                    bqsr_normal = Recalibrator(input_step=mdup_normal,bed_file=self.bed_file)
 
                     self.pipeline.add(mapper_normal)
                     self.pipeline.add(mdup_normal)
@@ -132,7 +132,7 @@ class DNAPipeline:
                     },
                 )
                 mdup_tumor = MDUP(input_step=mapper_tumor)
-                bqsr_tumor = Recalibrator(input_step=mdup_tumor)
+                bqsr_tumor = Recalibrator(input_step=mdup_tumor,bed_file=self.bed_file)
 
                 self.pipeline.add(mapper_tumor)
                 self.pipeline.add(mdup_tumor)
@@ -193,7 +193,7 @@ class DNAPipeline:
                 },
             )
             mdup_normal = MDUP(input_step=mapper_normal)
-            bqsr_normal = Recalibrator(input_step=mdup_normal)
+            bqsr_normal = Recalibrator(input_step=mdup_normal, bed_file=self.bed_file)
 
             self.pipeline.add(mapper_normal)
             self.pipeline.add(mdup_normal)

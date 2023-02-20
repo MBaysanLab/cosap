@@ -13,6 +13,7 @@ class Recalibrator(_IPipelineStep, _PipelineStep):
     name: str = None
     key: str = PipelineKeys.CALIBRATE
     next_step: _PipelineStep = None
+    bed_file: str = None
 
     def __post_init__(self):
         self.key = PipelineKeys.CALIBRATE
@@ -40,6 +41,8 @@ class Recalibrator(_IPipelineStep, _PipelineStep):
                 BaseRecalibratorKeys.OUTPUT_DIR: OutputFolders.CALIBRATION,
             },
         }
+        if self.bed_file is not None:
+            config[self.name][BaseRecalibratorKeys.BED_FILE] = self.bed_file
         return config
 
     def get_output(self) -> str:
@@ -49,4 +52,5 @@ class Recalibrator(_IPipelineStep, _PipelineStep):
     def get_config(self) -> Dict:
         calibration_config = self._create_config()
         config = {self.key: calibration_config}
+        
         return config

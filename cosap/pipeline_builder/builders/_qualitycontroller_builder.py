@@ -58,5 +58,5 @@ class QualityController(_IPipelineStep, _PipelineStep):
 
     def get_config(self) -> Dict:
         quality_controller_config = self._create_config()
-        config = {PipelineKeys.QUALITY_CONTROL: quality_controller_config}
+        config = {self.key: quality_controller_config}
         return config
