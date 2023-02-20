@@ -10,9 +10,16 @@ from .._utils import join_paths
 class MemoryHandler:
     def __init__(self, path_to_save_on_success):
         self.in_memory_active = AppConfig.IN_MEMORY_MODE
-        if self.in_memory_active:
-            self.dir_on_mem = join_paths(AppConfig.RAMDISK_PATH, str(uuid.uuid1()))
-            self.temp_dir_on_mem = join_paths(AppConfig.RAMDISK_PATH, str(uuid.uuid1()))
+        self.dir_on_mem = (
+            join_paths(AppConfig.RAMDISK_PATH, str(uuid.uuid1()))
+            if self.in_memory_active
+            else None
+        )
+        self.temp_dir_on_mem = (
+            join_paths(AppConfig.RAMDISK_PATH, str(uuid.uuid1()))
+            if self.in_memory_active
+            else None
+        )
         self.path_to_save_on_success = path_to_save_on_success
 
     def __enter__(self):
@@ -29,11 +36,10 @@ class MemoryHandler:
         If in_memory mode is active, load file into ramdisk and return the path,
         if not, return the original path.
         """
-        
-        load_dir = self.temp_dir_on_mem if temp else self.dir_on_mem
         if not self.in_memory_active:
             return path
 
+        load_dir = self.temp_dir_on_mem if temp else self.dir_on_mem
         dirname = os.path.dirname(path)
 
         os.makedirs(join_paths(load_dir, dirname), exist_ok=True)
@@ -56,7 +62,7 @@ class MemoryHandler:
 
         if os.path.exists(file_path_on_ramdisk):
             return file_path_on_ramdisk
-            
+
         shutil.copy(path, file_path_on_ramdisk)
         return file_path_on_ramdisk
 
