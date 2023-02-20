@@ -35,7 +35,7 @@ class AppConfig(metaclass=_AppConfigMeta):
     WORKDIR: str = os.getcwd()
     
     #Set this to True if you are running cosap on a slurm cluster.
-    SLURM_CLUSTER = False or os.environ.get("COSAP_IN_MEMORY_MODE")
+    SLURM_CLUSTER = False or os.environ.get("COSAP_SLURM_CLUSTER_MODE")
     IN_MEMORY_MODE = False or os.environ.get("COSAP_IN_MEMORY_MODE")
 
     if IN_MEMORY_MODE and (RAMDISK_PATH is None):

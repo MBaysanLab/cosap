@@ -9,9 +9,10 @@ from .._utils import join_paths
 
 class MemoryHandler:
     def __init__(self, path_to_save_on_success):
-        self.dir_on_mem = join_paths(AppConfig.RAMDISK_PATH, str(uuid.uuid1()))
-        self.temp_dir_on_mem = join_paths(AppConfig.RAMDISK_PATH, str(uuid.uuid1()))
         self.in_memory_active = AppConfig.IN_MEMORY_MODE
+        if self.in_memory_active:
+            self.dir_on_mem = join_paths(AppConfig.RAMDISK_PATH, str(uuid.uuid1()))
+            self.temp_dir_on_mem = join_paths(AppConfig.RAMDISK_PATH, str(uuid.uuid1()))
         self.path_to_save_on_success = path_to_save_on_success
 
     def __enter__(self):
