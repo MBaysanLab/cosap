@@ -82,14 +82,15 @@ class DNAPipeline:
             )
             self.pipeline.add(trimmer_normal)
 
-        for tumor_sample in self.tumor_samples:
-
+        for i, tumor_sample in enumerate(self.tumor_samples):
+            
+            tumor_sample_name = self.tumor_sample_name[i]
             tumor_sample_reader = [
-                FastqReader(tumor_sample[0], name=self.tumor_sample_name, read=1),
-                FastqReader(tumor_sample[1], name=self.tumor_sample_name, read=2),
+                FastqReader(tumor_sample[0], name=tumor_sample_name, read=1),
+                FastqReader(tumor_sample[1], name=tumor_sample_name, read=2),
             ]
             trimmer_tumor = Trimmer(
-                input_step=tumor_sample_reader, name=self.tumor_sample_name
+                input_step=tumor_sample_reader, name=tumor_sample_name
             )
             self.pipeline.add(trimmer_tumor)
 
@@ -123,7 +124,7 @@ class DNAPipeline:
                     params={
                         "read_groups": {
                             "ID": "0",
-                            "SM": self.tumor_sample_name,
+                            "SM": tumor_sample_name,
                             "PU": "0",
                             "PL": "il",
                             "LB": "0",
@@ -153,7 +154,7 @@ class DNAPipeline:
                         bed_file=self.bed_file,
                         params={
                             "germline_sample_name": self.normal_sample_name,
-                            "tumor_sample_name": self.tumor_sample_name,
+                            "tumor_sample_name": tumor_sample_name,
                         },
                     )
                     self.pipeline.add(variant_caller)
