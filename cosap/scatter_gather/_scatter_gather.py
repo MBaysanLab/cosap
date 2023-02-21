@@ -72,7 +72,6 @@ class ScatterGather:
             all_variants_output_file = create_tmp_filename(
                 config[VariantCallingKeys.ALL_VARIANTS_OUTPUT], i
             )
-            output_dir = config[VariantCallingKeys.OUTPUT_DIR]
 
             cnf = {
                 VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT: unfiltered_output_file,
@@ -81,7 +80,6 @@ class ScatterGather:
                 VariantCallingKeys.INDEL_OUTPUT: indel_output_file,
                 VariantCallingKeys.GVCF_OUTPUT: gvcf_output_file,
                 VariantCallingKeys.OTHER_VARIANTS_OUTPUT: other_variants_output_file,
-                VariantCallingKeys.OUTPUT_DIR: output_dir,
                 VariantCallingKeys.BED_FILE: interval_files[i],
             }
 
@@ -93,6 +91,7 @@ class ScatterGather:
                 cnf[VariantCallingKeys.TUMOR_INPUT] = (
                     bam_pairs[i][1] if split_bams else tumor_bam
                 )
+            cnf = dict(config, **cnf)
             splitted_configs.append(cnf)
 
         return splitted_configs
