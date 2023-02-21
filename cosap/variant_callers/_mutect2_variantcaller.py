@@ -19,7 +19,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         memory_handler: MemoryHandler,
     ) -> list:
 
-        MAX_MEMORY_IN_GB = int(AppConfig.MAX_MEMORY_PER_JOBS // (1024**3))
+        MAX_MEMORY_IN_GB = int(AppConfig.MAX_MEMORY_PER_JOBS // (1024**3)) - 1  
 
         germline_bam = None
         if VariantCallingKeys.GERMLINE_INPUT in caller_config.keys():
