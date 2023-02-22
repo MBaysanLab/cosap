@@ -21,7 +21,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
 
         MAX_MEMORY_IN_GB = (
             int(AppConfig.MAX_MEMORY_PER_JOBS // (1024**3))
-            / AppConfig.MAX_THREADS_PER_JOB
+            // AppConfig.MAX_THREADS_PER_JOB
         )
 
         germline_bam = None
