@@ -11,6 +11,7 @@ picard==2.27.4
 qualimap==2.2.2d
 samtools==1.16.1
 somatic-sniper==1.0.5.0
+octopus
 bcftools==1.16
 tqdm
 varscan==2.4.4
