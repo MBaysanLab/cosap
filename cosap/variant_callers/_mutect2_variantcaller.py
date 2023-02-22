@@ -19,7 +19,10 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         memory_handler: MemoryHandler,
     ) -> list:
 
-        MAX_MEMORY_IN_GB = int(AppConfig.MAX_MEMORY_PER_JOBS // (1024**3)) - 1  
+        MAX_MEMORY_IN_GB = (
+            int(AppConfig.MAX_MEMORY_PER_JOBS // (1024**3))
+            / AppConfig.MAX_THREADS_PER_JOB
+        )
 
         germline_bam = None
         if VariantCallingKeys.GERMLINE_INPUT in caller_config.keys():
@@ -155,7 +158,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             stats_file = f"{cfg[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]}.stats"
             if os.path.exists(stats_file):
                 stats_files.append(stats_file)
-                
+
         command = ["gatk", "MergeMutectStats", "-O", output]
         command.extend(list(chain(*zip(repeat("--stats"), stats_files))))
         return command
@@ -194,7 +197,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             caller_config, bed_file=bed_file
         )
         with MemoryHandler(path_to_save_on_success=os.getcwd()) as memory_handler:
-            
+
             scattered_commands = [
                 cls._create_run_command(
                     caller_config=cfg,
