@@ -5,13 +5,18 @@ from .._config import AppConfig
 from .._library_paths import LibraryPaths
 from .._pipeline_config import MDUPKeys
 from ._preprocessors import _PreProcessable, _Preprocessor
-
+from .._utils import join_paths
+import os
 
 class MarkDuplicate(_Preprocessor, _PreProcessable):
     @classmethod
     def _create_command(
         cls, library_paths: LibraryPaths, app_config: AppConfig, mdup_config: Dict
     ) -> List:
+        
+        tmpdir_dir = join_paths(
+            os.path.dirname(mdup_config[MDUPKeys.OUTPUT]),
+            "tmp")
 
         command = [
             "gatk",
@@ -26,6 +31,8 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
             "--create-output-bam-index",
             "--spark-master",
             f"local[{app_config.MAX_THREADS_PER_JOB}]",
+            "--tmp-dir",
+            tmpdir_dir
         ]
         return command
 
