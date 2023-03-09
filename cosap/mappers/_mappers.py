@@ -11,6 +11,7 @@ class _Mapper(ABC):
             "sort",
             "-@",
             "6",
+            "-n",
             "-o",
             output_path,
             "-",

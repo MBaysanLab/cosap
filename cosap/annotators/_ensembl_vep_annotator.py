@@ -27,17 +27,21 @@ class VepAnnotator(_Annotatable, _Annotator):
             "-o",
             output_vcf,
             "--dir",
+            library_paths.ENSEMBL_VEP,
+            "--dir_cache",
             join_paths(library_paths.ENSEMBL_VEP, "cache"),
             "--fasta",
             library_paths.REF_FASTA,
             "--cache",
             "--offline",
-            "--vcf",
+            "--tab",
             "-e",
             "--fork",
             str(app_config.MAX_THREADS_PER_JOB),
             "--plugin",
             "Phenotypes",
+            "--plugin",
+            "neXtProt"
         ]
         return command
 

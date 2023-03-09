@@ -18,6 +18,8 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
             os.path.dirname(mdup_config[MDUPKeys.OUTPUT]),
             "tmp")
 
+        os.makedirs(tmpdir_dir, exist_ok=True)
+
         command = [
             "gatk",
             "MarkDuplicatesSpark",
