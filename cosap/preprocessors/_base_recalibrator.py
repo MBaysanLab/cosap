@@ -52,6 +52,13 @@ class BaseRecalibrator(_Preprocessor, _PreProcessable):
             "-O",
             calibration_config[BaseRecalibratorKeys.OUTPUT],
         ]
+        bed_file = (
+            calibration_config[BaseRecalibratorKeys.BED_FILE]
+            if BaseRecalibratorKeys.BED_FILE in calibration_config.keys()
+            else None
+        )
+        if bed_file is not None:
+            command.extend(["--intervals", bed_file])
         return command
 
     @classmethod

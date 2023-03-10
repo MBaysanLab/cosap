@@ -88,4 +88,4 @@ class Bowtie2Mapper(_Mapper, _Mappable):
         bowtie = Popen(bowtie_command, stdout=PIPE)
         samtools = check_output(sort_command, stdin=bowtie.stdout)
         bowtie.wait()
-        run(index_command)
+        #run(index_command)
