@@ -71,12 +71,7 @@ rule variant_caller_with_gvcf_output:
 
 rule py2_variant_caller:
     input:
-        germline_bam=lambda wildcards: config[PipelineKeys.VARIANT_CALLING][
-            wildcards.identification
-        ][VariantCallingKeys.GERMLINE_INPUT],
-        tumor_bam=lambda wildcards: config[PipelineKeys.VARIANT_CALLING][
-            wildcards.identification
-        ][VariantCallingKeys.TUMOR_INPUT],
+        bams=get_bams,
     output:
         vcf=FolderedOutputs.VARIANT_CALLING_OUTPUT,
     conda:

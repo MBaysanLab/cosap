@@ -78,6 +78,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         )
         if bed_file is not None:
             command.extend(["--intervals", bed_file])
+
         return command
 
     @classmethod

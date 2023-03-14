@@ -29,7 +29,7 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
             mdup_config[MDUPKeys.OUTPUT],
             "-M",
             f"{mdup_config[MDUPKeys.OUTPUT]}_metrics",
-            "--remove-sequencing-duplicates",
+            "--remove-all-duplicates",
             "--create-output-bam-index",
             "--spark-master",
             f"local[{app_config.MAX_THREADS_PER_JOB}]",
