@@ -83,8 +83,12 @@ class DNAPipeline:
             self.pipeline.add(trimmer_normal)
 
         for i, tumor_sample in enumerate(self.tumor_samples):
-            
-            tumor_sample_name = self.tumor_sample_name[i]
+
+            tumor_sample_name = (
+                self.tumor_sample_name[i]
+                if isinstance(self.tumor_sample_name, list)
+                else self.tumor_sample_name
+            )
             tumor_sample_reader = [
                 FastqReader(tumor_sample[0], name=tumor_sample_name, read=1),
                 FastqReader(tumor_sample[1], name=tumor_sample_name, read=2),
@@ -112,7 +116,9 @@ class DNAPipeline:
                         },
                     )
                     mdup_normal = MDUP(input_step=mapper_normal)
-                    bqsr_normal = Recalibrator(input_step=mdup_normal,bed_file=self.bed_file)
+                    bqsr_normal = Recalibrator(
+                        input_step=mdup_normal, bed_file=self.bed_file
+                    )
 
                     self.pipeline.add(mapper_normal)
                     self.pipeline.add(mdup_normal)
@@ -132,7 +138,7 @@ class DNAPipeline:
                     },
                 )
                 mdup_tumor = MDUP(input_step=mapper_tumor)
-                bqsr_tumor = Recalibrator(input_step=mdup_tumor,bed_file=self.bed_file)
+                bqsr_tumor = Recalibrator(input_step=mdup_tumor, bed_file=self.bed_file)
 
                 self.pipeline.add(mapper_tumor)
                 self.pipeline.add(mdup_tumor)

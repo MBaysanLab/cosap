@@ -1,4 +1,5 @@
 import os
+from itertools import chain, repeat
 from subprocess import run
 
 from .._config import AppConfig
@@ -7,7 +8,6 @@ from .._pipeline_config import VariantCallingKeys
 from ..memory_handler import MemoryHandler
 from ..scatter_gather import ScatterGather
 from ._variantcallers import _Callable, _VariantCaller
-from itertools import repeat, chain
 
 
 class Mutect2VariantCaller(_Callable, _VariantCaller):
@@ -34,7 +34,9 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             tumor_input = caller_config[VariantCallingKeys.TUMOR_INPUT]
             tumor_bam = memory_handler.get_bam_path(tumor_input)
 
-        output_name = memory_handler.get_output_path(caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT])
+        output_name = memory_handler.get_output_path(
+            caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
+        )
 
         ref_fasta = LibraryPaths.REF_FASTA
 

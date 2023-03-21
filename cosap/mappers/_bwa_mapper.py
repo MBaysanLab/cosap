@@ -76,4 +76,4 @@ class BWAMapper(_Mapper, _Mappable):
         bwa = Popen(bwa_command, stdout=PIPE)
         samtools = check_output(sort_command, stdin=bwa.stdout)
         bwa.wait()
-        #run(index_command)
+        # run(index_command)

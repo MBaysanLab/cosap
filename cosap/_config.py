@@ -3,10 +3,10 @@ from __future__ import annotations
 import multiprocessing
 import os
 from dataclasses import dataclass
+from distutils.util import strtobool
 from threading import Lock
 
 import psutil
-from distutils.util import strtobool
 
 from ._utils import join_paths
 

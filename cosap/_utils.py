@@ -1,10 +1,10 @@
+import json
 import os
 import re
 from subprocess import run
 from typing import List
 
 import pandas as pd
-import json
 
 
 def join_paths(path: str, *paths) -> str:
@@ -96,19 +96,21 @@ def read_vcf_into_df(path: str) -> pd.DataFrame:
     with open(path, "r") as f:
         lines = [l for l in f if not l.startswith("##")]
         df = pd.read_csv(
-        io.StringIO("".join(lines)),
-        dtype={
-            "#CHROM": str,
-            "POS": int,
-            "ID": str,
-            "REF": str,
-            "ALT": str,
-            "QUAL": str,
-            "FILTER": str,
-            "INFO": str,
-        },
-        sep="\t",
-    ).rename(columns={"#Chr": "Chr", "Ref.Gene": "Gene", "Func.refGene": "Function"})
+            io.StringIO("".join(lines)),
+            dtype={
+                "#CHROM": str,
+                "POS": int,
+                "ID": str,
+                "REF": str,
+                "ALT": str,
+                "QUAL": str,
+                "FILTER": str,
+                "INFO": str,
+            },
+            sep="\t",
+        ).rename(
+            columns={"#Chr": "Chr", "Ref.Gene": "Gene", "Func.refGene": "Function"}
+        )
 
     df.reset_index(inplace=True)
     df.rename(columns={"index": "id"}, inplace=True)
@@ -120,4 +122,4 @@ def convert_vcf_to_json(path: str) -> list:
     Returns list of variants as json objects.
     """
     vcf_df = read_vcf_into_df(path)
-    return vcf_df.to_dict('records')
+    return vcf_df.to_dict("records")

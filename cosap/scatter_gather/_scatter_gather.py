@@ -23,7 +23,7 @@ class ScatterGather:
 
         if int(threads) == 1:
             return [config]
-            
+
         germline_bam = (
             config[VariantCallingKeys.GERMLINE_INPUT]
             if VariantCallingKeys.GERMLINE_INPUT in config.keys()

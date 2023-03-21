@@ -37,7 +37,7 @@ class VepAnnotator(_Annotatable, _Annotator):
             "--tab",
             "-e",
             "--fork",
-            str(app_config.MAX_THREADS_PER_JOB)
+            str(app_config.MAX_THREADS_PER_JOB),
         ]
         return command
 

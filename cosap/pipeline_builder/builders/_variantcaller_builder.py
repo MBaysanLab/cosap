@@ -12,7 +12,7 @@ from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
 @dataclass
 class VariantCaller(_IPipelineStep, _PipelineStep):
-    PY2_PACKAGES = ["strelka","manta"]
+    PY2_PACKAGES = ["strelka", "manta"]
 
     library: str
     params: dict = field(default_factory=dict)

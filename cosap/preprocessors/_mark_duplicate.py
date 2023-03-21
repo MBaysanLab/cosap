@@ -1,20 +1,24 @@
+import os
 from subprocess import run
 from typing import Dict, List
 
 from .._config import AppConfig
 from .._library_paths import LibraryPaths
 from .._pipeline_config import MDUPKeys
+from .._utils import join_paths
 from ..memory_handler import MemoryHandler
 from ._preprocessors import _PreProcessable, _Preprocessor
-from .._utils import join_paths
-import os
+
 
 class MarkDuplicate(_Preprocessor, _PreProcessable):
     @classmethod
     def _create_command(
-        cls, library_paths: LibraryPaths, app_config: AppConfig, mdup_config: Dict, memory_handler: MemoryHandler
+        cls,
+        library_paths: LibraryPaths,
+        app_config: AppConfig,
+        mdup_config: Dict,
+        memory_handler: MemoryHandler,
     ) -> List:
-        
 
         germline_bam = memory_handler.get_path(mdup_config[MDUPKeys.INPUT])
         tmp_dir = memory_handler.get_temp_dir()
@@ -44,6 +48,9 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
 
         with MemoryHandler(path_to_save_on_success=os.getcwd()) as memory_handler:
             command = cls._create_command(
-                library_paths=library_paths, app_config=app_config, mdup_config=mdup_config, memory_handler=memory_handler
+                library_paths=library_paths,
+                app_config=app_config,
+                mdup_config=mdup_config,
+                memory_handler=memory_handler,
             )
             run(command)

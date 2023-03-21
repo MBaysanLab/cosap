@@ -1,6 +1,7 @@
 from subprocess import call
 
 from ._haplotypecaller_variantcaller import HaplotypeCallerVariantCaller
+from ._manta_variantcaller import MantaVariantCaller
 from ._muse_variantcaller import MuseVariantCaller
 from ._mutect2_variantcaller import Mutect2VariantCaller
 from ._octopus_variantcaller import OctopusVariantCaller
@@ -11,7 +12,6 @@ from ._variantcallers import _VariantCaller
 from ._varnet_variantcaller import VarNetVariantCaller
 from ._varscan_germline_variantcaller import VarScanGermlineVariantCaller
 from ._varscan_variantcaller import VarScanVariantCaller
-from ._manta_variantcaller import MantaVariantCaller
 
 
 class VariantCallerFactory:

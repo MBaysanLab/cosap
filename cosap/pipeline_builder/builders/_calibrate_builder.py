@@ -52,5 +52,5 @@ class Recalibrator(_IPipelineStep, _PipelineStep):
     def get_config(self) -> Dict:
         calibration_config = self._create_config()
         config = {self.key: calibration_config}
-        
+
         return config
