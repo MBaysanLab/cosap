@@ -4,6 +4,7 @@ from typing import Dict, List
 from .._config import AppConfig
 from .._library_paths import LibraryPaths
 from .._pipeline_config import MDUPKeys
+from ..memory_handler import MemoryHandler
 from ._preprocessors import _PreProcessable, _Preprocessor
 from .._utils import join_paths
 import os
@@ -11,20 +12,18 @@ import os
 class MarkDuplicate(_Preprocessor, _PreProcessable):
     @classmethod
     def _create_command(
-        cls, library_paths: LibraryPaths, app_config: AppConfig, mdup_config: Dict
+        cls, library_paths: LibraryPaths, app_config: AppConfig, mdup_config: Dict, memory_handler: MemoryHandler
     ) -> List:
         
-        tmpdir_dir = join_paths(
-            os.path.dirname(mdup_config[MDUPKeys.OUTPUT]),
-            "tmp")
 
-        os.makedirs(tmpdir_dir, exist_ok=True)
+        germline_bam = memory_handler.get_path(mdup_config[MDUPKeys.INPUT])
+        tmp_dir = memory_handler.get_temp_dir()
 
         command = [
             "gatk",
             "MarkDuplicatesSpark",
             "-I",
-            mdup_config[MDUPKeys.INPUT],
+            germline_bam,
             "-O",
             mdup_config[MDUPKeys.OUTPUT],
             "-M",
@@ -34,7 +33,7 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
             "--spark-master",
             f"local[{app_config.MAX_THREADS_PER_JOB}]",
             "--tmp-dir",
-            tmpdir_dir
+            tmp_dir,
         ]
         return command
 
@@ -43,7 +42,8 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
         app_config = AppConfig()
         library_paths = LibraryPaths()
 
-        command = cls._create_command(
-            library_paths=library_paths, app_config=app_config, mdup_config=mdup_config
-        )
-        run(command)
+        with MemoryHandler(path_to_save_on_success=os.getcwd()) as memory_handler:
+            command = cls._create_command(
+                library_paths=library_paths, app_config=app_config, mdup_config=mdup_config, memory_handler=memory_handler
+            )
+            run(command)

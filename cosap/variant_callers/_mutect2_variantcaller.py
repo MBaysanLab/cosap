@@ -27,21 +27,16 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         germline_bam = None
         if VariantCallingKeys.GERMLINE_INPUT in caller_config.keys():
             germline_input = caller_config[VariantCallingKeys.GERMLINE_INPUT]
-            germline_bam = memory_handler.get_path(germline_input, temp=True)
-            _ = memory_handler.get_path(germline_input.replace("bam", "bai"), temp=True)
+            germline_bam = memory_handler.get_bam_path(germline_input)
 
         tumor_bam = None
         if VariantCallingKeys.TUMOR_INPUT in caller_config.keys():
             tumor_input = caller_config[VariantCallingKeys.TUMOR_INPUT]
-            tumor_bam = memory_handler.get_path(tumor_input, temp=True)
-            _ = memory_handler.get_path(tumor_input.replace("bam", "bai"), temp=True)
+            tumor_bam = memory_handler.get_bam_path(tumor_input)
 
-        output_name = memory_handler.get_path(
-            caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT], load=False
-        )
+        output_name = memory_handler.get_output_path(caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT])
 
-        # Load ref fasta and index to the memory,
-        ref_fasta = memory_handler.get_ref_fasta_path()
+        ref_fasta = LibraryPaths.REF_FASTA
 
         command = [
             "gatk",
