@@ -38,6 +38,8 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
             f"local[{app_config.MAX_THREADS_PER_JOB}]",
             "--tmp-dir",
             tmp_dir,
+            "--verbosity",
+            "ERROR"
         ]
         return command
 

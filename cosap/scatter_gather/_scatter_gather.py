@@ -4,9 +4,10 @@ from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor
 from itertools import chain, repeat
 from subprocess import run
+from ..pipeline_builder import VariantCaller
 
 from .._config import AppConfig
-from .._pipeline_config import PipelineBaseKeys, VariantCallingKeys
+from .._pipeline_config import PipelineBaseKeys, VariantCallingKeys, PipelineKeys
 from .utils import (create_tmp_filename, get_region_file_list,
                     split_bam_by_intervals)
 
@@ -14,7 +15,7 @@ from .utils import (create_tmp_filename, get_region_file_list,
 class ScatterGather:
     @staticmethod
     def split_variantcaller_configs(
-        config: dict, bed_file, split_bams: bool = False
+        config: dict, bed_file=None, split_bams: bool = False
     ) -> list[dict]:
 
         # If the number of threads is not suitable for parellelization, return the original config
@@ -49,50 +50,30 @@ class ScatterGather:
             bam_pairs = list(zip(splitted_germline_bams, splitted_tumor_bams))
 
         interval_files = get_region_file_list(
-            file_type="interval_list", bed_file=config[VariantCallingKeys.BED_FILE]
+            file_type="interval_list", bed_file=bed_file
         )
         splitted_configs = []
 
         for i in range(len(interval_files)):
-            unfiltered_output_file = create_tmp_filename(
-                config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT], i
+            tmp_name = f"tmp{i}"
+            variant_caller = VariantCaller(
+                library=config[VariantCallingKeys.LIBRARY],
+                name=tmp_name,
+                bed_file=interval_files[i],
+                params=config[PipelineBaseKeys.PARAMS],
             )
-            snp_output_file = create_tmp_filename(
-                config[VariantCallingKeys.SNP_OUTPUT], i
-            )
-            indel_output_file = create_tmp_filename(
-                config[VariantCallingKeys.INDEL_OUTPUT], i
-            )
-            gvcf_output_file = create_tmp_filename(
-                config[VariantCallingKeys.GVCF_OUTPUT], i
-            )
-            other_variants_output_file = create_tmp_filename(
-                config[VariantCallingKeys.OTHER_VARIANTS_OUTPUT], i
-            )
-            all_variants_output_file = create_tmp_filename(
-                config[VariantCallingKeys.ALL_VARIANTS_OUTPUT], i
-            )
-
-            cnf = {
-                VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT: unfiltered_output_file,
-                VariantCallingKeys.ALL_VARIANTS_OUTPUT: all_variants_output_file,
-                VariantCallingKeys.SNP_OUTPUT: snp_output_file,
-                VariantCallingKeys.INDEL_OUTPUT: indel_output_file,
-                VariantCallingKeys.GVCF_OUTPUT: gvcf_output_file,
-                VariantCallingKeys.OTHER_VARIANTS_OUTPUT: other_variants_output_file,
-                VariantCallingKeys.BED_FILE: interval_files[i],
-            }
+            cfg = variant_caller.get_config()[PipelineKeys.VARIANT_CALLING][tmp_name]
 
             if VariantCallingKeys.GERMLINE_INPUT in config.keys():
-                cnf[VariantCallingKeys.GERMLINE_INPUT] = (
+                cfg[VariantCallingKeys.GERMLINE_INPUT] = (
                     bam_pairs[i][0] if split_bams else germline_bam
                 )
             if VariantCallingKeys.TUMOR_INPUT in config.keys():
-                cnf[VariantCallingKeys.TUMOR_INPUT] = (
+                cfg[VariantCallingKeys.TUMOR_INPUT] = (
                     bam_pairs[i][1] if split_bams else tumor_bam
                 )
-            cnf = dict(config, **cnf)
-            splitted_configs.append(cnf)
+            cfg = dict(config, **cfg)
+            splitted_configs.append(cfg)
 
         return splitted_configs
 

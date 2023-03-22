@@ -17,6 +17,12 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
 
         germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
         tumor_bam = caller_config[VariantCallingKeys.TUMOR_INPUT]
+        bed_file = (
+            caller_config[VariantCallingKeys.BED_FILE]
+            if VariantCallingKeys.BED_FILE in caller_config.keys()
+            else None
+        )
+        intervals_arg = ["--positions", bed_file] if bed_file is not None else []
 
         command = [
             "samtools",
@@ -26,9 +32,12 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
             "1",
             "-f",
             library_paths.REF_FASTA,
+            *intervals_arg,
             germline_bam,
             tumor_bam,
         ]
+
+
         return command
 
     @classmethod

@@ -17,8 +17,8 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
     library: str
     params: dict = field(default_factory=dict)
     germline: str = None
-    tumor: str = None
-    name: str = None
+    tumor: _PipelineStep = None
+    name: _PipelineStep = None
     gvcf: bool = False
     bed_file: str = None
     key: str = PipelineKeys.VARIANT_CALLING
