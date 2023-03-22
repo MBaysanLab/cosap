@@ -2,39 +2,41 @@ import gzip
 import os
 import shutil
 from subprocess import run
-from typing import Dict, List
 
 from .._config import AppConfig
 from .._library_paths import LibraryPaths
 from .._pipeline_config import VariantCallingKeys
 from ._variantcallers import _Callable, _VariantCaller
+from ..memory_handler import MemoryHandler
 
 
 class StrelkaVariantCaller(_Callable, _VariantCaller):
     @classmethod
     def _create_strelka_command(
-        cls, caller_config=Dict, library_paths=LibraryPaths
-    ) -> List:
+        cls, caller_config:dict, library_paths:LibraryPaths, memory_handler:MemoryHandler
+    ) -> tuple[str,list]:
 
         germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
         tumor_bam = caller_config[VariantCallingKeys.TUMOR_INPUT]
+        tmp_dir = memory_handler.get_temp_dir()
 
         command = [
             "configureStrelkaSomaticWorkflow.py",
             f"--tumorBam={tumor_bam}",
             f"--normalBam={germline_bam}",
             f"--referenceFasta={library_paths.REF_FASTA}",
+            f"--runDir={tmp_dir}",
         ]
 
-        return command
+        return tmp_dir, command
 
     @classmethod
     def _create_run_strelka_workflow_command(
-        cls, caller_config=Dict, library_paths=LibraryPaths
-    ) -> List:
+        cls, caller_config:dict, library_paths:LibraryPaths, rundir=str
+    ) -> list:
 
         command = [
-            "StrelkaSomaticWorkflow/runWorkflow.py",
+            f"{rundir}/runWorkflow.py",
             "-m",
             "local",
             "-j",
@@ -43,10 +45,10 @@ class StrelkaVariantCaller(_Callable, _VariantCaller):
         return command
 
     @classmethod
-    def _move_strelka_vcfs(cls, caller_config=Dict, library_paths=LibraryPaths) -> List:
+    def _move_strelka_vcfs(cls, caller_config:dict, library_paths:LibraryPaths, rundir:str) -> list:
 
-        snvs = "StrelkaSomaticWorkflow/results/variants/somatic.snvs.vcf.gz"
-        indels = "StrelkaSomaticWorkflow/results/variants/somatic.indels.vcf.gz"
+        snvs = f"{rundir}/results/variants/somatic.snvs.vcf.gz"
+        indels = f"{rundir}/results/variants/somatic.indels.vcf.gz"
 
         snp_output_filename = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
         indel_output_filename = caller_config[VariantCallingKeys.INDEL_OUTPUT]
@@ -60,17 +62,18 @@ class StrelkaVariantCaller(_Callable, _VariantCaller):
                 shutil.copyfileobj(indel_in, indel_out)
 
     @classmethod
-    def call_variants(cls, caller_config=Dict):
+    def call_variants(cls, caller_config:dict):
         library_paths = LibraryPaths()
 
-        strelka_command = cls._create_strelka_command(
-            caller_config=caller_config, library_paths=library_paths
-        )
-        strelka_run_wf_command = cls._create_run_strelka_workflow_command(
-            caller_config=caller_config, library_paths=library_paths
-        )
+        with MemoryHandler() as memory_handler:
+            rundir, strelka_command = cls._create_strelka_command(
+                caller_config=caller_config, library_paths=library_paths
+            )
+            strelka_run_wf_command = cls._create_run_strelka_workflow_command(
+                caller_config=caller_config, library_paths=library_paths, rundir=rundir
+            )
 
-        run(strelka_command)
-        run(strelka_run_wf_command)
+            run(strelka_command)
+            run(strelka_run_wf_command)
 
-        cls._move_strelka_vcfs(caller_config=caller_config, library_paths=library_paths)
+            cls._move_strelka_vcfs(caller_config=caller_config, library_paths=library_paths, rundir=rundir)

@@ -120,4 +120,4 @@ class DefaultValues:
 
 @dataclass
 class SnakemakeConstraints:
-    PY2_VARIANT_CALLERS: Pattern = ".+_manta"
+    PY2_VARIANT_CALLERS: Pattern = ".+_strelka|.+_manta"
