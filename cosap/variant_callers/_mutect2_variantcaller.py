@@ -38,7 +38,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
         )
 
-        ref_fasta = LibraryPaths.REF_FASTA
+        ref_fasta = library_paths.REF_FASTA
 
         command = [
             "gatk",
@@ -197,7 +197,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         splitted_configs = ScatterGather.split_variantcaller_configs(
             caller_config, bed_file=bed_file
         )
-        with MemoryHandler(path_to_save_on_success=os.getcwd()) as memory_handler:
+        with MemoryHandler() as memory_handler:
 
             scattered_commands = [
                 cls._create_run_command(

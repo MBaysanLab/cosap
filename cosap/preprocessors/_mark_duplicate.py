@@ -46,7 +46,7 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
         app_config = AppConfig()
         library_paths = LibraryPaths()
 
-        with MemoryHandler(path_to_save_on_success=os.getcwd()) as memory_handler:
+        with MemoryHandler() as memory_handler:
             command = cls._create_command(
                 library_paths=library_paths,
                 app_config=app_config,
