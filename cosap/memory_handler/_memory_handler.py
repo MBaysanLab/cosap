@@ -1,9 +1,10 @@
 import os
 import shutil
 import tempfile
-from .._utils import join_paths
-from .._config import AppConfig
 from pathlib import Path
+
+from .._config import AppConfig
+from .._utils import join_paths
 
 
 class MemoryHandler:
@@ -38,7 +39,7 @@ class MemoryHandler:
 
         return tmp_path
 
-    def get_output_path(self, path: str, save_on_close:bool = True) -> str:
+    def get_output_path(self, path: str, save_on_close: bool = True) -> str:
         if not self.in_memory_active:
             return path
 

@@ -6,15 +6,18 @@ from subprocess import run
 from .._config import AppConfig
 from .._library_paths import LibraryPaths
 from .._pipeline_config import VariantCallingKeys
-from ._variantcallers import _Callable, _VariantCaller
 from ..memory_handler import MemoryHandler
+from ._variantcallers import _Callable, _VariantCaller
 
 
 class StrelkaVariantCaller(_Callable, _VariantCaller):
     @classmethod
     def _create_strelka_command(
-        cls, caller_config:dict, library_paths:LibraryPaths, memory_handler:MemoryHandler
-    ) -> tuple[str,list]:
+        cls,
+        caller_config: dict,
+        library_paths: LibraryPaths,
+        memory_handler: MemoryHandler,
+    ) -> tuple[str, list]:
 
         germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
         tumor_bam = caller_config[VariantCallingKeys.TUMOR_INPUT]
@@ -32,7 +35,7 @@ class StrelkaVariantCaller(_Callable, _VariantCaller):
 
     @classmethod
     def _create_run_strelka_workflow_command(
-        cls, caller_config:dict, library_paths:LibraryPaths, rundir=str
+        cls, caller_config: dict, library_paths: LibraryPaths, rundir=str
     ) -> list:
 
         command = [
@@ -45,7 +48,9 @@ class StrelkaVariantCaller(_Callable, _VariantCaller):
         return command
 
     @classmethod
-    def _move_strelka_vcfs(cls, caller_config:dict, library_paths:LibraryPaths, rundir:str) -> list:
+    def _move_strelka_vcfs(
+        cls, caller_config: dict, library_paths: LibraryPaths, rundir: str
+    ) -> list:
 
         snvs = f"{rundir}/results/variants/somatic.snvs.vcf.gz"
         indels = f"{rundir}/results/variants/somatic.indels.vcf.gz"
@@ -62,7 +67,7 @@ class StrelkaVariantCaller(_Callable, _VariantCaller):
                 shutil.copyfileobj(indel_in, indel_out)
 
     @classmethod
-    def call_variants(cls, caller_config:dict):
+    def call_variants(cls, caller_config: dict):
         library_paths = LibraryPaths()
 
         with MemoryHandler() as memory_handler:
@@ -76,4 +81,6 @@ class StrelkaVariantCaller(_Callable, _VariantCaller):
             run(strelka_command)
             run(strelka_run_wf_command)
 
-            cls._move_strelka_vcfs(caller_config=caller_config, library_paths=library_paths, rundir=rundir)
+            cls._move_strelka_vcfs(
+                caller_config=caller_config, library_paths=library_paths, rundir=rundir
+            )

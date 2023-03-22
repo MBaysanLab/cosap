@@ -6,15 +6,18 @@ from subprocess import run
 from .._config import AppConfig
 from .._library_paths import LibraryPaths
 from .._pipeline_config import VariantCallingKeys
-from ._variantcallers import _Callable, _VariantCaller
 from ..memory_handler import MemoryHandler
+from ._variantcallers import _Callable, _VariantCaller
 
 
 class MantaVariantCaller(_Callable, _VariantCaller):
     @classmethod
     def _create_manta_command(
-        cls, caller_config:dict, library_paths:LibraryPaths,memory_handler:MemoryHandler
-    ) -> tuple[str,list]:
+        cls,
+        caller_config: dict,
+        library_paths: LibraryPaths,
+        memory_handler: MemoryHandler,
+    ) -> tuple[str, list]:
 
         tumor_bam = caller_config[VariantCallingKeys.TUMOR_INPUT]
         tmp_dir = memory_handler.get_temp_dir()
@@ -37,7 +40,7 @@ class MantaVariantCaller(_Callable, _VariantCaller):
 
     @classmethod
     def _create_run_manta_workflow_command(
-        cls, caller_config:dict, library_paths:LibraryPaths, rundir=str
+        cls, caller_config: dict, library_paths: LibraryPaths, rundir=str
     ) -> list:
 
         command = [
@@ -50,7 +53,9 @@ class MantaVariantCaller(_Callable, _VariantCaller):
         return command
 
     @classmethod
-    def _move_manta_vcfs(cls, caller_config:dict, library_paths:LibraryPaths, rundir:str) -> list:
+    def _move_manta_vcfs(
+        cls, caller_config: dict, library_paths: LibraryPaths, rundir: str
+    ) -> list:
 
         tumor_sv = f"{rundir}/results/variants/tumorSV.vcf.gz"
 
@@ -61,12 +66,14 @@ class MantaVariantCaller(_Callable, _VariantCaller):
                 shutil.copyfileobj(snv_in, snv_out)
 
     @classmethod
-    def call_variants(cls, caller_config:dict):
+    def call_variants(cls, caller_config: dict):
         library_paths = LibraryPaths()
 
         with MemoryHandler() as memory_handler:
             rundir, manta_command = cls._create_manta_command(
-                caller_config=caller_config, library_paths=library_paths, memory_handler=memory_handler
+                caller_config=caller_config,
+                library_paths=library_paths,
+                memory_handler=memory_handler,
             )
             manta_run_wf_command = cls._create_run_manta_workflow_command(
                 caller_config=caller_config, library_paths=library_paths, rundir=rundir
@@ -75,4 +82,6 @@ class MantaVariantCaller(_Callable, _VariantCaller):
             run(manta_command)
             run(manta_run_wf_command)
 
-            cls._move_manta_vcfs(caller_config=caller_config, library_paths=library_paths, rundir=rundir)
+            cls._move_manta_vcfs(
+                caller_config=caller_config, library_paths=library_paths, rundir=rundir
+            )
