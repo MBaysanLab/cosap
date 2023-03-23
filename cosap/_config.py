@@ -32,7 +32,7 @@ class AppConfig(metaclass=_AppConfigMeta):
     MAX_THREADS_PER_JOB: int = multiprocessing.cpu_count()
 
     # Max memory is (avaliable memory / number of parallel jobs) in bytes
-    MAX_MEMORY_PER_JOBS: int = psutil.virtual_memory().total / (multiprocessing.cpu_count() // MAX_THREADS_PER_JOB)
+    MAX_MEMORY_PER_JOB: int = psutil.virtual_memory().total / (multiprocessing.cpu_count() // MAX_THREADS_PER_JOB)
     WORKDIR: str = os.getcwd()
     
     #Set this to True if you are running cosap on a slurm cluster.

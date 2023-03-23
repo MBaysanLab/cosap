@@ -58,6 +58,7 @@ class QualityControlKeys(PipelineBaseKeys):
 @dataclass
 class SortingKeys(PipelineBaseKeys):
     BAM_DIR: str = "bam-dir"
+    SORTING_METHOD: str = "sort-type"
 
 
 @dataclass

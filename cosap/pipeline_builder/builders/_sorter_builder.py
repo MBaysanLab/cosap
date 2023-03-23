@@ -10,6 +10,7 @@ from ._pipeline_steps import _IPipelineStep, _PipelineStep
 @dataclass
 class Sorter(_IPipelineStep, _PipelineStep):
     input_step: _PipelineStep
+    sorting_method: str = "coordinate"
     params: Dict = None
     name: str = None
     key: str = PipelineKeys.SORTING
@@ -28,6 +29,7 @@ class Sorter(_IPipelineStep, _PipelineStep):
         config = {
             self.name: {
                 SortingKeys.INPUT: filename,
+                SortingKeys.SORTING_METHOD: self.sorting_method,
                 SortingKeys.OUTPUT: output_filename,
                 SortingKeys.PARAMS: self.params,
             }

@@ -12,6 +12,7 @@ class SamtoolsSorter:
     def _create_command(
         cls, sorting_config: Dict, app_config: AppConfig, library_paths: LibraryPaths
     ) -> str:
+        
         command = [
             "samtools",
             "sort",
@@ -21,6 +22,8 @@ class SamtoolsSorter:
             "-o",
             sorting_config[SortingKeys.OUTPUT],
         ]
+        if sorting_config[SortingKeys.SORTING_METHOD] == "name":
+            command.append("-n")
         return command
 
     @classmethod
