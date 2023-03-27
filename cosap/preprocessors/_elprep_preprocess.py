@@ -21,6 +21,8 @@ class ElprepPreprocess(_Preprocessor, _PreProcessable):
             f"{elprep_config[ElprepKeys.OUTPUT]}_metrics",
             "--bqsr",
             elprep_config[ElprepKeys.TABLE],
+            "--known-sites",
+            ",".join([library_paths.DBSNP, library_paths.MILLS_INDEL, library_paths.ONE_THOUSAND_G]),
             "--reference",
             library_paths.REF_ELFASTA,
         ]
