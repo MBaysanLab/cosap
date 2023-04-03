@@ -1,7 +1,7 @@
 openjdk==17.0.3
 python==3.9.15
 bbmap==39.01
-bowtie2==2.5.0
+bowtie2==2.5.1
 bwa==0.7.17
 bwa-mem2==2.2.1
 fastp==0.23.2

@@ -19,6 +19,8 @@ class ElprepPreprocess(_Preprocessor, _PreProcessable):
             "--mark-duplicates",
             "--mark-optical-duplicates",
             f"{elprep_config[ElprepKeys.OUTPUT]}_metrics",
+            "--bqsr",
+            elprep_config[ElprepKeys.TABLE],
             "--reference",
             library_paths.REF_ELFASTA,
         ]
