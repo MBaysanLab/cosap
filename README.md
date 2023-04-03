@@ -187,7 +187,7 @@ pipeline.add(recalibrator_tumor)
 pipeline.add(mutect_caller)
 pipeline.add(annotator)
 ```
-> :warning: **Warning**: You need to add every pipeline step you have created!
+> :warning: You need to add every pipeline step you have created!
 
 `Config` can be created with `.build()`:
 ```python
