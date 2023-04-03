@@ -29,10 +29,10 @@ class AppConfig(metaclass=_AppConfigMeta):
     SNAKEFILE_PATH: str = join_paths(COSAP_PATH, "snakemake_workflows","Snakefile")
     RAMDISK_PATH: str = None or os.getenv("COSAP_RAMDISK_PATH")
 
-    MAX_THREADS_PER_JOB: int = multiprocessing.cpu_count()
+    MAX_THREADS_PER_JOB: int = int(os.getenv("COSAP_THREADS_PER_JOB", multiprocessing.cpu_count()))
 
     # Max memory is (avaliable memory / number of parallel jobs) in bytes
-    MAX_MEMORY_PER_JOB: int = psutil.virtual_memory().total / (multiprocessing.cpu_count() // MAX_THREADS_PER_JOB)
+    MAX_MEMORY_PER_JOBS: int = psutil.virtual_memory().total / (multiprocessing.cpu_count() // MAX_THREADS_PER_JOB)
     WORKDIR: str = os.getcwd()
     
     #Set this to True if you are running cosap on a slurm cluster.

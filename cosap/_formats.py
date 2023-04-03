@@ -61,7 +61,7 @@ class FolderedOutputs:
         OutputFolders.CALIBRATION, FileFormats.CALIBRATION_OUTPUT
     )
     ELPREP_CALIBRATION_OUTPUT: str = join_paths(
-        OutputFolders.CALIBRATION, FileFormats.ELPREP_CALIBRATION_OUTPUT
+        OutputFolders.CALIBRATION, "{library}", FileFormats.ELPREP_CALIBRATION_OUTPUT
     )
     ANNOTATING_OUTPUT: str = join_paths(
         OutputFolders.ANNOTATION, "{library}", FileFormats.ANNOTATION_OUTPUT
