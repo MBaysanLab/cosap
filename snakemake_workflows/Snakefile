@@ -4,7 +4,7 @@ from cosap._pipeline_config import PipelineKeys
 
 include: "rules/mapper.smk"
 include: "rules/preprocess.smk"
-include: "rules/variantcaller.smk"
+include: "rules/callers.smk"
 include: "rules/annotator.smk"
 
 

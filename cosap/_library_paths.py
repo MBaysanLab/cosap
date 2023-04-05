@@ -34,21 +34,8 @@ class _LibraryPaths:
     )
     PHARMCAT_JAR: str = os.path.join(PHARMCAT_DIR, "pharmcat-1.6.0-all")
     VARNET: str = os.path.join(AppConfig.LIBRARY_PATH, "varnet")
-    # PICARD: str = os.path.join(AppConfig.LIBRARY_PATH, "picard.jar")
-    # GATK: str = os.path.join(AppConfig.LIBRARY_PATH, "GenomeAnalysisTK.jar")
-    # GATK4: str = os.path.join(AppConfig.LIBRARY_PATH, "gatk-4.1.0.0", "gatk")
-    # VARSCAN: str = os.path.join(AppConfig.LIBRARY_PATH, "VarScan.v2.3.9.jar")
-    # FASTQC: str = os.path.join(AppConfig.LIBRARY_PATH, "FastQC", "fastqc")
-    # FASTP: str = os.path.join(AppConfig.LIBRARY_PATH, "fastp", "fastp")
-    # STRELKA: str = os.path.join(
-    #     AppConfig.LIBRARY_PATH,
-    #     "strelka-2.9.10.centos6_x86_64",
-    #     "bin",
-    #     "configureStrelkaSomaticWorkflow.py",
-    # )
-    # SOMATICSNIPER: str = os.path.join(
-    #     AppConfig.LIBRARY_PATH, "somatic-sniper", "build", "bin", "bam-somaticsniper"
-    # )
+    GENEFUSE_CANCER_GENE_LIST: str = os.path.join(AppConfig.LIBRARY_PATH, "genefuse_cancer.hg38.csv")
+    MSISENSOR_MICROSATELLITES: str = os.path.join(AppConfig.LIBRARY_PATH, "msisensor_hg38.list")
 
 
 @dataclass

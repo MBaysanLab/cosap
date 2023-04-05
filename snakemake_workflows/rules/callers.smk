@@ -1,11 +1,13 @@
 from typing import List, Dict
 import os
 from cosap.variant_callers._variant_factory import VariantCallerFactory
+from cosap.gene_fusion_callers._gene_fusion_caller_factory import GeneFusionCallerFactory
 from cosap._formats import FolderedOutputs
 from cosap._pipeline_config import (
     VariantCallingKeys,
     PipelineKeys,
     SnakemakeConstraints,
+    GeneFusionCallingKeys
 )
 
 
@@ -80,3 +82,22 @@ rule py2_variant_caller:
         identification=SnakemakeConstraints.PY2_VARIANT_CALLERS,
     script:
         "../scripts/_py2_variantcaller.py"
+
+rule genefusion_caller:
+    input:
+        fastqfiles=lambda wildcards: expand(
+            config[PipelineKeys.GENEFUSION][wildcards.identification][
+                GeneFusionCallingKeys.INPUT
+            ].values()
+        ),
+    output:
+        vcf=FolderedOutputs.GENEFUSION_OUTPUT,
+    run:
+        genefusion_caller = GeneFusionCallerFactory.create(
+            caller_type=config[PipelineKeys.GENEFUSION][wildcards.identification][
+                GeneFusionCallingKeys.LIBRARY
+            ]
+        )
+        genefusion_caller.call(
+            config[PipelineKeys.GENEFUSION][wildcards.identification]
+        )

@@ -27,3 +27,5 @@ snpeff==5.1
 perl-dbi
 perl-lwp-simple
 conda
+msisensor-pro
+genefuse

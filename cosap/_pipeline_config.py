@@ -21,6 +21,7 @@ class PipelineKeys:
     QUALITY_CONTROL: str = "quality_control"
     FINAL_OUTPUT: str = "final-output"
     LOG: str = "log"
+    GENEFUSION: str = "genefusion"
 
 
 @dataclass
@@ -100,6 +101,17 @@ class VariantCallingKeys(PipelineBaseKeys):
     OTHER_VARIANTS_OUTPUT: str = "other_variants_output"
     PILEUPS: str = "pileups"
 
+@dataclass
+class GeneFusionCallingKeys(PipelineBaseKeys):
+    pass
+
+@dataclass
+class MSICallingKeys(PipelineBaseKeys):
+    pass
+
+@dataclass
+class CNVCallingKeys(PipelineBaseKeys):
+    pass
 
 @dataclass
 class AnnotatorKeys(PipelineBaseKeys):

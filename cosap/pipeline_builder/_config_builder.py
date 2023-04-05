@@ -32,6 +32,7 @@ class Pipeline:
             PipelineKeys.VARIANT_CALLING: dict(),
             PipelineKeys.ANNOTATION: dict(),
             PipelineKeys.QUALITY_CONTROL: dict(),
+            PipelineKeys.GENEFUSION: dict(),
             PipelineKeys.FINAL_OUTPUT: list(),
             PipelineKeys.WORKDIR: str,
         }

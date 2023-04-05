@@ -14,3 +14,4 @@ from .preprocessors import *
 from .quality_controllers import *
 from .scatter_gather import *
 from .variant_callers import *
+from .gene_fusion_callers import *

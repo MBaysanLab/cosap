@@ -11,3 +11,4 @@ from ._qualitycontroller_builder import QualityController
 from ._sorter_builder import Sorter
 from ._trimmer_builder import Trimmer
 from ._variantcaller_builder import VariantCaller
+from ._genefusioncaller_builder import GeneFusionCaller
