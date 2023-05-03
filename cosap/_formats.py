@@ -28,6 +28,7 @@ class FileFormats:
     MOSDEPTH_OUTPUT: str = r"{identification}.mosdepth.summary.txt"
     SPLITTED_BAM_FILENAME: str = "{name}_{split_no}.bam"
     GENEFUSION_OUTPUT: str = r"gene_fusion_{identification}.json"
+    MSI_OUTPUT: str = r"msi_{identification}.txt"
 
 
 @dataclass
@@ -43,6 +44,7 @@ class OutputFolders:
     LOG: str = "LOG"
     TEMP_OUTPUT: str = "TEMP"
     GENE_FUSION: str = "GENE_FUSION"
+    MSI: str = "MSI"
 
 
 @dataclass
@@ -71,3 +73,4 @@ class FolderedOutputs:
     BAMQC_OUTPUT: str = join_paths(OutputFolders.BAMQC, "{library}", "{identification}")
     REGIONS_FILE_OUTPUT: str = join_paths(OutputFolders.TEMP_OUTPUT, "regions")
     GENEFUSION_OUTPUT: str = join_paths(OutputFolders.GENE_FUSION, "{library}", FileFormats.GENEFUSION_OUTPUT)
+    MSI_OUTPUT: str = join_paths(OutputFolders.MSI, "{library}", FileFormats.MSI_OUTPUT)

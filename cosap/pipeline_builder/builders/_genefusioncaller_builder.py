@@ -44,9 +44,9 @@ class GeneFusionCaller(_IPipelineStep, _PipelineStep):
 
     def get_output(self) -> str:
         config = self.get_config()
-        return config[PipelineKeys.GENEFUSION][self.name][GeneFusionCallingKeys.OUTPUT]
+        return config[self.key][self.name][GeneFusionCallingKeys.OUTPUT]
 
     def get_config(self) -> Dict:
         genefusion_caller_config = self._create_config()
-        config = {PipelineKeys.GENEFUSION: genefusion_caller_config}
+        config = {self.key: genefusion_caller_config}
         return config

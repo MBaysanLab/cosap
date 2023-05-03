@@ -12,6 +12,6 @@ class GeneFusionCallerFactory:
         if caller_type == cls.GENEFUSE:
             caller = GeneFuse
         else:
-            raise Exception(f"Unknown mapper type: {caller_type}")
+            raise Exception(f"Unknown gene fusion caller type: {caller_type}")
 
         return caller

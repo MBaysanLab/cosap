@@ -68,8 +68,11 @@ class MemoryHandler:
         """
         if not self.in_memory_active:
             tmp_dir = tempfile.TemporaryDirectory()
-
-        tmp_dir = tempfile.TemporaryDirectory(dir=AppConfig.RAMDISK_PATH)
+            #give access to all users
+            os.chmod(tmp_dir.name, 0o777)
+        else:
+            tmp_dir = tempfile.TemporaryDirectory(dir=AppConfig.RAMDISK_PATH)
+            
         self.opened_dirs.append(tmp_dir)
 
         return tmp_dir.name

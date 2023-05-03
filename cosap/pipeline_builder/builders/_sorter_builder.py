@@ -38,9 +38,9 @@ class Sorter(_IPipelineStep, _PipelineStep):
 
     def get_output(self) -> str:
         config = self.get_config()
-        return config[PipelineKeys.SORTING][self.name][SortingKeys.OUTPUT]
+        return config[self.key][self.name][SortingKeys.OUTPUT]
 
     def get_config(self) -> Dict:
         sorter_config = self._create_config()
-        config = {PipelineKeys.SORTING: sorter_config}
+        config = {self.key: sorter_config}
         return config

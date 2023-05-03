@@ -15,3 +15,5 @@ from .quality_controllers import *
 from .scatter_gather import *
 from .variant_callers import *
 from .gene_fusion_callers import *
+from .msi_callers import *
+from .cnv_callers import *

@@ -209,16 +209,15 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             ]
             ScatterGather.run_parallel(run, scattered_commands)
 
+            stats_output = (
+                f"{caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]}.stats"
+            )
+            gather_stats_command = cls._gather_mutect_stats_command(
+                splitted_configs, stats_output
+            )
         ScatterGather.gather_vcfs(
             splitted_configs,
             output_path=caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT],
-        )
-
-        stats_output = (
-            f"{caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]}.stats"
-        )
-        gather_stats_command = cls._gather_mutect_stats_command(
-            splitted_configs, stats_output
         )
 
         run(gather_stats_command)

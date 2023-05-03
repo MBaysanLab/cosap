@@ -1,39 +1,39 @@
-from typing import List, Dict
 import os
 from cosap.variant_callers._variant_factory import VariantCallerFactory
 from cosap.gene_fusion_callers._gene_fusion_caller_factory import GeneFusionCallerFactory
+from cosap.msi_callers._msi_caller_factory import MSICallerFactory
 from cosap._formats import FolderedOutputs
 from cosap._pipeline_config import (
     VariantCallingKeys,
     PipelineKeys,
     SnakemakeConstraints,
-    GeneFusionCallingKeys
+    GeneFusionCallingKeys,
+    MSICallingKeys
 )
 
 
-def get_bams(wildcards):
+def get_bams(wildcards, calling_rule: str) -> list[str]:
     input_bams = []
-    if (
-        VariantCallingKeys.GERMLINE_INPUT
-        in config[PipelineKeys.VARIANT_CALLING][wildcards.identification].keys()
-    ):
-        input_bams.append(
-            config[PipelineKeys.VARIANT_CALLING][wildcards.identification][
+    if "variant_caller" in calling_rule:
+
+        normal_bam = config[PipelineKeys.VARIANT_CALLING][wildcards.identification][
                 VariantCallingKeys.GERMLINE_INPUT
-            ]
-        )
-
-    if (
-        VariantCallingKeys.TUMOR_INPUT
-        in config[PipelineKeys.VARIANT_CALLING][wildcards.identification].keys()
-    ):
-        input_bams.append(
-            config[PipelineKeys.VARIANT_CALLING][wildcards.identification][
+            ] if VariantCallingKeys.GERMLINE_INPUT in config[PipelineKeys.VARIANT_CALLING][wildcards.identification].keys() else None
+        tumor_bam = config[PipelineKeys.VARIANT_CALLING][wildcards.identification][
                 VariantCallingKeys.TUMOR_INPUT
-            ]
-        )
+            ] if VariantCallingKeys.TUMOR_INPUT in config[PipelineKeys.VARIANT_CALLING][wildcards.identification].keys() else None
 
-    return input_bams
+    elif calling_rule == "msi_caller":
+
+        normal_bam = config[PipelineKeys.MSI][wildcards.identification][
+                MSICallingKeys.NORMAL_INPUT
+            ] if MSICallingKeys.NORMAL_INPUT in config[PipelineKeys.MSI][wildcards.identification].keys() else None
+        tumor_bam = config[PipelineKeys.MSI][wildcards.identification][
+                MSICallingKeys.TUMOR_INPUT
+            ] if MSICallingKeys.TUMOR_INPUT in config[PipelineKeys.MSI][wildcards.identification].keys() else None
+
+
+    return [normal_bam, tumor_bam]
 
 
 ruleorder: py2_variant_caller > variant_caller
@@ -41,7 +41,7 @@ ruleorder: py2_variant_caller > variant_caller
 
 rule variant_caller:
     input:
-        bams=get_bams,
+        lambda wildcards: get_bams(wildcards,"variant_caller"),
     output:
         vcf=FolderedOutputs.VARIANT_CALLING_OUTPUT,
     run:
@@ -57,7 +57,7 @@ rule variant_caller:
 
 rule variant_caller_with_gvcf_output:
     input:
-        bams=get_bams,
+        lambda wildcards: get_bams(wildcards,"variant_caller"),
     output:
         gvcf=FileFormats.GVCF_OUTPUT,
     run:
@@ -73,7 +73,7 @@ rule variant_caller_with_gvcf_output:
 
 rule py2_variant_caller:
     input:
-        bams=get_bams,
+        lambda wildcards: get_bams(wildcards,"variant_caller"),
     output:
         vcf=FolderedOutputs.VARIANT_CALLING_OUTPUT,
     conda:
@@ -100,4 +100,19 @@ rule genefusion_caller:
         )
         genefusion_caller.call(
             config[PipelineKeys.GENEFUSION][wildcards.identification]
+        )
+
+rule msi_caller:
+    input:
+        lambda wildcards: get_bams(wildcards,"msi_caller"),
+    output:
+        vcf=FolderedOutputs.MSI_OUTPUT,
+    run:
+        msi_caller = MSICallerFactory.create(
+            caller_type=config[PipelineKeys.MSI][wildcards.identification][
+                MSICallingKeys.LIBRARY
+            ]
+        )
+        msi_caller.call(
+            config[PipelineKeys.MSI][wildcards.identification]
         )
