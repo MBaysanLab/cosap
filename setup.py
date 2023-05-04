@@ -19,6 +19,7 @@ setup(
         "cosap/annotators",
         "cosap/default_pipelines",
         "cosap/quality_controllers",
+        "cosap/memory_handler",
     ],
     license="MIT license",
     entry_points="""
