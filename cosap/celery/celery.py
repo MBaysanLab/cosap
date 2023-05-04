@@ -7,6 +7,7 @@ from celery import Celery, shared_task
 
 from ..default_pipelines import DNAPipeline
 from ..parsers import ProjectResultsParser
+from ..default_pipelines import DNAPipelineInput
 
 celery_app = Celery("cosap")
 celery_app.config_from_object("cosap.celery.celeryconfig")
@@ -21,26 +22,33 @@ def cosap_dna_pipeline_task(
     bed_file,
     mappers,
     variant_callers,
-    normal_sample_name,
-    tumor_sample_name,
     bam_qc,
     annotation,
+    normal_sample_name="normal",
+    tumor_sample_name="tumor",
+    msi=True,
+    gene_fusion=True,
 ):
-    dna_pipeline = DNAPipeline(
-        analysis_type=analysis_type,
-        workdir=workdir,
-        normal_sample=normal_sample,
-        tumor_samples=tumor_samples,
-        bed_file=bed_file,
-        mappers=mappers,
-        variant_callers=variant_callers,
-        normal_sample_name=normal_sample_name,
-        tumor_sample_name=tumor_sample_name,
-        bam_qc=bam_qc,
-        annotation=annotation,
+    dna_pipeline_input = DNAPipelineInput(
+        ANALYSIS_TYPE=analysis_type,
+        WORKDIR=workdir,
+        NORMAL_SAMPLE=normal_sample,
+        TUMOR_SAMPLES=tumor_samples,
+        BED_FILE=bed_file,
+        MAPPERS=mappers,
+        VARIANT_CALLERS=variant_callers,
+        NORMAL_SAMPLE_NAME=normal_sample_name,
+        TUMOR_SAMPLE_NAME=tumor_sample_name,
+        BAM_QC=bam_qc,
+        ANNOTATORS=annotation,
+        MSI=msi,
+        GENEFUSION=gene_fusion,
     )
-    config = dna_pipeline.run_pipeline()
-    return config
+
+    dna_pipeline = DNAPipeline(
+        dna_pipeline_input=dna_pipeline_input,
+    )
+    dna_pipeline.run_pipeline()
 
 
 @shared_task(name="parse_project_results")

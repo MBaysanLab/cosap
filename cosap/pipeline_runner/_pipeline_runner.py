@@ -57,9 +57,9 @@ class PipelineRunner:
 
     def run_pipeline(self, pipeline_config: Dict, runner: str = "snakemake") -> str:
         workdir = pipeline_config[PipelineKeys.WORKDIR]
-        config_yaml_path = join_paths(
+        config_yaml_path = os.path.normpath(join_paths(
             workdir, f"{pipeline_config[PipelineKeys.CREATION_DATE]}_config.yaml"
-        )
+        ))
         self._write_config_to_yaml(config_yaml_path, pipeline_config)
 
         if runner.lower() == "snakemake":

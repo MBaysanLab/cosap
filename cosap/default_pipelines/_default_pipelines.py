@@ -1,6 +1,6 @@
 from itertools import groupby, product
 from typing import List, Tuple
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from ..pipeline_builder import *
 from ..pipeline_runner import PipelineRunner
 
@@ -10,14 +10,16 @@ class DNAPipelineInput:
     ANALYSIS_TYPE: str
     WORKDIR: str
     NORMAL_SAMPLE: tuple[str, str] = None
-    TUMOR_SAMPLES: List[Tuple[str, str]] = None
+    TUMOR_SAMPLES: List[Tuple[str, str]] = field(default_factory=lambda: None)
     BED_FILE: str = None
-    MAPPERS: List[str] = ["bwa2"]
-    VARIANT_CALLERS: List[str] = [""]
-    NORMAL_SAMPLE_NAME = "normal"
-    TUMOR_SAMPLE_NAME = "tumor"
-    BAM_QC = None
-    ANNOTATORS = List[str]
+    MAPPERS: List[str] = field(default_factory=lambda: ["bwa"])
+    VARIANT_CALLERS: List[str] = field(default_factory=lambda: [""])
+    NORMAL_SAMPLE_NAME: str = "normal"
+    TUMOR_SAMPLE_NAME: str = "tumor"
+    BAM_QC: str = None
+    ANNOTATORS: List[str] = field(default_factory=lambda: None)
+    MSI: bool = False
+    GENEFUSION: bool = False
 
     def __post_init__(self):
         if isinstance(self.TUMOR_SAMPLES, tuple):
@@ -48,12 +50,21 @@ class DNAPipeline:
         elif self.input.ANALYSIS_TYPE.lower() == "germline":
             self._create_germline_pipeline()
         else:
-            raise Exception("input.ANALYSIS_TYPE can be either 'somatic' or 'germline'.")
+            raise Exception(
+                "input.ANALYSIS_TYPE can be either 'somatic' or 'germline'."
+            )
 
         self._build_config()
 
     def _get_all_pipeline_combs(self) -> dict:
-        possible_pipelines = list(product(self.input.MAPPERS, self.input.VARIANT_CALLERS))
+
+        """
+        Returns all possible combinations of mappers and variant callers
+        """
+
+        possible_pipelines = list(
+            product(self.input.MAPPERS, self.input.VARIANT_CALLERS)
+        )
         gb_iter = groupby(possible_pipelines, lambda x: x[0])
 
         pipeline_groups = {}
@@ -66,13 +77,16 @@ class DNAPipeline:
     def _create_somatic_pipeline(self):
 
         if self.input.NORMAL_SAMPLE is not None:
-
             normal_sample_reader = [
                 FastqReader(
-                    self.input.NORMAL_SAMPLE[0], name=self.input.NORMAL_SAMPLE_NAME, read=1
+                    self.input.NORMAL_SAMPLE[0],
+                    name=self.input.NORMAL_SAMPLE_NAME,
+                    read=1,
                 ),
                 FastqReader(
-                    self.input.NORMAL_SAMPLE[1], name=self.input.NORMAL_SAMPLE_NAME, read=2
+                    self.input.NORMAL_SAMPLE[1],
+                    name=self.input.NORMAL_SAMPLE_NAME,
+                    read=2,
                 ),
             ]
             trimmer_normal = Trimmer(
@@ -92,8 +106,11 @@ class DNAPipeline:
                 FastqReader(tumor_sample[1], name=tumor_sample_name, read=2),
             ]
 
-            genefusioncaller = GeneFusionCaller(input_step = tumor_sample_reader, library="genefuse")
-            self.pipeline.add(genefusioncaller)
+            if self.input.GENEFUSION:
+                genefusioncaller = GeneFusionCaller(
+                    input_step=tumor_sample_reader, library="genefuse"
+                )
+                self.pipeline.add(genefusioncaller)
 
             trimmer_tumor = Trimmer(
                 input_step=tumor_sample_reader, name=tumor_sample_name
@@ -140,12 +157,20 @@ class DNAPipeline:
                     },
                 )
                 mdup_tumor = MDUP(input_step=mapper_tumor)
-                msicaller = MSICaller(normal=mdup_normal, tumor=mdup_tumor, library="msisensor")
-                bqsr_tumor = Recalibrator(input_step=mdup_tumor, bed_file=self.input.BED_FILE)
+                
+                if self.input.MSI:
+                    msicaller = MSICaller(
+                        normal=mdup_normal, tumor=mdup_tumor, library="msisensor"
+                    )
+                    self.pipeline.add(msicaller)
+
+                bqsr_tumor = Recalibrator(
+                    input_step=mdup_tumor, bed_file=self.input.BED_FILE
+                )
 
                 self.pipeline.add(mapper_tumor)
                 self.pipeline.add(mdup_tumor)
-                self.pipeline.add(msicaller)
+                
                 self.pipeline.add(bqsr_tumor)
 
                 if self.input.BAM_QC is not None:
@@ -169,8 +194,8 @@ class DNAPipeline:
                     )
                     self.pipeline.add(variant_caller)
 
-                    if self.input.ANNOTATION is not None:
-                        for annotator in self.input.ANNOTATION:
+                    if self.input.ANNOTATORS is not None:
+                        for annotator in self.input.ANNOTATORS:
                             ann = Annotator(
                                 input_step=variant_caller, library=annotator
                             )
@@ -179,8 +204,12 @@ class DNAPipeline:
     def _create_germline_pipeline(self):
 
         normal_sample_reader = [
-            FastqReader(self.input.NORMAL_SAMPLE[0], name=self.input.NORMAL_SAMPLE_NAME, read=1),
-            FastqReader(self.input.NORMAL_SAMPLE[1], name=self.input.NORMAL_SAMPLE_NAME, read=2),
+            FastqReader(
+                self.input.NORMAL_SAMPLE[0], name=self.input.NORMAL_SAMPLE_NAME, read=1
+            ),
+            FastqReader(
+                self.input.NORMAL_SAMPLE[1], name=self.input.NORMAL_SAMPLE_NAME, read=2
+            ),
         ]
         trimmer_normal = Trimmer(
             input_step=normal_sample_reader, name=self.input.NORMAL_SAMPLE_NAME
@@ -204,7 +233,9 @@ class DNAPipeline:
                 },
             )
             mdup_normal = MDUP(input_step=mapper_normal)
-            bqsr_normal = Recalibrator(input_step=mdup_normal, bed_file=self.input.BED_FILE)
+            bqsr_normal = Recalibrator(
+                input_step=mdup_normal, bed_file=self.input.BED_FILE
+            )
 
             self.pipeline.add(mapper_normal)
             self.pipeline.add(mdup_normal)
@@ -225,11 +256,9 @@ class DNAPipeline:
                 )
                 self.pipeline.add(variant_caller)
 
-                if self.input.ANNOTATION is not None:
-                    for annotator in self.input.ANNOTATION:
-                        ann = Annotator(
-                            input_step=variant_caller, library=annotator
-                        )
+                if self.input.ANNOTATORS is not None:
+                    for annotator in self.input.ANNOTATORS:
+                        ann = Annotator(input_step=variant_caller, library=annotator)
                         self.pipeline.add(ann)
 
     def _build_config(self):
@@ -239,4 +268,3 @@ class DNAPipeline:
     def run_pipeline(self):
         pipeline_runner = PipelineRunner()
         pipeline_runner.run_pipeline(self.config)
-        return self.config
