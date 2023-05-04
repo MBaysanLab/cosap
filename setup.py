@@ -20,7 +20,7 @@ setup(
         "cosap/default_pipelines",
         "cosap/quality_controllers",
         "cosap/memory_handler",
-        "cosap/genefusion_callers",
+        "cosap/gene_fusion_callers",
         "cosap/celery",
         "cosap/msi_callers",
         "cosap/cnv_callers",
