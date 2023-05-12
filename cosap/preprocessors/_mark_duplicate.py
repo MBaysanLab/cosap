@@ -12,7 +12,7 @@ from ._preprocessors import _PreProcessable, _Preprocessor
 
 class MarkDuplicate(_Preprocessor, _PreProcessable):
     @classmethod
-    def _create_command(
+    def _create_command_spark(
         cls,
         library_paths: LibraryPaths,
         app_config: AppConfig,
@@ -20,14 +20,14 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
         memory_handler: MemoryHandler,
     ) -> List:
 
-        germline_bam = memory_handler.get_path(mdup_config[MDUPKeys.INPUT])
+        input_bam = memory_handler.get_path(mdup_config[MDUPKeys.INPUT])
         tmp_dir = memory_handler.get_temp_dir()
 
         command = [
             "gatk",
             "MarkDuplicatesSpark",
             "-I",
-            germline_bam,
+            input_bam,
             "-O",
             mdup_config[MDUPKeys.OUTPUT],
             "-M",
@@ -39,7 +39,35 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
             "--tmp-dir",
             tmp_dir,
             "--verbosity",
-            "ERROR"
+            "WARNING",
+        ]
+        return command
+
+    @classmethod
+    def _create_command(
+        cls,
+        library_paths: LibraryPaths,
+        app_config: AppConfig,
+        mdup_config: Dict,
+        memory_handler: MemoryHandler,
+    ) -> List:
+
+        input_bam = memory_handler.get_path(mdup_config[MDUPKeys.INPUT])
+        tmp_dir = memory_handler.get_temp_dir()
+
+        command = [
+            "picard",
+            "MarkDuplicates",
+            "--INPUT",
+            input_bam,
+            "--OUTPUT",
+            mdup_config[MDUPKeys.OUTPUT],
+            "--METRICS_FILE",
+            f"{mdup_config[MDUPKeys.OUTPUT]}_metrics",
+            "--REMOVE_DUPLICATES",
+            "true",
+            "--CREATE_INDEX",
+            "true",
         ]
         return command
 
@@ -48,8 +76,14 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
         app_config = AppConfig()
         library_paths = LibraryPaths()
 
+        command_func = (
+            cls._create_command_spark
+            if mdup_config[MDUPKeys.SPARK]
+            else cls._create_command
+        )
+
         with MemoryHandler() as memory_handler:
-            command = cls._create_command(
+            command = cls.command_func(
                 library_paths=library_paths,
                 app_config=app_config,
                 mdup_config=mdup_config,

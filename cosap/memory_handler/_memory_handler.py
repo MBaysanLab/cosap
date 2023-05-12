@@ -32,6 +32,7 @@ class MemoryHandler:
             return path
 
         tmp_path = join_paths(self.temp_dir, os.path.basename(path))
+
         if os.path.exists(tmp_path):
             return tmp_path
         else:
@@ -75,7 +76,7 @@ class MemoryHandler:
             
         self.opened_dirs.append(tmp_dir)
 
-        return tmp_dir.name
+        return os.path.normpath(tmp_dir.name)
 
     def save_tempfiles_to_into_disk(self):
         for tmp_path in self.saving_paths:

@@ -81,6 +81,7 @@ class MergingKeys(PipelineBaseKeys):
 @dataclass
 class MDUPKeys(PipelineBaseKeys):
     METRICS: str = "metrics"
+    SPARK: str = "spark"
 
 
 @dataclass

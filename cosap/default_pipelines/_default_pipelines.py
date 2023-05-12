@@ -18,6 +18,7 @@ class DNAPipelineInput:
     TUMOR_SAMPLE_NAME: str = "tumor"
     BAM_QC: str = None
     ANNOTATORS: List[str] = field(default_factory=lambda: None)
+    GVCF: bool = False
     MSI: bool = False
     GENEFUSION: bool = False
 
@@ -253,6 +254,7 @@ class DNAPipeline:
                     germline=bqsr_normal if self.input.NORMAL_SAMPLE else None,
                     tumor=None,
                     bed_file=self.input.BED_FILE,
+                    gvcf=self.input.GVCF,
                 )
                 self.pipeline.add(variant_caller)
 
