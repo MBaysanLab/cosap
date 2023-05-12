@@ -83,7 +83,7 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
         )
 
         with MemoryHandler() as memory_handler:
-            command = cls.command_func(
+            command = command_func(
                 library_paths=library_paths,
                 app_config=app_config,
                 mdup_config=mdup_config,
