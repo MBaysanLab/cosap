@@ -11,6 +11,7 @@ from ._pipeline_steps import _IPipelineStep, _PipelineStep
 class MDUP(_IPipelineStep, _PipelineStep):
     input_step: _PipelineStep
     name: str = None
+    spark: bool = True
     key: str = PipelineKeys.MDUP
     next_step: _PipelineStep = None
 
@@ -32,6 +33,7 @@ class MDUP(_IPipelineStep, _PipelineStep):
                 MDUPKeys.OUTPUT: join_paths(
                     OutputFolders.PREPROCESSOR, self.key, output_filename
                 ),
+                MDUPKeys.SPARK: self.spark,
                 MDUPKeys.OUTPUT_DIR: join_paths(OutputFolders.PREPROCESSOR, self.key),
             },
         }
