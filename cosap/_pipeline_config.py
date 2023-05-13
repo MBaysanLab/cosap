@@ -23,6 +23,7 @@ class PipelineKeys:
     LOG: str = "log"
     GENEFUSION: str = "genefusion"
     MSI: str = "msi"
+    CNV: str = "cnv"
 
 
 @dataclass
@@ -114,7 +115,9 @@ class MSICallingKeys(PipelineBaseKeys):
 
 @dataclass
 class CNVCallingKeys(PipelineBaseKeys):
-    pass
+    NORMAL_INPUT: str = "normal_input"
+    TUMOR_INPUT: str = "tumor_input"
+    OUTPUT_DIR: str = "output_dir"
 
 @dataclass
 class AnnotatorKeys(PipelineBaseKeys):

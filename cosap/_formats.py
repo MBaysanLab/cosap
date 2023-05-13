@@ -29,6 +29,7 @@ class FileFormats:
     SPLITTED_BAM_FILENAME: str = "{name}_{split_no}.bam"
     GENEFUSION_OUTPUT: str = r"gene_fusion_{identification}.json"
     MSI_OUTPUT: str = r"msi_{identification}.txt"
+    CNV_OUTPUT: str = r"cnv_{identification}.txt"
 
 
 @dataclass
@@ -45,6 +46,7 @@ class OutputFolders:
     TEMP_OUTPUT: str = "TEMP"
     GENE_FUSION: str = "GENE_FUSION"
     MSI: str = "MSI"
+    CNV: str = "CNV"
 
 
 @dataclass
@@ -74,3 +76,4 @@ class FolderedOutputs:
     REGIONS_FILE_OUTPUT: str = join_paths(OutputFolders.TEMP_OUTPUT, "regions")
     GENEFUSION_OUTPUT: str = join_paths(OutputFolders.GENE_FUSION, "{library}", FileFormats.GENEFUSION_OUTPUT)
     MSI_OUTPUT: str = join_paths(OutputFolders.MSI, "{library}", FileFormats.MSI_OUTPUT)
+    CNV_OUTPUT: str = join_paths(OutputFolders.CNV, "{library}", FileFormats.CNV_OUTPUT)

@@ -36,6 +36,8 @@ class _LibraryPaths:
     VARNET: str = os.path.join(AppConfig.LIBRARY_PATH, "varnet")
     GENEFUSE_CANCER_GENE_LIST: str = os.path.join(AppConfig.LIBRARY_PATH, "genefuse_cancer.hg38.csv")
     MSISENSOR_MICROSATELLITES: str = os.path.join(AppConfig.LIBRARY_PATH, "msisensor_hg38.list")
+    CNVKIT_ANNOTATION: str = os.path.join(AppConfig.LIBRARY_PATH, "cnvkit_hg38_refFlat.txt")
+    CNVKIT_ACCESS: str = os.path.join(AppConfig.LIBRARY_PATH, "cnvkit_hg38_access-5kb.bed")
 
 
 @dataclass

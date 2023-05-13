@@ -2,6 +2,7 @@ import os
 from cosap.variant_callers._variant_factory import VariantCallerFactory
 from cosap.gene_fusion_callers._gene_fusion_caller_factory import GeneFusionCallerFactory
 from cosap.msi_callers._msi_caller_factory import MSICallerFactory
+from cosap.cnv_caller._cnv_caller_factory import CNVCallerFactory
 from cosap._formats import FolderedOutputs
 from cosap._pipeline_config import (
     VariantCallingKeys,
@@ -9,6 +10,7 @@ from cosap._pipeline_config import (
     SnakemakeConstraints,
     GeneFusionCallingKeys,
     MSICallingKeys
+    CNVCallingKeys
 )
 
 
@@ -31,6 +33,15 @@ def get_bams(wildcards, calling_rule: str) -> list[str]:
         tumor_bam = config[PipelineKeys.MSI][wildcards.identification][
                 MSICallingKeys.TUMOR_INPUT
             ] if MSICallingKeys.TUMOR_INPUT in config[PipelineKeys.MSI][wildcards.identification].keys() else None
+        
+    elif calling_rule = "cnv_caller":
+
+        normal_bam = config[PipelineKeys.CNV][wildcards.identification][
+                CNVCallingKeys.NORMAL_INPUT
+            ] if CNVCallingKeys.NORMAL_INPUT in config[PipelineKeys.CNV][wildcards.identification].keys() else None
+        tumor_bam = config[PipelineKeys.CNV][wildcards.identification][
+                CNVCallingKeys.TUMOR_INPUT
+            ] if CNVCallingKeys.TUMOR_INPUT in config[PipelineKeys.CNV][wildcards.identification].keys() else None
 
 
     return [normal_bam, tumor_bam]
@@ -115,4 +126,19 @@ rule msi_caller:
         )
         msi_caller.call(
             config[PipelineKeys.MSI][wildcards.identification]
+        )
+
+rule cnv_caller:
+    input:
+        lambda wildcards: get_bams(wildcards,"cnv_caller"),
+    output:
+        vcf=FolderedOutputs.CNV_OUTPUT,
+    run:
+        cnv_caller = CNVCallerFactory.create(
+            caller_type=config[PipelineKeys.CNV][wildcards.identification][
+                CNVCallingKeys.LIBRARY
+            ]
+        )
+        cnv_caller.call(
+            config[PipelineKeys.CNV][wildcards.identification]
         )
