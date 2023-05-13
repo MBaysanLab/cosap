@@ -34,7 +34,7 @@ def get_bams(wildcards, calling_rule: str) -> list[str]:
                 MSICallingKeys.TUMOR_INPUT
             ] if MSICallingKeys.TUMOR_INPUT in config[PipelineKeys.MSI][wildcards.identification].keys() else None
         
-    elif calling_rule = "cnv_caller":
+    elif calling_rule == "cnv_caller":
 
         normal_bam = config[PipelineKeys.CNV][wildcards.identification][
                 CNVCallingKeys.NORMAL_INPUT
