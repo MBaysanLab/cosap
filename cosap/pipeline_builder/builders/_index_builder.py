@@ -10,13 +10,11 @@ from ._pipeline_steps import _IPipelineStep, _PipelineStep
 @dataclass
 class Indexer(_IPipelineStep, _PipelineStep):
     input_step: _PipelineStep
-    name: str = None
     key: str = PipelineKeys.INDEX
     next_step: _PipelineStep = None
 
     def __post_init__(self):
-        if self.name is None:
-            self.name = self.input_step.name
+        self.name = self.input_step.get_output()
 
         self.input_step.next_step = self
 
@@ -29,12 +27,7 @@ class Indexer(_IPipelineStep, _PipelineStep):
         config = {
             self.name: {
                 IndexingKeys.INPUT: filename,
-                IndexingKeys.OUTPUT: join_paths(
-                    OutputFolders.PREPROCESSOR, self.key, output_filename
-                ),
-                IndexingKeys.OUTPUT_DIR: join_paths(
-                    OutputFolders.PREPROCESSOR, self.key
-                ),
+                IndexingKeys.OUTPUT: output_filename,
             }
         }
         return config

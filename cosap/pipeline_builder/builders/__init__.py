@@ -13,3 +13,4 @@ from ._trimmer_builder import Trimmer
 from ._variantcaller_builder import VariantCaller
 from ._genefusioncaller_builder import GeneFusionCaller
 from ._msi_caller_builder import MSICaller
+from ._cnv_caller_builder import CNVCaller
