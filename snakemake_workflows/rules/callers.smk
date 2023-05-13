@@ -9,7 +9,7 @@ from cosap._pipeline_config import (
     PipelineKeys,
     SnakemakeConstraints,
     GeneFusionCallingKeys,
-    MSICallingKeys
+    MSICallingKeys,
     CNVCallingKeys
 )
 
