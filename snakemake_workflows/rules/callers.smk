@@ -2,7 +2,7 @@ import os
 from cosap.variant_callers._variant_factory import VariantCallerFactory
 from cosap.gene_fusion_callers._gene_fusion_caller_factory import GeneFusionCallerFactory
 from cosap.msi_callers._msi_caller_factory import MSICallerFactory
-from cosap.cnv_caller._cnv_caller_factory import CNVCallerFactory
+from cosap.cnv_callers._cnv_caller_factory import CNVCallerFactory
 from cosap._formats import FolderedOutputs
 from cosap._pipeline_config import (
     VariantCallingKeys,
