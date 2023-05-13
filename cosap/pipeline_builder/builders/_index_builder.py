@@ -20,14 +20,10 @@ class Indexer(_IPipelineStep, _PipelineStep):
 
         self.input_step.next_step = self
 
-    def _get_file_prefix(self, filename):
-        return filename.split("_")[0]
-
     def _create_config(self) -> Dict:
         filename = self.input_step.get_output()
-        prefix = self._get_file_prefix(filename)
         output_filename = FileFormats.INDEXING_OUTPUT.format(
-            prefix=prefix, identification=self.name
+            bam_file = filename
         )
 
         config = {

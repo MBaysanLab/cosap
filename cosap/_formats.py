@@ -9,7 +9,7 @@ class FileFormats:
     TRIMMING_REPORT_OUTPUT: str = r"fastq_{identification}.json"
     MAPPING_OUTPUT: str = r"unprocessed_{identification}.bam"
     SORTING_OUTPUT: str = r"sorted_{identification}.bam"
-    INDEXING_OUTPUT: str = r"{prefix}_{identification}.bai"
+    INDEXING_OUTPUT: str = r"{bam_file}.bai"
     MERGING_OUTPUT: str = r"merged_{identification}.bam"
     MDUP_OUTPUT: str = r"mdup_{identification}.bam"
     CALIBRATION_OUTPUT: str = r"calibrated_{identification}.bam"
