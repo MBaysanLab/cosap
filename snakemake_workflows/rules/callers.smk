@@ -36,12 +36,12 @@ def get_bams(wildcards, calling_rule: str) -> list[str]:
         
     elif calling_rule == "cnv_caller":
 
-        normal_bam = config[PipelineKeys.CNV][wildcards.identification][
+        normal_bam = config[PipelineKeys.CNV][wildcards.bam_file][
                 CNVCallingKeys.NORMAL_INPUT
-            ] if CNVCallingKeys.NORMAL_INPUT in config[PipelineKeys.CNV][wildcards.identification].keys() else None
-        tumor_bam = config[PipelineKeys.CNV][wildcards.identification][
+            ] if CNVCallingKeys.NORMAL_INPUT in config[PipelineKeys.CNV][wildcards.bam_file].keys() else None
+        tumor_bam = config[PipelineKeys.CNV][wildcards.bam_file][
                 CNVCallingKeys.TUMOR_INPUT
-            ] if CNVCallingKeys.TUMOR_INPUT in config[PipelineKeys.CNV][wildcards.identification].keys() else None
+            ] if CNVCallingKeys.TUMOR_INPUT in config[PipelineKeys.CNV][wildcards.bam_file].keys() else None
 
 
     return [normal_bam, tumor_bam]
