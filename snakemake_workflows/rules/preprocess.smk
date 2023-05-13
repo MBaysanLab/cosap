@@ -107,11 +107,11 @@ rule bam_sorting:
 
 rule bam_indexing:
     input:
-        bam=lambda wildcards: config[PipelineKeys.INDEX][wildcards.identification][
+        bam=lambda wildcards: config[PipelineKeys.INDEX][wildcards.bam_file][
             IndexingKeys.INPUT
         ],
     output:
         index=FileFormats.INDEXING_OUTPUT,
     run:
         indexer = PreprocessorFactory.create(preprocessor_type="indexer")
-        indexer.run_preprocessor(config[PipelineKeys.INDEX][wildcards.identification])
+        indexer.run_preprocessor(config[PipelineKeys.INDEX][wildcards.bam_file])
