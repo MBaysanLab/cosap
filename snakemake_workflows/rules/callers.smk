@@ -91,7 +91,7 @@ rule deepvariant_variant_caller:
     output:
         vcf=FolderedOutputs.VARIANT_CALLING_OUTPUT,
     conda:
-        "../../environments/deepvariant_environment.yaml"
+        "../../environments/deepvariant_environment.yml"
     wildcard_constraints:
         identification=SnakemakeConstraints.DEEPVARIANT_VARIANT_CALLER,
     script:
