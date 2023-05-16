@@ -37,15 +37,15 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
             self.name = "_".join(name_temp)
 
         # TODO: Read sample names from bam.
-        # if VariantCallingKeys.GERMLINE_SAMPLE_NAME not in self.params and self.germline:
-        #     self.params[
-        #         VariantCallingKeys.GERMLINE_SAMPLE_NAME
-        #     ] = self._get_sample_name_from_bam(self.germline.get_output())
+        if VariantCallingKeys.GERMLINE_SAMPLE_NAME not in self.params and self.germline:
+            self.params[
+                VariantCallingKeys.GERMLINE_SAMPLE_NAME
+            ] = self._get_sample_name_from_bam(self.germline.get_output())
 
-        # if VariantCallingKeys.TUMOR_SAMPLE_NAME not in self.params and self.tumor:
-        #     self.params[
-        #         VariantCallingKeys.TUMOR_SAMPLE_NAME
-        #     ] = self._get_sample_name_from_bam(self.tumor.get_output())
+        if VariantCallingKeys.TUMOR_SAMPLE_NAME not in self.params and self.tumor:
+            self.params[
+                VariantCallingKeys.TUMOR_SAMPLE_NAME
+            ] = self._get_sample_name_from_bam(self.tumor.get_output())
 
         if self.germline:
             self.germline.next_step = self

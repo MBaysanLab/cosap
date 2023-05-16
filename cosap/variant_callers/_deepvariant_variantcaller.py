@@ -15,7 +15,7 @@ class DeepVariantVariantCaller(_Callable, _VariantCaller):
     ):
         
         input_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
-        sample_name = caller_config[VariantCallingKeys.GERMLINE_SAMPLE_NAME]
+        sample_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.GERMLINE_SAMPLE_NAME]
         tmpdir = os.path.dirname(input_bam)
 
         command = [
@@ -42,7 +42,7 @@ class DeepVariantVariantCaller(_Callable, _VariantCaller):
         cls, caller_config: Dict, library_paths: LibraryPaths
     ):
         input_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
-        sample_name = caller_config[VariantCallingKeys.GERMLINE_SAMPLE_NAME]
+        sample_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.GERMLINE_SAMPLE_NAME]
         tmpdir = os.path.dirname(input_bam)
         outfile = os.path.join(tmpdir, f"{sample_name}.tmp")
 
@@ -67,7 +67,7 @@ class DeepVariantVariantCaller(_Callable, _VariantCaller):
     ):
 
         input_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
-        sample_name = caller_config[VariantCallingKeys.GERMLINE_SAMPLE_NAME]
+        sample_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.GERMLINE_SAMPLE_NAME]
         tmpdir = os.path.dirname(input_bam)
         infile = os.path.join(tmpdir, f"{sample_name}.tmp")
         outfile = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
