@@ -10,13 +10,12 @@ from cosap._pipeline_config import (
     SnakemakeConstraints,
     GeneFusionCallingKeys,
     MSICallingKeys,
-    CNVCallingKeys
+    CNVCallingKeys,
 )
-
 
 def get_bams(wildcards, calling_rule: str) -> list[str]:
     input_bams = []
-    if "variant_caller" in calling_rule:
+    if calling_rule == "variant_caller":
 
         normal_bam = config[PipelineKeys.VARIANT_CALLING][wildcards.identification][
                 VariantCallingKeys.GERMLINE_INPUT
@@ -43,8 +42,13 @@ def get_bams(wildcards, calling_rule: str) -> list[str]:
                 CNVCallingKeys.TUMOR_INPUT
             ] if CNVCallingKeys.TUMOR_INPUT in config[PipelineKeys.CNV][wildcards.identification].keys() else None
 
+    if normal_bam:
+        input_bams.append(normal_bam)
+    
+    if tumor_bam:
+        input_bams.append(tumor_bam)
 
-    return [normal_bam, tumor_bam]
+    return input_bams
 
 
 ruleorder: py2_variant_caller > deepvariant_variant_caller > variant_caller
