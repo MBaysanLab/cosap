@@ -21,7 +21,7 @@ class DeepVariantVariantCaller(_Callable, _VariantCaller):
         command = [
             "dv_make_examples.py ",
             "--cores",
-            str(AppConfig.MAX_CORES_PER_JOB),
+            str(AppConfig.MAX_THREADS_PER_JOB),
             "--ref",
             library_paths.REF_FASTA,
             "--reads",
@@ -49,7 +49,7 @@ class DeepVariantVariantCaller(_Callable, _VariantCaller):
         command = [
             "dv_call_variants.py",
             "--cores",
-            str(AppConfig.MAX_CORES_PER_JOB),
+            str(AppConfig.MAX_THREADS_PER_JOB),
             "--outfile",
             outfile,
             "--sample",
