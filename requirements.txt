@@ -29,3 +29,4 @@ perl-lwp-simple
 conda
 msisensor-pro
 genefuse
+deepvariant
