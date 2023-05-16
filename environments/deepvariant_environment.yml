@@ -6,3 +6,5 @@ channels:
 dependencies:
   - python
   - deepvariant
+  - etils
+  - numpy

@@ -19,7 +19,7 @@ class DeepVariantVariantCaller(_Callable, _VariantCaller):
         tmpdir = os.path.dirname(input_bam)
 
         command = [
-            "dv_make_examples.py ",
+            "dv_make_examples.py",
             "--cores",
             str(AppConfig.MAX_THREADS_PER_JOB),
             "--ref",
