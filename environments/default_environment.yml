@@ -14,7 +14,7 @@ dependencies:
   - gatk4
   - octopus==0.6.3b
   - picard
-  - python
+  - python=3.9
   - qualimap
   - samtools
   - somatic-sniper

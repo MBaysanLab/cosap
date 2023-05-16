@@ -1,0 +1,8 @@
+name: cosap_deepvariant
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - python
+  - deepvariant

@@ -47,7 +47,7 @@ def get_bams(wildcards, calling_rule: str) -> list[str]:
     return [normal_bam, tumor_bam]
 
 
-ruleorder: py2_variant_caller > variant_caller
+ruleorder: py2_variant_caller > deepvariant_variant_caller > variant_caller
 
 
 rule variant_caller:
@@ -81,6 +81,17 @@ rule variant_caller_with_gvcf_output:
             config[PipelineKeys.VARIANT_CALLING][wildcards.identification]
         )
 
+rule deepvariant_variant_caller:
+    input:
+        lambda wildcards: get_bams(wildcards,"variant_caller"),
+    output:
+        vcf=FolderedOutputs.VARIANT_CALLING_OUTPUT,
+    conda:
+        "../../environments/deepvariant_environment.yaml"
+    wildcard_constraints:
+        identification=SnakemakeConstraints.DEEPVARIANT_VARIANT_CALLER,
+    script:
+        "../scripts/variantcaller_script.py"
 
 rule py2_variant_caller:
     input:
@@ -92,7 +103,7 @@ rule py2_variant_caller:
     wildcard_constraints:
         identification=SnakemakeConstraints.PY2_VARIANT_CALLERS,
     script:
-        "../scripts/_py2_variantcaller.py"
+        "../scripts/variantcaller_script.py"
 
 rule genefusion_caller:
     input:
