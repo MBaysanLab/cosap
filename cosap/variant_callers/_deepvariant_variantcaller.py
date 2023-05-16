@@ -22,7 +22,8 @@ class DeepVariantVariantCaller(_Callable, _VariantCaller):
         output_name = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
 
         command = [
-            "run_deepvariant",
+            "python",
+            library_paths.DEEPVARIANT_RUNNER,
             "--model_type=WGS",
             f"--ref={library_paths.REF_FASTA}",
             f"--reads={germline_bam}",
