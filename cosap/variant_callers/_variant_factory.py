@@ -12,6 +12,7 @@ from ._variantcallers import _VariantCaller
 from ._varnet_variantcaller import VarNetVariantCaller
 from ._varscan_germline_variantcaller import VarScanGermlineVariantCaller
 from ._varscan_variantcaller import VarScanVariantCaller
+from ._deepvariant_variantcaller import DeepVariantVariantCaller
 
 
 class VariantCallerFactory:
@@ -26,6 +27,7 @@ class VariantCallerFactory:
     VARSCAN_GERMLINE_CALLER = "varscan_germline"
     VARNET = "varnet"
     MANTA = "manta"
+    DEEPVARIANT = "deepvariant"
 
     @classmethod
     def create(cls, caller_type: str) -> _VariantCaller:
@@ -53,6 +55,8 @@ class VariantCallerFactory:
             caller = VarNetVariantCaller
         elif caller_type == cls.MANTA:
             caller = MantaVariantCaller
+        elif caller_type == cls.DEEPVARIANT:
+            caller = DeepVariantVariantCaller
         else:
             raise Exception(f"Unknown caller type: {caller_type}")
 

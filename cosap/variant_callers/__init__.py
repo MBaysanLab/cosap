@@ -7,3 +7,7 @@ from ._vardict_variantcaller import VarDictVariantCaller
 from ._variant_factory import VariantCallerFactory
 from ._varnet_variantcaller import VarNetVariantCaller
 from ._varscan_variantcaller import VarScanVariantCaller
+from ._deepvariant_variantcaller import DeepVariantVariantCaller
+from ._manta_variantcaller import MantaVariantCaller
+from ._haplotypecaller_variantcaller import HaplotypeCallerVariantCaller
+from ._varscan_germline_variantcaller import VarScanGermlineVariantCaller
