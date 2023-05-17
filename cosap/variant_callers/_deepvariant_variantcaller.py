@@ -19,7 +19,8 @@ class DeepVariantVariantCaller(_Callable, _VariantCaller):
         tmpdir = os.path.dirname(input_bam)
 
         command = [
-            "dv_make_examples.py",
+            "python",
+            library_paths.DEEPVARIANT_MAKE_EXAMPLES,
             "--cores",
             str(AppConfig.MAX_THREADS_PER_JOB),
             "--ref",
@@ -47,7 +48,8 @@ class DeepVariantVariantCaller(_Callable, _VariantCaller):
         outfile = os.path.join(tmpdir, f"{sample_name}.tmp")
 
         command = [
-            "dv_call_variants.py",
+            "python",
+            library_paths.DEEPVARIANT_CALL_VARIANTS,
             "--cores",
             str(AppConfig.MAX_THREADS_PER_JOB),
             "--outfile",
@@ -75,7 +77,8 @@ class DeepVariantVariantCaller(_Callable, _VariantCaller):
         gvcf_outfile = caller_config[VariantCallingKeys.GVCF_OUTPUT]
 
         command = [
-            "dv_postprocess_variants.py",
+            "python",
+            library_paths.DEEPVARIANT_POSTPROCESS_VARIANTS,
             "--ref",
             library_paths.REF_FASTA,
             "--infile",
