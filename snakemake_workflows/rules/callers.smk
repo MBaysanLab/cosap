@@ -51,7 +51,7 @@ def get_bams(wildcards, calling_rule: str) -> list[str]:
     return input_bams
 
 
-ruleorder: py2_variant_caller > deepvariant_variant_caller > variant_caller
+ruleorder: py2_variant_caller > variant_caller
 
 
 rule variant_caller:
@@ -84,18 +84,6 @@ rule variant_caller_with_gvcf_output:
         variant_caller.call_variants(
             config[PipelineKeys.VARIANT_CALLING][wildcards.identification]
         )
-
-rule deepvariant_variant_caller:
-    input:
-        lambda wildcards: get_bams(wildcards,"variant_caller"),
-    output:
-        vcf=FolderedOutputs.VARIANT_CALLING_OUTPUT,
-    conda:
-        "../../environments/deepvariant_environment.yml"
-    wildcard_constraints:
-        identification=SnakemakeConstraints.DEEPVARIANT_VARIANT_CALLER,
-    script:
-        "../scripts/variantcaller_script.py"
 
 rule py2_variant_caller:
     input:

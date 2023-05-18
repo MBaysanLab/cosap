@@ -32,3 +32,6 @@ dependencies:
   - snpeff
   - perl-dbi
   - perl-lwp-simple
+  - conda
+  - msisensor-pro
+  - genefuse

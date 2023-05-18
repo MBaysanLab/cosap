@@ -40,12 +40,12 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
         if VariantCallingKeys.GERMLINE_SAMPLE_NAME not in self.params and self.germline:
             self.params[
                 VariantCallingKeys.GERMLINE_SAMPLE_NAME
-            ] = self._get_sample_name_from_bam(self.germline.get_output())
+            ] = "normal"
 
         if VariantCallingKeys.TUMOR_SAMPLE_NAME not in self.params and self.tumor:
             self.params[
                 VariantCallingKeys.TUMOR_SAMPLE_NAME
-            ] = self._get_sample_name_from_bam(self.tumor.get_output())
+            ] = "tumor"
 
         if self.germline:
             self.germline.next_step = self
