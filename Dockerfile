@@ -30,6 +30,10 @@ RUN echo >> $OPT/.profile && \
     echo PATH=$PATH:\$PATH >> $OPT/.profile && \
     echo export PATH >> $OPT/.profile
 
+# Install DeepVariant
+COPY --from=google/deepvariant ./opt/deepvariant/. /opt/deepvariant/.
+COPY --from=google/deepvariant ./opt/models/. /opt/models/.
+ENV PATH="${PATH}":/opt/conda/bin:/opt/conda/envs/bio/bin:/opt/deepvariant/bin
 
 # Install COSAP
 COPY requirements.txt /tmp/requirements.txt

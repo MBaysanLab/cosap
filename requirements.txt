@@ -29,3 +29,5 @@ perl-lwp-simple
 conda
 msisensor-pro
 genefuse
+absl-py
+tensorflow

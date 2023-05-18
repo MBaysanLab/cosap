@@ -38,9 +38,6 @@ class _LibraryPaths:
     MSISENSOR_MICROSATELLITES: str = os.path.join(AppConfig.LIBRARY_PATH, "msisensor_hg38.list")
     CNVKIT_ANNOTATION: str = os.path.join(AppConfig.LIBRARY_PATH, "cnvkit_hg38_refFlat.txt")
     CNVKIT_ACCESS: str = os.path.join(AppConfig.LIBRARY_PATH, "cnvkit_hg38_access-5kb.bed")
-    DEEPVARIANT_MAKE_EXAMPLES: str = os.path.join(AppConfig.LIBRARY_PATH, "deepvariant", "make_examples.zip")
-    DEEPVARIANT_CALL_VARIANTS: str = os.path.join(AppConfig.LIBRARY_PATH, "deepvariant", "call_variants.zip")
-    DEEPVARIANT_POSTPROCESS_VARIANTS: str = os.path.join(AppConfig.LIBRARY_PATH, "deepvariant", "postprocess_variants.zip")
 
 
 @dataclass
