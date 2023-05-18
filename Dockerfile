@@ -33,7 +33,6 @@ RUN echo >> $OPT/.profile && \
 # Install DeepVariant
 COPY --from=google/deepvariant ./opt/deepvariant/. /opt/deepvariant/
 COPY --from=google/deepvariant ./opt/models/. /opt/models/
-COPY --from=google/deepvariant ./opt/conda/. /opt/conda/
 ENV PATH=$PATH:/opt/conda/bin:/opt/conda/envs/bio/bin:/opt/deepvariant/bin
 
 
