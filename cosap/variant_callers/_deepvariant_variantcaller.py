@@ -10,103 +10,27 @@ from ._variantcallers import _Callable, _VariantCaller
 
 class DeepVariantVariantCaller(_Callable, _VariantCaller):
     @classmethod
-    def create_make_examples_command(
+    def create_run_deepvariant_command(
         cls, caller_config: Dict, library_paths: LibraryPaths
     ):
         
         input_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
-        sample_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.GERMLINE_SAMPLE_NAME]
-        tmpdir = os.path.dirname(input_bam)
+        output_vcf = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
+        output_gvcf = caller_config[VariantCallingKeys.GVCF_OUTPUT]
 
         command = [
-            "python",
-            library_paths.DEEPVARIANT_MAKE_EXAMPLES,
-            "--cores",
-            str(AppConfig.MAX_THREADS_PER_JOB),
-            "--ref",
-            library_paths.REF_FASTA,
-            "--reads",
-            input_bam,
-            "--sample",
-            sample_name,
-            "--examples",
-            tmpdir,
-            "--logdir",
-            tmpdir,
-            "--gvcf",
-            tmpdir
+            "run_deepvariant",
+            "--model_type=WGS",
+            f"--ref={library_paths.REF_FASTA}",
+            f"--reads={input_bam}",
+            f"--output_vcf={output_vcf}",
+            f"--output_gvcf={output_gvcf}",
+            f"--num_shards={AppConfig.MAX_THREADS_PER_JOB}",
         ]
         return command
-
-    @classmethod
-    def create_call_variants_command(
-        cls, caller_config: Dict, library_paths: LibraryPaths
-    ):
-        input_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
-        sample_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.GERMLINE_SAMPLE_NAME]
-        tmpdir = os.path.dirname(input_bam)
-        outfile = os.path.join(tmpdir, f"{sample_name}.tmp")
-
-        command = [
-            "python",
-            library_paths.DEEPVARIANT_CALL_VARIANTS,
-            "--cores",
-            str(AppConfig.MAX_THREADS_PER_JOB),
-            "--outfile",
-            outfile,
-            "--sample",
-            sample_name,
-            "--examples",
-            tmpdir,
-            "--model",
-            "wgs"
-        ]
-        return command
-
-    @classmethod
-    def create_postprocess_variants_command(
-        cls, caller_config: Dict, library_paths: LibraryPaths
-    ):
-
-        input_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
-        sample_name = caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.GERMLINE_SAMPLE_NAME]
-        tmpdir = os.path.dirname(input_bam)
-        infile = os.path.join(tmpdir, f"{sample_name}.tmp")
-        outfile = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
-        gvcf_infile = os.path.join(tmpdir, f"{sample_name}.gvcf.tfrecord@{AppConfig.MAX_THREADS_PER_JOB}.gz")
-        gvcf_outfile = caller_config[VariantCallingKeys.GVCF_OUTPUT]
-
-        command = [
-            "python",
-            library_paths.DEEPVARIANT_POSTPROCESS_VARIANTS,
-            "--ref",
-            library_paths.REF_FASTA,
-            "--infile",
-            infile,
-            "--outfile",
-            outfile,
-            "--gvcf_infile",
-            gvcf_infile,
-            "--gvcf_outfile",
-            gvcf_outfile,
-            ]
-    
-        return command
-
 
     @classmethod
     def call_variants(cls, caller_config: Dict):
         library_paths = LibraryPaths()
-
-        make_examples_command = cls.create_make_examples_command(
-            caller_config, library_paths
-        )
-        call_variants_command = cls.create_call_variants_command(
-            caller_config, library_paths
-        )
-        postprocess_variants_command = cls.create_postprocess_variants_command(
-            caller_config, library_paths
-        )
-        run(make_examples_command)
-        run(call_variants_command)
-        run(postprocess_variants_command)
+        command = cls.create_run_deepvariant_command(caller_config, library_paths)
+        run(command)
