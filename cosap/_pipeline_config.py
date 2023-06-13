@@ -92,6 +92,7 @@ class BaseRecalibratorKeys(PipelineBaseKeys):
 
 @dataclass
 class VariantCallingKeys(PipelineBaseKeys):
+    OUTPUT_TYPE: str = "output_type"
     GERMLINE_INPUT: str = "normal_input"
     TUMOR_INPUT: str = "tumor_input"
     GERMLINE_SAMPLE_NAME: str = "germline_sample_name"

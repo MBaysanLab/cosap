@@ -112,6 +112,7 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
                 VariantCallingKeys.OUTPUT_DIR: join_paths(
                     OutputFolders.VARIANT_CALLING, self.library
                 ),
+                VariantCallingKeys.OUTPUT_TYPE: "VCF" if not self.gvcf else "GVCF",
             },
         }
 

@@ -78,10 +78,20 @@ class ScatterGather:
         return splitted_configs
 
     @staticmethod
-    def gather_vcfs(configs: list, output_path):
+    def gather_vcfs(configs: list, output_path, mode="vcf"):
+
+        GVCF_MODE = "gvcf"
+        VCF_MODE = "vcf"
+
         vcfs = [cfg[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT] for cfg in configs]
 
-        command = ["gatk", "MergeVcfs", "-O", output_path]
+        if mode.lower() == VCF_MODE:
+            command = ["gatk", "MergeVcfs", "-O", output_path]
+        elif mode.lower() == GVCF_MODE:
+            command = ["gatk", "SortVcf", "-O", output_path]
+        else:
+            raise ValueError(f"Mode {mode} not supported")
+        
         command.extend(list(chain(*zip(repeat("-I"), vcfs))))
         run(command)
 

@@ -5,6 +5,7 @@ from pathlib import Path
 
 from .._config import AppConfig
 from .._utils import join_paths
+from glob import glob
 
 
 class MemoryHandler:
@@ -58,8 +59,9 @@ class MemoryHandler:
         """
 
         bam_path = self.get_path(path)
-        _ = self.get_path(path.replace(".bam", ".bai"))
-
+        #get index path along with bam path. the index can be either in form of .bai or .bam.bai
+        bai_path = glob(os.path.basename(bam_path) + "*.bai")[0]
+        _ = self.get_path(bai_path)
         return bam_path
 
     def get_temp_dir(self, dir=None) -> str:

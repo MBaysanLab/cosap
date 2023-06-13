@@ -7,18 +7,21 @@ from .._library_paths import LibraryPaths
 from .._pipeline_config import VariantCallingKeys
 from ..scatter_gather import ScatterGather
 from ._variantcallers import _Callable, _VariantCaller
+from ..memory_handler import MemoryHandler
 
 
 class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
     @classmethod
     def _create_run_command(
-        cls, caller_config: Dict, library_paths: LibraryPaths
+        cls, caller_config: Dict, library_paths: LibraryPaths, memory_handler: MemoryHandler
     ) -> List:
 
         MAX_MEMORY_IN_GB = int(AppConfig.MAX_MEMORY_PER_JOBS // (1024.0**3))
 
-        germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
-        output_name = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
+        germline_bam = memory_handler.get_bam_path(caller_config[VariantCallingKeys.GERMLINE_INPUT])
+        output_name = memory_handler.get_output_path(
+            caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
+        )
 
         command = [
             "gatk",
@@ -31,9 +34,10 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
             germline_bam,
             "-O",
             output_name,
-            "-ERC",
-            "GVCF",
         ]
+        if caller_config[VariantCallingKeys.OUTPUT_TYPE] == "GVCF":
+            command.append("--emit-ref-confidence")
+            command.append("GVCF")
         return command
 
     @classmethod
@@ -164,12 +168,42 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
     def call_variants(cls, caller_config: Dict):
         library_paths = LibraryPaths()
 
-        # splitted_configs = ScatterGather.split_variantcaller_configs(caller_config)
-
-        haplotypecaller_command = cls._create_run_command(
-            caller_config=caller_config,
-            library_paths=library_paths,
+        bed_file = (
+            caller_config[VariantCallingKeys.BED_FILE]
+            if VariantCallingKeys.BED_FILE in caller_config.keys()
+            else None
         )
+        splitted_configs = ScatterGather.split_variantcaller_configs(
+            caller_config, bed_file=bed_file
+        )
+
+        with MemoryHandler() as memory_handler:
+
+            scattered_commands = [
+                cls._create_run_command(
+                    caller_config=cfg,
+                    library_paths=library_paths,
+                    memory_handler=memory_handler,
+                )
+                for cfg in splitted_configs
+            ]
+            ScatterGather.run_parallel(run, scattered_commands)
+
+        ScatterGather.gather_vcfs(
+            splitted_configs,
+            output_path=caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT],
+            mode=caller_config[VariantCallingKeys.OUTPUT_TYPE],
+        )
+
+        ScatterGather.clean_temp_files(caller_config[VariantCallingKeys.OUTPUT_DIR])
+
+        cnnscorevariants_command = cls._create_cnnscorevariants_command(
+            caller_config=caller_config, library_paths=library_paths
+        )
+        filter_variants_command = cls._create_filter_variants_command(
+            caller_config=caller_config, library_paths=library_paths
+        )
+
         get_snp_command = cls._create_get_snp_variants_command(
             caller_config=caller_config, library_paths=library_paths
         )
@@ -180,7 +214,8 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
             caller_config=caller_config, library_paths=library_paths
         )
 
-        run(haplotypecaller_command)
+        run(cnnscorevariants_command)
+        run(filter_variants_command)
         run(get_snp_command)
         run(get_indel_command)
         run(get_other_variants_command)
