@@ -62,13 +62,13 @@ class MemoryHandler:
 
         return bam_path
 
-    def get_temp_dir(self) -> str:
+    def get_temp_dir(self, dir=None) -> str:
         """
         If in_memory mode is active, create a temporary directory and return the path,
         if not, return the original path.
         """
         if not self.in_memory_active:
-            tmp_dir = tempfile.TemporaryDirectory()
+            tmp_dir = tempfile.TemporaryDirectory(dir=dir)
             #give access to all users
             os.chmod(tmp_dir.name, 0o777)
         else:

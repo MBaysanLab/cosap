@@ -21,7 +21,7 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
     ) -> List:
 
         input_bam = memory_handler.get_path(mdup_config[MDUPKeys.INPUT])
-        tmp_dir = memory_handler.get_temp_dir()
+        tmp_dir = memory_handler.get_temp_dir(dir=os.path.dirname(MDUPKeys.OUTPUT))
 
         command = [
             "gatk",
@@ -53,7 +53,7 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
     ) -> List:
 
         input_bam = memory_handler.get_path(mdup_config[MDUPKeys.INPUT])
-        tmp_dir = memory_handler.get_temp_dir()
+        tmp_dir = memory_handler.get_temp_dir(dir=os.path.dirname(MDUPKeys.OUTPUT))
 
         command = [
             "picard",
@@ -68,6 +68,8 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
             "true",
             "--CREATE_INDEX",
             "true",
+            "--TMP_DIR",
+            tmp_dir,
         ]
         return command
 
