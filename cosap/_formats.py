@@ -51,8 +51,11 @@ class OutputFolders:
 
 @dataclass
 class FolderedOutputs:
-    VARIANT_CALLING_OUTPUT: str = join_paths(
+    VARIANT_CALLING_VCF_OUTPUT: str = join_paths(
         OutputFolders.VARIANT_CALLING, "{library}", FileFormats.ALL_VARIANTS_OUTPUT
+    )
+    VARIANT_CALLING_GVCF_OUTPUT: str = join_paths(
+        OutputFolders.VARIANT_CALLING, "{library}", FileFormats.GVCF_OUTPUT
     )
     MAPPING_OUTPUT: str = join_paths(
         OutputFolders.MAPPING, "{library}", FileFormats.MAPPING_OUTPUT

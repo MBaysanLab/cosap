@@ -13,14 +13,23 @@ from ..memory_handler import MemoryHandler
 class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
     @classmethod
     def _create_run_command(
-        cls, caller_config: Dict, library_paths: LibraryPaths, memory_handler: MemoryHandler
+        cls,
+        caller_config: Dict,
+        library_paths: LibraryPaths,
+        memory_handler: MemoryHandler,
     ) -> List:
-
         MAX_MEMORY_IN_GB = int(AppConfig.MAX_MEMORY_PER_JOBS // (1024.0**3))
 
-        germline_bam = memory_handler.get_bam_path(caller_config[VariantCallingKeys.GERMLINE_INPUT])
-        output_name = memory_handler.get_output_path(
+        germline_bam = memory_handler.get_bam_path(
+            caller_config[VariantCallingKeys.GERMLINE_INPUT]
+        )
+        output_file = (
             caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
+            if caller_config[VariantCallingKeys.OUTPUT_TYPE] == "VCF"
+            else caller_config[VariantCallingKeys.GVCF_OUTPUT]
+        )
+        output_name = memory_handler.get_output_path(
+            output_file
         )
 
         command = [
@@ -38,13 +47,18 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
         if caller_config[VariantCallingKeys.OUTPUT_TYPE] == "GVCF":
             command.append("--emit-ref-confidence")
             command.append("GVCF")
+        
+        #If bed file is provided, add it to the command
+        if VariantCallingKeys.BED_FILE in caller_config.keys():
+            command.append("-L")
+            command.append(caller_config[VariantCallingKeys.BED_FILE])
+
         return command
 
     @classmethod
     def _create_cnnscorevariants_command(
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> List:
-
         input_name = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
         output_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
         input_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
@@ -70,7 +84,6 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
     def _create_filter_variants_command(
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> List:
-
         input_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
         output_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
 
@@ -97,7 +110,6 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
     def _create_get_snp_variants_command(
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> List:
-
         input_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
         output_name = caller_config[VariantCallingKeys.SNP_OUTPUT]
 
@@ -120,7 +132,6 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
     def _create_get_indel_variants_command(
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> List:
-
         input_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
         output_name = caller_config[VariantCallingKeys.INDEL_OUTPUT]
 
@@ -143,7 +154,6 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
     def _create_get_other_variants_command(
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> List:
-
         input_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
         output_name = caller_config[VariantCallingKeys.OTHER_VARIANTS_OUTPUT]
 
@@ -178,7 +188,6 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
         )
 
         with MemoryHandler() as memory_handler:
-
             scattered_commands = [
                 cls._create_run_command(
                     caller_config=cfg,
@@ -191,31 +200,32 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
 
         ScatterGather.gather_vcfs(
             splitted_configs,
-            output_path=caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT],
+            output_path=caller_config[VariantCallingKeys.GVCF_OUTPUT],
             mode=caller_config[VariantCallingKeys.OUTPUT_TYPE],
         )
 
         ScatterGather.clean_temp_files(caller_config[VariantCallingKeys.OUTPUT_DIR])
 
-        cnnscorevariants_command = cls._create_cnnscorevariants_command(
-            caller_config=caller_config, library_paths=library_paths
-        )
-        filter_variants_command = cls._create_filter_variants_command(
-            caller_config=caller_config, library_paths=library_paths
-        )
+        if caller_config[VariantCallingKeys.OUTPUT_TYPE] == "VCF":
+            cnnscorevariants_command = cls._create_cnnscorevariants_command(
+                caller_config=caller_config, library_paths=library_paths
+            )
+            filter_variants_command = cls._create_filter_variants_command(
+                caller_config=caller_config, library_paths=library_paths
+            )
 
-        get_snp_command = cls._create_get_snp_variants_command(
-            caller_config=caller_config, library_paths=library_paths
-        )
-        get_indel_command = cls._create_get_indel_variants_command(
-            caller_config=caller_config, library_paths=library_paths
-        )
-        get_other_variants_command = cls._create_get_other_variants_command(
-            caller_config=caller_config, library_paths=library_paths
-        )
+            get_snp_command = cls._create_get_snp_variants_command(
+                caller_config=caller_config, library_paths=library_paths
+            )
+            get_indel_command = cls._create_get_indel_variants_command(
+                caller_config=caller_config, library_paths=library_paths
+            )
+            get_other_variants_command = cls._create_get_other_variants_command(
+                caller_config=caller_config, library_paths=library_paths
+            )
 
-        run(cnnscorevariants_command)
-        run(filter_variants_command)
-        run(get_snp_command)
-        run(get_indel_command)
-        run(get_other_variants_command)
+            run(cnnscorevariants_command)
+            run(filter_variants_command)
+            run(get_snp_command)
+            run(get_indel_command)
+            run(get_other_variants_command)

@@ -60,7 +60,7 @@ class MemoryHandler:
 
         bam_path = self.get_path(path)
         #get index path along with bam path. the index can be either in form of .bai or .bam.bai
-        bai_path = glob(os.path.basename(bam_path) + "*.bai")[0]
+        bai_path = glob(os.path.splitext(bam_path)[0] + "*.bai")[0]
         _ = self.get_path(bai_path)
         return bam_path
 

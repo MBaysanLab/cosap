@@ -4,6 +4,7 @@ from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor
 from itertools import chain, repeat
 from subprocess import run
+import shortuuid
 from ..pipeline_builder import VariantCaller
 
 from .._config import AppConfig
@@ -55,12 +56,13 @@ class ScatterGather:
         splitted_configs = []
 
         for i in range(len(interval_files)):
-            tmp_name = f"tmp{i}"
+            tmp_name = f"tmp{shortuuid.uuid()}"
             variant_caller = VariantCaller(
                 library=config[VariantCallingKeys.LIBRARY],
                 name=tmp_name,
                 bed_file=interval_files[i],
                 params=config[PipelineBaseKeys.PARAMS],
+                gvcf=config[VariantCallingKeys.OUTPUT_TYPE] == "GVCF",
             )
             cfg = variant_caller.get_config()[PipelineKeys.VARIANT_CALLING][tmp_name]
 
@@ -83,11 +85,11 @@ class ScatterGather:
         GVCF_MODE = "gvcf"
         VCF_MODE = "vcf"
 
-        vcfs = [cfg[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT] for cfg in configs]
-
         if mode.lower() == VCF_MODE:
+            vcfs = [cfg[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT] for cfg in configs]
             command = ["gatk", "MergeVcfs", "-O", output_path]
         elif mode.lower() == GVCF_MODE:
+            vcfs = [cfg[VariantCallingKeys.GVCF_OUTPUT] for cfg in configs]
             command = ["gatk", "SortVcf", "-O", output_path]
         else:
             raise ValueError(f"Mode {mode} not supported")

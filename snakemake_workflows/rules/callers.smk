@@ -58,7 +58,7 @@ rule variant_caller:
     input:
         lambda wildcards: get_bams(wildcards,"variant_caller"),
     output:
-        vcf=FolderedOutputs.VARIANT_CALLING_OUTPUT,
+        vcf=FolderedOutputs.VARIANT_CALLING_VCF_OUTPUT,
     run:
         variant_caller = VariantCallerFactory.create(
             caller_type=config[PipelineKeys.VARIANT_CALLING][wildcards.identification][
@@ -74,7 +74,7 @@ rule variant_caller_with_gvcf_output:
     input:
         lambda wildcards: get_bams(wildcards,"variant_caller"),
     output:
-        gvcf=FileFormats.GVCF_OUTPUT,
+        gvcf=FolderedOutputs.VARIANT_CALLING_GVCF_OUTPUT,
     run:
         variant_caller = VariantCallerFactory.create(
             caller_type=config[PipelineKeys.VARIANT_CALLING][wildcards.identification][
@@ -89,7 +89,7 @@ rule py2_variant_caller:
     input:
         lambda wildcards: get_bams(wildcards,"variant_caller"),
     output:
-        vcf=FolderedOutputs.VARIANT_CALLING_OUTPUT,
+        vcf=FolderedOutputs.VARIANT_CALLING_VCF_OUTPUT,
     conda:
         "../../environments/py2_environment.yaml"
     wildcard_constraints:

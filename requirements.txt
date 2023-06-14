@@ -31,3 +31,4 @@ msisensor-pro
 genefuse
 absl-py
 tensorflow
+shortuuid
