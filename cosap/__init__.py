@@ -2,6 +2,7 @@ from ._config import AppConfig
 from ._cosap import Cosap
 from ._formats import FileFormats
 from ._library_paths import LibraryPaths
+from ._containers import *
 from ._version import version
 from .annotators import *
 from .default_pipelines import *

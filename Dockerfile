@@ -30,11 +30,6 @@ RUN echo >> $OPT/.profile && \
     echo PATH=$PATH:\$PATH >> $OPT/.profile && \
     echo export PATH >> $OPT/.profile
 
-# Install DeepVariant
-COPY --from=google/deepvariant ./opt/deepvariant/. /opt/deepvariant/.
-COPY --from=google/deepvariant ./opt/models/. /opt/models/.
-ENV PATH=$PATH:/opt/conda/bin:/opt/conda/envs/bio/bin:/opt/deepvariant/bin
-
 # Install COSAP
 COPY requirements.txt /tmp/requirements.txt
 RUN --mount=type=cache,target=/opt/conda/pkgs mamba install -c conda-forge -c bioconda --yes --name base --file /tmp/requirements.txt
@@ -42,7 +37,7 @@ RUN mkdir /app
 COPY . /app/.
 
 WORKDIR /app
-RUN mamba run --no-capture-output -n base pip install celery redis
+RUN mamba run --no-capture-output -n base pip install celery redis docker
 RUN mamba run --no-capture-output -n base pip install -e .
 
 ENV COSAP /app

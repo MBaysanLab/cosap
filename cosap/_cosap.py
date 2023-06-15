@@ -37,7 +37,7 @@ class Cosap:
 @click.option(
     "--variant_callers",
     help="Variant caller algorithm to use for variant detection. \
-    Can be multiple option seperated with white space, Options = ['mutect2', 'varscan2', 'haplotypecaller','octopus','strelka','somaticsniper','vardict']",
+    Can be multiple option seperated with white space, Options = ['mutect2','varscan2','haplotypecaller','octopus','strelka','somaticsniper','vardict', 'deepvariant']",
     required=False,
 )
 @click.option(
