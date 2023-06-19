@@ -36,6 +36,7 @@ class DeepVariantVariantCaller(_Callable, _VariantCaller):
     def call_variants(cls, caller_config: Dict):
         library_paths = LibraryPaths()
         docker_client = docker.from_env()
+        os.makedirs(caller_config[VariantCallingKeys.OUTPUT_DIR], exist_ok=True)
 
         # If running in docker mount volumes from host to container
         if check_if_running_in_docker():
@@ -53,7 +54,7 @@ class DeepVariantVariantCaller(_Callable, _VariantCaller):
             input_dir = os.path.abspath(os.path.dirname(caller_config[VariantCallingKeys.GERMLINE_INPUT]))
             output_dir = os.path.abspath(os.path.dirname(caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]))
             library_path = AppConfig.LIBRARY_PATH
-            docker_client.containers.run(
+            container = docker_client.containers.run(
                 image=DockerContainers.DEEPVARIANT,
                 command=" ".join(cls.create_run_deepvariant_command(caller_config, library_paths)),
                 working_dir=str(Path(output_dir).parent.parent),
@@ -64,6 +65,7 @@ class DeepVariantVariantCaller(_Callable, _VariantCaller):
                 },
                 remove=True,
                 detach=False,
+                restart_policy={"Name": "no"},
             )
 
 
