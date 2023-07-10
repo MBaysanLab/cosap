@@ -5,6 +5,8 @@ from typing import List, Tuple
 from ..pipeline_builder import *
 from ..pipeline_runner import PipelineRunner
 
+STRUCTURAL_VARIANT_CALLERS = ["manta"]
+SV_ANNOTATORS = ["annotsv"]
 
 @dataclass
 class DNAPipelineInput:
@@ -198,6 +200,11 @@ class DNAPipeline:
 
                     if self.input.ANNOTATORS is not None:
                         for annotator in self.input.ANNOTATORS:
+                            
+                            # Skip annotators that are not compatible with the variant caller
+                            if annotator in SV_ANNOTATORS and variant_caller not in SV_ANNOTATORS:
+                                continue
+
                             ann = Annotator(
                                 input_step=variant_caller, library=annotator
                             )

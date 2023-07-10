@@ -46,7 +46,7 @@ class _LibraryPaths:
     CNVKIT_ACCESS: str = os.path.join(
         AppConfig.LIBRARY_PATH, "cnvkit_hg38_access-5kb.bed"
     )
-    ANNOTSV: str = os.path.join(AppConfig.LIBRARY_PATH, "annotsv")
+    ANNOTSV: str = os.path.join(AppConfig.LIBRARY_PATH, "annotsv", "bin", "AnnotSV")
     CLASSIFYCNV: str = os.path.join(AppConfig.LIBRARY_PATH, "classifycnv")
 
 
