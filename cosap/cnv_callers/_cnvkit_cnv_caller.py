@@ -1,3 +1,4 @@
+import glob
 import os
 from subprocess import run
 
@@ -5,7 +6,6 @@ from .._config import AppConfig
 from .._library_paths import LibraryPaths
 from .._pipeline_config import CNVCallingKeys
 from ._cnv_callers import _CNVCaller
-import glob
 
 
 class CNVKit(_CNVCaller):

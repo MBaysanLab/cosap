@@ -77,6 +77,8 @@ class FolderedOutputs:
     )
     BAMQC_OUTPUT: str = join_paths(OutputFolders.BAMQC, "{library}", "{identification}")
     REGIONS_FILE_OUTPUT: str = join_paths(OutputFolders.TEMP_OUTPUT, "regions")
-    GENEFUSION_OUTPUT: str = join_paths(OutputFolders.GENE_FUSION, "{library}", FileFormats.GENEFUSION_OUTPUT)
+    GENEFUSION_OUTPUT: str = join_paths(
+        OutputFolders.GENE_FUSION, "{library}", FileFormats.GENEFUSION_OUTPUT
+    )
     MSI_OUTPUT: str = join_paths(OutputFolders.MSI, "{library}", FileFormats.MSI_OUTPUT)
     CNV_OUTPUT: str = join_paths(OutputFolders.CNV, "{library}", FileFormats.CNV_OUTPUT)

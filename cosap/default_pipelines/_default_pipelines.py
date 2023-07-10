@@ -1,6 +1,7 @@
+from dataclasses import dataclass, field
 from itertools import groupby, product
 from typing import List, Tuple
-from dataclasses import dataclass, field
+
 from ..pipeline_builder import *
 from ..pipeline_runner import PipelineRunner
 
@@ -158,7 +159,7 @@ class DNAPipeline:
                     },
                 )
                 mdup_tumor = MDUP(input_step=mapper_tumor)
-                
+
                 if self.input.MSI:
                     msicaller = MSICaller(
                         normal=mdup_normal, tumor=mdup_tumor, library="msisensor"
@@ -171,7 +172,7 @@ class DNAPipeline:
 
                 self.pipeline.add(mapper_tumor)
                 self.pipeline.add(mdup_tumor)
-                
+
                 self.pipeline.add(bqsr_tumor)
 
                 if self.input.BAM_QC is not None:

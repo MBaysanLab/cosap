@@ -5,9 +5,9 @@ from typing import Dict, List
 from .._config import AppConfig
 from .._library_paths import LibraryPaths
 from .._pipeline_config import VariantCallingKeys
+from ..memory_handler import MemoryHandler
 from ..scatter_gather import ScatterGather
 from ._variantcallers import _Callable, _VariantCaller
-from ..memory_handler import MemoryHandler
 
 
 class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
@@ -28,9 +28,7 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
             if caller_config[VariantCallingKeys.OUTPUT_TYPE] == "VCF"
             else caller_config[VariantCallingKeys.GVCF_OUTPUT]
         )
-        output_name = memory_handler.get_output_path(
-            output_file
-        )
+        output_name = memory_handler.get_output_path(output_file)
 
         command = [
             "gatk",
@@ -47,8 +45,8 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
         if caller_config[VariantCallingKeys.OUTPUT_TYPE] == "GVCF":
             command.append("--emit-ref-confidence")
             command.append("GVCF")
-        
-        #If bed file is provided, add it to the command
+
+        # If bed file is provided, add it to the command
         if VariantCallingKeys.BED_FILE in caller_config.keys():
             command.append("-L")
             command.append(caller_config[VariantCallingKeys.BED_FILE])

@@ -12,7 +12,7 @@ class SamtoolsSorter:
     def _create_command(
         cls, sorting_config: Dict, app_config: AppConfig, library_paths: LibraryPaths
     ) -> str:
-        
+
         command = [
             "samtools",
             "sort",

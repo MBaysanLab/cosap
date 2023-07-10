@@ -22,7 +22,7 @@ class CancervarAnnotator(_Annotatable, _Annotator):
         cancervar_db = join_paths(library_paths.CANCERVAR, "cancervardb")
         convert2annovar = join_paths(library_paths.ANNOVAR, "convert2annovar.pl")
 
-        #filtered_input = cls.chr_filter_vcf(input_vcf)
+        # filtered_input = cls.chr_filter_vcf(input_vcf)
 
         command = [
             "python",

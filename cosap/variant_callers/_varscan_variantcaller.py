@@ -37,7 +37,6 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
             tumor_bam,
         ]
 
-
         return command
 
     @classmethod

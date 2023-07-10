@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Dict
 
 from ..._formats import FileFormats, OutputFolders
-from ..._pipeline_config import PipelineKeys, CNVCallingKeys
+from ..._pipeline_config import CNVCallingKeys, PipelineKeys
 from ..._utils import join_paths
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
@@ -46,7 +46,9 @@ class CNVCaller(_IPipelineStep, _PipelineStep):
                 CNVCallingKeys.NORMAL_INPUT: normal_input,
                 CNVCallingKeys.TUMOR_INPUT: tumor_input,
                 CNVCallingKeys.OUTPUT_DIR: output_dir,
-                CNVCallingKeys.OUTPUT: join_paths(OutputFolders.CNV, self.library, output),
+                CNVCallingKeys.OUTPUT: join_paths(
+                    OutputFolders.CNV, self.library, output
+                ),
             }
         }
         if self.bed_file:

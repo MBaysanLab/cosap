@@ -38,14 +38,10 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
 
         # TODO: Read sample names from bam.
         if VariantCallingKeys.GERMLINE_SAMPLE_NAME not in self.params and self.germline:
-            self.params[
-                VariantCallingKeys.GERMLINE_SAMPLE_NAME
-            ] = "normal"
+            self.params[VariantCallingKeys.GERMLINE_SAMPLE_NAME] = "normal"
 
         if VariantCallingKeys.TUMOR_SAMPLE_NAME not in self.params and self.tumor:
-            self.params[
-                VariantCallingKeys.TUMOR_SAMPLE_NAME
-            ] = "tumor"
+            self.params[VariantCallingKeys.TUMOR_SAMPLE_NAME] = "tumor"
 
         if self.germline:
             self.germline.next_step = self

@@ -1,3 +1,6 @@
+from ._deepvariant_variantcaller import DeepVariantVariantCaller
+from ._haplotypecaller_variantcaller import HaplotypeCallerVariantCaller
+from ._manta_variantcaller import MantaVariantCaller
 from ._muse_variantcaller import MuseVariantCaller
 from ._mutect2_variantcaller import Mutect2VariantCaller
 from ._octopus_variantcaller import OctopusVariantCaller
@@ -6,8 +9,5 @@ from ._strelka_variantcaller import StrelkaVariantCaller
 from ._vardict_variantcaller import VarDictVariantCaller
 from ._variant_factory import VariantCallerFactory
 from ._varnet_variantcaller import VarNetVariantCaller
-from ._varscan_variantcaller import VarScanVariantCaller
-from ._deepvariant_variantcaller import DeepVariantVariantCaller
-from ._manta_variantcaller import MantaVariantCaller
-from ._haplotypecaller_variantcaller import HaplotypeCallerVariantCaller
 from ._varscan_germline_variantcaller import VarScanGermlineVariantCaller
+from ._varscan_variantcaller import VarScanVariantCaller

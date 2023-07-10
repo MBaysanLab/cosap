@@ -34,10 +34,20 @@ class _LibraryPaths:
     )
     PHARMCAT_JAR: str = os.path.join(PHARMCAT_DIR, "pharmcat-1.6.0-all")
     VARNET: str = os.path.join(AppConfig.LIBRARY_PATH, "varnet")
-    GENEFUSE_CANCER_GENE_LIST: str = os.path.join(AppConfig.LIBRARY_PATH, "genefuse_cancer.hg38.csv")
-    MSISENSOR_MICROSATELLITES: str = os.path.join(AppConfig.LIBRARY_PATH, "msisensor_hg38.list")
-    CNVKIT_ANNOTATION: str = os.path.join(AppConfig.LIBRARY_PATH, "cnvkit_hg38_refFlat.txt")
-    CNVKIT_ACCESS: str = os.path.join(AppConfig.LIBRARY_PATH, "cnvkit_hg38_access-5kb.bed")
+    GENEFUSE_CANCER_GENE_LIST: str = os.path.join(
+        AppConfig.LIBRARY_PATH, "genefuse_cancer.hg38.csv"
+    )
+    MSISENSOR_MICROSATELLITES: str = os.path.join(
+        AppConfig.LIBRARY_PATH, "msisensor_hg38.list"
+    )
+    CNVKIT_ANNOTATION: str = os.path.join(
+        AppConfig.LIBRARY_PATH, "cnvkit_hg38_refFlat.txt"
+    )
+    CNVKIT_ACCESS: str = os.path.join(
+        AppConfig.LIBRARY_PATH, "cnvkit_hg38_access-5kb.bed"
+    )
+    ANNOTSV: str = os.path.join(AppConfig.LIBRARY_PATH, "annotsv")
+    CLASSIFYCNV: str = os.path.join(AppConfig.LIBRARY_PATH, "classifycnv")
 
 
 @dataclass
