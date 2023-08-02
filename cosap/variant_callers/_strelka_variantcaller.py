@@ -71,14 +71,16 @@ class StrelkaVariantCaller(_Callable, _VariantCaller):
         library_paths = LibraryPaths()
 
         with MemoryHandler() as memory_handler:
-            rundir, strelka_command = (
-                cls._create_strelka_command(
-                    caller_config=caller_config,
-                    library_paths=library_paths,
-                    memory_handler=memory_handler,
-                ),
+            rundir, strelka_command = cls._create_strelka_command(
+                caller_config=caller_config,
+                library_paths=library_paths,
+                memory_handler=memory_handler,
             )
-            strelka_run_wf_command = cls._create_run_strelka_workflow_command()
+            strelka_run_wf_command = cls._create_run_strelka_workflow_command(
+                caller_config=caller_config,
+                library_paths=library_paths,
+                rundir=rundir,
+            )
 
             run(strelka_command)
             run(strelka_run_wf_command)

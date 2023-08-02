@@ -186,7 +186,7 @@ class DNAPipeline:
                     self.pipeline.add(quality_controller_tumor)
 
                 for variant_caller in variant_callers:
-                    variant_caller = VariantCaller(
+                    vc = VariantCaller(
                         library=variant_caller,
                         germline=bqsr_normal if self.input.NORMAL_SAMPLE else None,
                         tumor=bqsr_tumor,
@@ -196,17 +196,18 @@ class DNAPipeline:
                             "tumor_sample_name": tumor_sample_name,
                         },
                     )
-                    self.pipeline.add(variant_caller)
+                    self.pipeline.add(vc)
 
                     if self.input.ANNOTATORS is not None:
                         for annotator in self.input.ANNOTATORS:
                             
                             # Skip annotators that are not compatible with the variant caller
-                            if annotator in SV_ANNOTATORS and variant_caller not in SV_ANNOTATORS:
+                            if (annotator in SV_ANNOTATORS) and (variant_caller not in STRUCTURAL_VARIANT_CALLERS):
+                                print("Skipping SV annotator for non-SV variant caller")
                                 continue
 
                             ann = Annotator(
-                                input_step=variant_caller, library=annotator
+                                input_step=vc, library=annotator
                             )
                             self.pipeline.add(ann)
 
@@ -257,18 +258,21 @@ class DNAPipeline:
                 self.pipeline.add(quality_controller_tumor)
 
             for variant_caller in variant_callers:
-                variant_caller = VariantCaller(
+                vc = VariantCaller(
                     library=variant_caller,
                     germline=bqsr_normal if self.input.NORMAL_SAMPLE else None,
                     tumor=None,
                     bed_file=self.input.BED_FILE,
                     gvcf=self.input.GVCF,
                 )
-                self.pipeline.add(variant_caller)
+                self.pipeline.add(vc)
 
                 if self.input.ANNOTATORS is not None:
                     for annotator in self.input.ANNOTATORS:
-                        ann = Annotator(input_step=variant_caller, library=annotator)
+                        # Skip annotators that are not compatible with the variant caller
+                        if annotator in SV_ANNOTATORS and variant_caller not in STRUCTURAL_VARIANT_CALLERS:
+                            continue
+                        ann = Annotator(input_step=vc, library=annotator)
                         self.pipeline.add(ann)
 
     def _build_config(self):

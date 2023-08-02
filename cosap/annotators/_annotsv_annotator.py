@@ -17,7 +17,7 @@ class AnnotSVAnnotator(_Annotatable, _Annotator):
 
         input_vcf = annotator_config[AnnotatorKeys.INPUT]
         output_file = annotator_config[AnnotatorKeys.OUTPUT]
-
+        output_dir = os.path.dirname(output_file)
 
         command = [
             library_paths.ANNOTSV,
@@ -26,7 +26,7 @@ class AnnotSVAnnotator(_Annotatable, _Annotator):
             "-outputFile",
             output_file,
             "-outputDir",
-            os.getcwd()
+            output_dir
         ]
         return command
 

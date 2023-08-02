@@ -44,6 +44,10 @@ class Annotator(_IPipelineStep, _PipelineStep):
             return FileFormats.ANNOTATION_OUTPUT.format(
                 identification=self.name, custom_ext="txt"
             )
+        elif self.library.lower() == "annotsv":
+            return FileFormats.ANNOTATION_OUTPUT.format(
+                identification=self.name, custom_ext="tsv"
+            )
         else:
             return FileFormats.ANNOTATION_OUTPUT.format(
                 identification=self.name, custom_ext="vcf"
