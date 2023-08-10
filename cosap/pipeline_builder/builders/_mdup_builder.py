@@ -12,6 +12,7 @@ class MDUP(_IPipelineStep, _PipelineStep):
     input_step: _PipelineStep
     name: str = None
     spark: bool = True
+    duplicate_handling_method: str = "delete"
     key: str = PipelineKeys.MDUP
     next_step: _PipelineStep = None
 
@@ -34,6 +35,7 @@ class MDUP(_IPipelineStep, _PipelineStep):
                     OutputFolders.PREPROCESSOR, self.key, output_filename
                 ),
                 MDUPKeys.SPARK: self.spark,
+                MDUPKeys.DUPLICATE_HANDLING_METHOD: self.duplicate_handling_method,
                 MDUPKeys.OUTPUT_DIR: join_paths(OutputFolders.PREPROCESSOR, self.key),
             },
         }
