@@ -16,9 +16,10 @@ class Merger(_IPipelineStep, _PipelineStep):
 
     def __post_init__(self):
         if self.name is None:
-            self.name = self.input_step.name
+            self.name = "_".join([inp.name for inp in self.input_step])
 
-        self.input_step.next_step = self
+        for inp in self.input_step:
+            inp.next_step = self
 
     def _create_config(self) -> Dict:
         files = []

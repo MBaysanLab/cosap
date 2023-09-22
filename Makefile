@@ -15,8 +15,7 @@ develop:
 	pip install -e .
 	conda deactivate
 
-cosap_data_path = $(HOME)/cosap_data
 download_files:
-	@echo The files will be downloaded to $(cosap_data_path)\; continue? [Y/n]
+	@echo The files will be downloaded to $(COSAP_LIBRARY_PATH)\; continue? [Y/n]
 	@read line; if [ $$line = "n" ]; then echo aborting; exit 1 ; fi
 	wget -i ./required_files.txt -P $(cosap_data_path)

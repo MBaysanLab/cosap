@@ -12,30 +12,30 @@ class BWAMapper(_Mapper, _Mappable):
     def _create_read_group(cls, mapper_config: Dict) -> str:
         if not MappingKeys.READ_GROUP in mapper_config[MappingKeys.PARAMS].keys():
             return ""
+        
         flags = mapper_config[MappingKeys.PARAMS][MappingKeys.READ_GROUP]
-        read_arguments = "".join(
-            (
-                r"@RG\tID:",
-                flags[MappingKeys.RG_ID],
-                r"\tSM:",
-                flags[MappingKeys.RG_SM],
-                r"\tLB:",
-                flags[MappingKeys.RG_LB],
-                r"\tPL:",
-                flags[MappingKeys.RG_PL],
-                r"\tPU:",
-                flags[MappingKeys.RG_PU],
-            )
-        )
-        return read_arguments
+        read_arguments = []
+        if MappingKeys.RG_ID in flags.keys():
+            read_arguments.append(f"@RG\tID:{flags[MappingKeys.RG_ID]}")
+        if MappingKeys.RG_SM in flags.keys():
+            read_arguments.append(f"@RG\tSM:{flags[MappingKeys.RG_SM]}")
+        if MappingKeys.RG_LB in flags.keys():
+            read_arguments.append(f"@RG\tLB:{flags[MappingKeys.RG_LB]}")
+        if MappingKeys.RG_PL in flags.keys():
+            read_arguments.append(f"@RG\tPL:{flags[MappingKeys.RG_PL]}")
+        if MappingKeys.RG_PU in flags.keys():
+            read_arguments.append(f"@RG\tPU:{flags[MappingKeys.RG_PU]}")
+
+        read_groups = "".join(read_arguments)
+        return read_groups
 
     @classmethod
     def _create_command(
         cls,
         mapper_config: Dict,
-        read_group: str,
         library_paths: LibraryPaths,
         app_config: AppConfig,
+        read_group: str = None,
     ) -> List:
 
         fastq_inputs = [fastq for fastq in mapper_config[MappingKeys.INPUT].values()]
@@ -49,7 +49,7 @@ class BWAMapper(_Mapper, _Mappable):
             *fastq_inputs,
         ]
 
-        if MappingKeys.READ_GROUP in mapper_config[MappingKeys.PARAMS].keys():
+        if read_group:
             command.extend(["-R", read_group])
         return command
 
