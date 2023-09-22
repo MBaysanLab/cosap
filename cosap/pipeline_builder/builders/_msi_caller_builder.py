@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Dict
 
 from ..._formats import FileFormats, OutputFolders
-from ..._pipeline_config import PipelineKeys, MSICallingKeys
+from ..._pipeline_config import MSICallingKeys, PipelineKeys
 from ..._utils import join_paths
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
@@ -43,7 +43,9 @@ class MSICaller(_IPipelineStep, _PipelineStep):
                 MSICallingKeys.LIBRARY: self.library,
                 MSICallingKeys.NORMAL_INPUT: normal_input,
                 MSICallingKeys.TUMOR_INPUT: tumor_input,
-                MSICallingKeys.OUTPUT: join_paths(OutputFolders.MSI, self.library, output),
+                MSICallingKeys.OUTPUT: join_paths(
+                    OutputFolders.MSI, self.library, output
+                ),
             }
         }
         return config

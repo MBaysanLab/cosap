@@ -4,12 +4,13 @@ from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor
 from itertools import chain, repeat
 from subprocess import run
-from ..pipeline_builder import VariantCaller
+
+import shortuuid
 
 from .._config import AppConfig
-from .._pipeline_config import PipelineBaseKeys, VariantCallingKeys, PipelineKeys
-from .utils import (create_tmp_filename, get_region_file_list,
-                    split_bam_by_intervals)
+from .._pipeline_config import PipelineBaseKeys, PipelineKeys, VariantCallingKeys
+from ..pipeline_builder import VariantCaller
+from .utils import create_tmp_filename, get_region_file_list, split_bam_by_intervals
 
 
 class ScatterGather:
@@ -55,12 +56,13 @@ class ScatterGather:
         splitted_configs = []
 
         for i in range(len(interval_files)):
-            tmp_name = f"tmp{i}"
+            tmp_name = f"tmp{shortuuid.uuid()}"
             variant_caller = VariantCaller(
                 library=config[VariantCallingKeys.LIBRARY],
                 name=tmp_name,
                 bed_file=interval_files[i],
                 params=config[PipelineBaseKeys.PARAMS],
+                gvcf=config[VariantCallingKeys.OUTPUT_TYPE] == "GVCF",
             )
             cfg = variant_caller.get_config()[PipelineKeys.VARIANT_CALLING][tmp_name]
 
@@ -83,15 +85,17 @@ class ScatterGather:
         GVCF_MODE = "gvcf"
         VCF_MODE = "vcf"
 
-        vcfs = [cfg[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT] for cfg in configs]
-
         if mode.lower() == VCF_MODE:
+            vcfs = [
+                cfg[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT] for cfg in configs
+            ]
             command = ["gatk", "MergeVcfs", "-O", output_path]
         elif mode.lower() == GVCF_MODE:
+            vcfs = [cfg[VariantCallingKeys.GVCF_OUTPUT] for cfg in configs]
             command = ["gatk", "SortVcf", "-O", output_path]
         else:
             raise ValueError(f"Mode {mode} not supported")
-        
+
         command.extend(list(chain(*zip(repeat("-I"), vcfs))))
         run(command)
 

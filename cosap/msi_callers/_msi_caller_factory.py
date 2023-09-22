@@ -1,5 +1,5 @@
+from ._msi_callers import _MSICaller
 from ._msisensorpro_msicaller import MSISensorPro
-from ._msi_callers  import _MSICaller
 
 
 class MSICallerFactory:
@@ -12,6 +12,8 @@ class MSICallerFactory:
         if caller_type == cls.GENEFUSE:
             caller = MSISensorPro
         else:
-            raise Exception(f"Unknown microsatellite instability caller type: {caller_type}")
+            raise Exception(
+                f"Unknown microsatellite instability caller type: {caller_type}"
+            )
 
         return caller

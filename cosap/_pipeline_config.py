@@ -83,6 +83,7 @@ class MergingKeys(PipelineBaseKeys):
 class MDUPKeys(PipelineBaseKeys):
     METRICS: str = "metrics"
     SPARK: str = "spark"
+    DUPLICATE_HANDLING_METHOD: str = "duplicate_handling_method"
 
 
 @dataclass
@@ -105,20 +106,24 @@ class VariantCallingKeys(PipelineBaseKeys):
     OTHER_VARIANTS_OUTPUT: str = "other_variants_output"
     PILEUPS: str = "pileups"
 
+
 @dataclass
 class GeneFusionCallingKeys(PipelineBaseKeys):
     pass
+
 
 @dataclass
 class MSICallingKeys(PipelineBaseKeys):
     NORMAL_INPUT: str = "normal_input"
     TUMOR_INPUT: str = "tumor_input"
 
+
 @dataclass
 class CNVCallingKeys(PipelineBaseKeys):
     NORMAL_INPUT: str = "normal_input"
     TUMOR_INPUT: str = "tumor_input"
     OUTPUT_DIR: str = "output_dir"
+
 
 @dataclass
 class AnnotatorKeys(PipelineBaseKeys):

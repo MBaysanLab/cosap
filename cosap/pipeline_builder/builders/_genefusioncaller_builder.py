@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Dict
 
 from ..._formats import FileFormats, OutputFolders
-from ..._pipeline_config import PipelineKeys, GeneFusionCallingKeys
+from ..._pipeline_config import GeneFusionCallingKeys, PipelineKeys
 from ..._utils import join_paths
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
@@ -37,7 +37,9 @@ class GeneFusionCaller(_IPipelineStep, _PipelineStep):
             self.name: {
                 GeneFusionCallingKeys.LIBRARY: self.library,
                 GeneFusionCallingKeys.INPUT: read_filenames,
-                GeneFusionCallingKeys.OUTPUT: join_paths(OutputFolders.GENE_FUSION, self.library, json_output),
+                GeneFusionCallingKeys.OUTPUT: join_paths(
+                    OutputFolders.GENE_FUSION, self.library, json_output
+                ),
             }
         }
         return config

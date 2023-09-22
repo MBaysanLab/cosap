@@ -1,5 +1,5 @@
 from ._cnv_callers import _CNVCaller
-from ._cnvkit_cnv_caller  import CNVKit 
+from ._cnvkit_cnv_caller import CNVKit
 
 
 class CNVCallerFactory:

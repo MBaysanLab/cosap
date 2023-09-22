@@ -32,7 +32,6 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
             mdup_config[MDUPKeys.OUTPUT],
             "-M",
             f"{mdup_config[MDUPKeys.OUTPUT]}_metrics",
-            "--remove-all-duplicates",
             "--create-output-bam-index",
             "--spark-master",
             f"local[{app_config.MAX_THREADS_PER_JOB}]",
@@ -41,6 +40,9 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
             "--verbosity",
             "WARNING",
         ]
+        if mdup_config[MDUPKeys.DUPLICATE_HANDLING_METHOD] == "delete":
+            command.append("--remove-all-duplicates")
+
         return command
 
     @classmethod
@@ -64,13 +66,14 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
             mdup_config[MDUPKeys.OUTPUT],
             "--METRICS_FILE",
             f"{mdup_config[MDUPKeys.OUTPUT]}_metrics",
-            "--REMOVE_DUPLICATES",
-            "true",
             "--CREATE_INDEX",
             "true",
             "--TMP_DIR",
             tmp_dir,
         ]
+        if mdup_config[MDUPKeys.DUPLICATE_HANDLING_METHOD] == "delete":
+            command.append("--REMOVE_DUPLICATES")
+            command.append("true")
         return command
 
     @classmethod

@@ -20,9 +20,7 @@ class Indexer(_IPipelineStep, _PipelineStep):
 
     def _create_config(self) -> Dict:
         filename = self.input_step.get_output()
-        output_filename = FileFormats.INDEXING_OUTPUT.format(
-            bam_file = filename
-        )
+        output_filename = FileFormats.INDEXING_OUTPUT.format(bam_file=filename)
 
         config = {
             self.name: {

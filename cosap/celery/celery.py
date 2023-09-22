@@ -5,9 +5,8 @@ from pathlib import Path
 import yaml
 from celery import Celery, shared_task
 
-from ..default_pipelines import DNAPipeline
+from ..default_pipelines import DNAPipeline, DNAPipelineInput
 from ..parsers import ProjectResultsParser
-from ..default_pipelines import DNAPipelineInput
 
 celery_app = Celery("cosap")
 celery_app.config_from_object("cosap.celery.celeryconfig")

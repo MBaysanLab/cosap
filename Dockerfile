@@ -18,23 +18,6 @@ RUN wget https://github.com/wwylab/MuSE/archive/refs/tags/v2.0.1.tar.gz && \
 
 ENV PATH=$PATH:/usr/local/bin/MuSE
 
-# Install VEP
-COPY --from=ensemblorg/ensembl-vep /opt/vep/ /opt/vep/
-COPY --from=ensemblorg/ensembl-vep /etc/perl/ /etc/perl/
-COPY --from=ensemblorg/ensembl-vep /usr/local/bin/ /usr/local/bin/
-
-ENV OPT /opt/vep
-ENV OPT_SRC $OPT/src
-ENV PATH $OPT_SRC/ensembl-vep:$OPT_SRC/var_c_code:$PATH
-RUN echo >> $OPT/.profile && \
-    echo PATH=$PATH:\$PATH >> $OPT/.profile && \
-    echo export PATH >> $OPT/.profile
-
-# Install DeepVariant
-COPY --from=google/deepvariant ./opt/deepvariant/. /opt/deepvariant/.
-COPY --from=google/deepvariant ./opt/models/. /opt/models/.
-ENV PATH=$PATH:/opt/conda/bin:/opt/conda/envs/bio/bin:/opt/deepvariant/bin
-
 # Install COSAP
 COPY requirements.txt /tmp/requirements.txt
 RUN --mount=type=cache,target=/opt/conda/pkgs mamba install -c conda-forge -c bioconda --yes --name base --file /tmp/requirements.txt
@@ -42,7 +25,7 @@ RUN mkdir /app
 COPY . /app/.
 
 WORKDIR /app
-RUN mamba run --no-capture-output -n base pip install celery redis
+RUN mamba run --no-capture-output -n base pip install celery redis docker
 RUN mamba run --no-capture-output -n base pip install -e .
 
 ENV COSAP /app

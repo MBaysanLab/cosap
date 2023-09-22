@@ -1,5 +1,5 @@
+from ._gene_fusion_callers import _GeneFusionCaller
 from ._genefuse_fusion_caller import GeneFuse
-from ._gene_fusion_callers  import _GeneFusionCaller
 
 
 class GeneFusionCallerFactory:

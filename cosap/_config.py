@@ -30,6 +30,8 @@ class AppConfig(metaclass=_AppConfigMeta):
     RAMDISK_PATH: str = os.getenv("COSAP_RAMDISK_PATH", "/dev/shm")
 
     MAX_THREADS_PER_JOB: int = int(os.getenv("COSAP_THREADS_PER_JOB", multiprocessing.cpu_count()))
+    if MAX_THREADS_PER_JOB > multiprocessing.cpu_count():
+        MAX_THREADS_PER_JOB = multiprocessing.cpu_count()
 
     # Max memory is (avaliable memory / number of parallel jobs) in bytes
     MAX_MEMORY_PER_JOBS: int = psutil.virtual_memory().total / (multiprocessing.cpu_count() // MAX_THREADS_PER_JOB)

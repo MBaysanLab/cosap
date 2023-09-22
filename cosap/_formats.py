@@ -51,8 +51,11 @@ class OutputFolders:
 
 @dataclass
 class FolderedOutputs:
-    VARIANT_CALLING_OUTPUT: str = join_paths(
+    VARIANT_CALLING_VCF_OUTPUT: str = join_paths(
         OutputFolders.VARIANT_CALLING, "{library}", FileFormats.ALL_VARIANTS_OUTPUT
+    )
+    VARIANT_CALLING_GVCF_OUTPUT: str = join_paths(
+        OutputFolders.VARIANT_CALLING, "{library}", FileFormats.GVCF_OUTPUT
     )
     MAPPING_OUTPUT: str = join_paths(
         OutputFolders.MAPPING, "{library}", FileFormats.MAPPING_OUTPUT
@@ -74,6 +77,8 @@ class FolderedOutputs:
     )
     BAMQC_OUTPUT: str = join_paths(OutputFolders.BAMQC, "{library}", "{identification}")
     REGIONS_FILE_OUTPUT: str = join_paths(OutputFolders.TEMP_OUTPUT, "regions")
-    GENEFUSION_OUTPUT: str = join_paths(OutputFolders.GENE_FUSION, "{library}", FileFormats.GENEFUSION_OUTPUT)
+    GENEFUSION_OUTPUT: str = join_paths(
+        OutputFolders.GENE_FUSION, "{library}", FileFormats.GENEFUSION_OUTPUT
+    )
     MSI_OUTPUT: str = join_paths(OutputFolders.MSI, "{library}", FileFormats.MSI_OUTPUT)
     CNV_OUTPUT: str = join_paths(OutputFolders.CNV, "{library}", FileFormats.CNV_OUTPUT)

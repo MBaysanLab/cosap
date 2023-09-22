@@ -36,5 +36,7 @@ class MSISensorPro(_MSICaller):
     def call(cls, caller_config: dict):
         library_paths = LibraryPaths()
         app_config = AppConfig()
-        command = cls._create_msisensorpro_command(caller_config, library_paths, app_config)
+        command = cls._create_msisensorpro_command(
+            caller_config, library_paths, app_config
+        )
         run(command)

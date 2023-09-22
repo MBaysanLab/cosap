@@ -4,6 +4,7 @@ from ._cancervar_annotatator import CancervarAnnotator
 from ._ensembl_vep_annotator import VepAnnotator
 from ._intervar_annotator import IntervarAnnotator
 from ._pharmcat_annotator import PharmcatAnnotator
+from ._annotsv_annotator import AnnotSVAnnotator
 
 
 class AnnotatorFactory:
@@ -12,6 +13,7 @@ class AnnotatorFactory:
     CANCERVAR_ANNOTATOR = "cancervar"
     VEP_ANNOTATOR = "vep"
     PHARMGKB_ANNOTATOR = "pharmgkb"
+    ANNOTSV = "annotsv"
 
     @classmethod
     def create(cls, annotator_tpye: str) -> _Annotator:
@@ -27,6 +29,8 @@ class AnnotatorFactory:
             annotator = PharmcatAnnotator
         elif annotator_tpye == cls.CANCERVAR_ANNOTATOR:
             annotator = CancervarAnnotator
+        elif annotator_tpye == cls.ANNOTSV:
+            annotator = AnnotSVAnnotator
         else:
             raise Exception(f"Unknown annotator type: {annotator_tpye}")
 
