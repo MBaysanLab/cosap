@@ -18,22 +18,23 @@ class Bowtie2Mapper(_Mapper, _Mappable):
 
     @classmethod
     def _create_read_group(cls, mapper_config: Dict) -> List:
-        if not MappingKeys.READ_GROUP in mapper_config[MappingKeys.PARAMS].keys():
-            return ""
-        flags = mapper_config[MappingKeys.PARAMS][MappingKeys.READ_GROUP]
-        read_arguments = [
-            "--rg-id",
-            flags[MappingKeys.RG_ID],
-            "--rg",
-            f"SM:{flags[MappingKeys.RG_SM]}",
-            "--rg",
-            f"LB:{flags[MappingKeys.RG_LB]}",
-            "--rg",
-            f"PL:{flags[MappingKeys.RG_PL]}",
-            "--rg",
-            f"PU:{flags[MappingKeys.RG_PU]}",
-        ]
-        return read_arguments
+        flags = cls._create_readgroup_flags(
+            mapper_config=mapper_config,
+        )
+        read_arguments = []
+        if MappingKeys.RG_ID in flags.keys():
+            read_arguments.append(f"@RG\tID:{flags[MappingKeys.RG_ID]}")
+        if MappingKeys.RG_SM in flags.keys():
+            read_arguments.append(f"@RG\tSM:{flags[MappingKeys.RG_SM]}")
+        if MappingKeys.RG_LB in flags.keys():
+            read_arguments.append(f"@RG\tLB:{flags[MappingKeys.RG_LB]}")
+        if MappingKeys.RG_PL in flags.keys():
+            read_arguments.append(f"@RG\tPL:{flags[MappingKeys.RG_PL]}")
+        if MappingKeys.RG_PU in flags.keys():
+            read_arguments.append(f"@RG\tPU:{flags[MappingKeys.RG_PU]}")
+
+        read_groups = "".join(read_arguments)
+        return read_groups
 
     @classmethod
     def _create_command(

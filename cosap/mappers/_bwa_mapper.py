@@ -10,10 +10,10 @@ from ._mappers import _Mappable, _Mapper
 class BWAMapper(_Mapper, _Mappable):
     @classmethod
     def _create_read_group(cls, mapper_config: Dict) -> str:
-        if not MappingKeys.READ_GROUP in mapper_config[MappingKeys.PARAMS].keys():
-            return ""
+        flags = cls._create_readgroup_flags(
+            mapper_config=mapper_config,
+        )
         
-        flags = mapper_config[MappingKeys.PARAMS][MappingKeys.READ_GROUP]
         read_arguments = []
         if MappingKeys.RG_ID in flags.keys():
             read_arguments.append(f"@RG\tID:{flags[MappingKeys.RG_ID]}")
