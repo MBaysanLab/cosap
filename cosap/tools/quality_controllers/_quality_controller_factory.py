@@ -4,7 +4,7 @@ from ._qualimap import Qualimap
 from ._quality_controllers import _QualityController
 
 
-class QualityContollerFactory:
+class QualityControllerFactory:
     QUALIMAP = "qualimap"
     MOSDEPTH = "mosdepth"
 

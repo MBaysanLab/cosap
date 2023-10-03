@@ -1,6 +1,6 @@
 import os
 from cosap.tools.preprocessors import PreprocessorFactory
-from cosap.tools.quality_controllers import QualityContollerFactory
+from cosap.tools.quality_controllers import QualityControllerFactory
 from cosap._formats import FileFormats, FolderedOutputs
 from cosap._pipeline_config import (
     MDUPKeys,
