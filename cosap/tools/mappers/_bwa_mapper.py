@@ -16,15 +16,15 @@ class BWAMapper(_Mapper, _Mappable):
 
         read_arguments = []
         if MappingKeys.RG_ID in flags.keys():
-            read_arguments.append(f"@RG\tID:{flags[MappingKeys.RG_ID]}")
+            read_arguments.append(fr"@RG\tID:{flags[MappingKeys.RG_ID]}")
         if MappingKeys.RG_SM in flags.keys():
-            read_arguments.append(f"@RG\tSM:{flags[MappingKeys.RG_SM]}")
+            read_arguments.append(fr"@RG\tSM:{flags[MappingKeys.RG_SM]}")
         if MappingKeys.RG_LB in flags.keys():
-            read_arguments.append(f"@RG\tLB:{flags[MappingKeys.RG_LB]}")
+            read_arguments.append(fr"@RG\tLB:{flags[MappingKeys.RG_LB]}")
         if MappingKeys.RG_PL in flags.keys():
-            read_arguments.append(f"@RG\tPL:{flags[MappingKeys.RG_PL]}")
+            read_arguments.append(fr"@RG\tPL:{flags[MappingKeys.RG_PL]}")
         if MappingKeys.RG_PU in flags.keys():
-            read_arguments.append(f"@RG\tPU:{flags[MappingKeys.RG_PU]}")
+            read_arguments.append(fr"@RG\tPU:{flags[MappingKeys.RG_PU]}")
 
         read_groups = "".join(read_arguments)
         return read_groups

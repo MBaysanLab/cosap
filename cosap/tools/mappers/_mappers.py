@@ -57,7 +57,7 @@ class _Mapper(ABC):
 
         header = _read_fastq_header(fastq_file)
 
-        illumina_match = re.match(r"^@([^\s]+)\s+(.+)$", header)
+        illumina_match = re.match(r"^@\w+:\d+:\w+:\d+:\d+:\d+:\d+:[a-zA-Z+]+\s\d+:\w+:\d+:\w+", header)
 
         readgroup = {}
         if illumina_match:
@@ -87,7 +87,7 @@ class _Mapper(ABC):
         """
 
         automaticaly_generated_read_group = cls._create_readgroup_from_fastq_header(
-            fastq_file=mapper_config[MappingKeys.INPUT].values()[0]
+            fastq_file=mapper_config[MappingKeys.INPUT]["1"]
         )
 
         user_defined_read_group = mapper_config[MappingKeys.PARAMS][
