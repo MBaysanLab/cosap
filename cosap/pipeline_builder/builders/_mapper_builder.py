@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, List, Union
 
 from ..._formats import FileFormats, OutputFolders
@@ -13,7 +13,7 @@ from ._trimmer_builder import Trimmer
 class Mapper(_IPipelineStep, _PipelineStep):
     library: str
     input_step: Union[_PipelineStep, List[_PipelineStep]]
-    params: Dict = {}
+    params: Dict = field(default_factory=dict)
     name: str = None
     key: str = PipelineKeys.MAPPING
     next_step: _PipelineStep = None
