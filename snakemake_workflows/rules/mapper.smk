@@ -1,6 +1,6 @@
 from typing import List, Dict
 import os
-from cosap.tool.mappers import MapperFactory
+from cosap.tools.mappers import MapperFactory
 from cosap._formats import FolderedOutputs
 from cosap._pipeline_config import MappingKeys, PipelineKeys
 
