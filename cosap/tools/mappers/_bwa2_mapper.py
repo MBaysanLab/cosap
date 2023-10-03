@@ -16,15 +16,18 @@ class BWA2Mapper(_Mapper, _Mappable):
 
         read_arguments = []
         if MappingKeys.RG_ID in flags.keys():
-            read_arguments.append(f"@RG\tID:{flags[MappingKeys.RG_ID]}")
+            read_arguments.append(f"\tID:{flags[MappingKeys.RG_ID]}")
         if MappingKeys.RG_SM in flags.keys():
-            read_arguments.append(f"@RG\tSM:{flags[MappingKeys.RG_SM]}")
+            read_arguments.append(f"\tSM:{flags[MappingKeys.RG_SM]}")
         if MappingKeys.RG_LB in flags.keys():
-            read_arguments.append(f"@RG\tLB:{flags[MappingKeys.RG_LB]}")
+            read_arguments.append(f"\tLB:{flags[MappingKeys.RG_LB]}")
         if MappingKeys.RG_PL in flags.keys():
-            read_arguments.append(f"@RG\tPL:{flags[MappingKeys.RG_PL]}")
+            read_arguments.append(f"\tPL:{flags[MappingKeys.RG_PL]}")
         if MappingKeys.RG_PU in flags.keys():
-            read_arguments.append(f"@RG\tPU:{flags[MappingKeys.RG_PU]}")
+            read_arguments.append(f"\tPU:{flags[MappingKeys.RG_PU]}")
+
+        if len(read_arguments) > 0:
+            read_arguments.insert(0, "@RG")
 
         read_groups = "".join(read_arguments)
 
@@ -50,6 +53,7 @@ class BWA2Mapper(_Mapper, _Mappable):
         ]
         if MappingKeys.READ_GROUP in mapper_config[MappingKeys.PARAMS].keys():
             command.extend(["-R", read_group])
+        
         return command
 
     @classmethod
