@@ -1,5 +1,5 @@
 from cosap._pipeline_config import PipelineKeys, VariantCallingKeys
-from cosap.variant_callers._variant_factory import VariantCallerFactory
+from cosap.tools.variant_callers._variant_factory import VariantCallerFactory
 
 config = snakemake.config
 wildcards = snakemake.wildcards

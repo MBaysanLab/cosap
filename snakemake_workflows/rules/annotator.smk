@@ -1,6 +1,6 @@
 from typing import List, Dict
 import os
-from cosap.annotators import AnnotatorFactory
+from cosap.tools.annotators import AnnotatorFactory
 from cosap._formats import FolderedOutputs
 from cosap._pipeline_config import AnnotatorKeys, PipelineKeys
 

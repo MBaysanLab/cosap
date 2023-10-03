@@ -1,6 +1,6 @@
 import os
-from cosap.preprocessors._preprocessor_factory import PreprocessorFactory
-from cosap.quality_controllers._quality_controller_factory import (
+from cosap.tools.preprocessors._preprocessor_factory import PreprocessorFactory
+from cosap.tools.quality_controllers._quality_controller_factory import (
     QualityContollerFactory,
 )
 from cosap._formats import FileFormats, FolderedOutputs
