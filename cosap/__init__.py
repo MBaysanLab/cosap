@@ -4,7 +4,7 @@ from ._cosap import Cosap
 from ._formats import FileFormats
 from ._library_paths import LibraryPaths
 from ._version import version
-from .cnv_callers import *
+from .tools.cnv_callers import *
 from .memory_handler import *
 from .parsers import *
 from .pipeline_builder import *
