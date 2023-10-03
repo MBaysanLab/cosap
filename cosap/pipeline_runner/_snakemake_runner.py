@@ -1,5 +1,5 @@
 import multiprocessing
-from subprocess import PIPE, Popen, check_call, check_output, run
+from subprocess import PIPE, Popen, check_output, run
 
 from .._config import AppConfig
 

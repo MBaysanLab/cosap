@@ -1,5 +1,4 @@
 import os
-from copy import copy
 from dataclasses import dataclass, field
 from subprocess import PIPE, STDOUT, Popen
 from typing import Dict
@@ -26,7 +25,6 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
 
     def __post_init__(self):
         if self.name is None:
-
             name_temp = []
             if self.germline:
                 name_temp.append(self.germline.name)

@@ -1,5 +1,4 @@
 import os
-from subprocess import PIPE, Popen, check_output, run
 from typing import Dict, List
 
 import yaml
@@ -8,13 +7,8 @@ from .._config import AppConfig
 from .._pipeline_config import MappingKeys, PipelineKeys, VariantCallingKeys
 from .._utils import join_paths
 from ..mappers import MapperFactory
-from ..preprocessors import (
-    BamIndexer,
-    BamMerger,
-    BaseRecalibrator,
-    MarkDuplicate,
-    SamtoolsSorter,
-)
+from ..preprocessors import (BamIndexer, BamMerger, BaseRecalibrator,
+                             MarkDuplicate, SamtoolsSorter)
 from ..variant_callers import VariantCallerFactory
 from ._snakemake_runner import SnakemakeRunner
 

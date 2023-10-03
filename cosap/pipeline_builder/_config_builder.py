@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import os
-from dataclasses import make_dataclass
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict
 
 from .._config import AppConfig
 from .._formats import FileFormats

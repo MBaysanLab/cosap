@@ -2,8 +2,8 @@ from typing import Dict
 
 import click
 
-from .default_pipelines import DNAPipeline
 from .pipeline_runner import PipelineRunner
+from .workflows import DNAPipeline
 
 
 class Cosap:

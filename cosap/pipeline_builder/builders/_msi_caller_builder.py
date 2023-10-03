@@ -33,7 +33,6 @@ class MSICaller(_IPipelineStep, _PipelineStep):
             self.tumor.next_step = self
 
     def _create_config(self) -> Dict:
-
         tumor_input = self.tumor.get_output()
         normal_input = self.normal.get_output()
 

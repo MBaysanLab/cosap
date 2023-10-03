@@ -26,7 +26,6 @@ class ProjectResultsParser:
         self.variant_stats = self._parse_variant_stats()
 
     def _parse_qc_coverage_histogram(self):
-
         # If there are multiple combinations, parse the first one
         # TODO: Taking the first one might not be the preferred way.
         qc_dir = self.pipeline_config[PipelineKeys.QUALITY_CONTROL][

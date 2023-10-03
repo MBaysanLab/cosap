@@ -1,4 +1,3 @@
-from copy import copy
 from dataclasses import dataclass
 from typing import Dict, List, Union
 
@@ -35,9 +34,10 @@ class Mapper(_IPipelineStep, _PipelineStep):
                 step.next_step = self
         else:
             self.input_step.next_step = self
-        
-        if (MappingKeys.READ_GROUP not in self.params.keys()) \
-            or (MappingKeys.RG_SM not in self.params[MappingKeys.READ_GROUP].keys()):
+
+        if (MappingKeys.READ_GROUP not in self.params.keys()) or (
+            MappingKeys.RG_SM not in self.params[MappingKeys.READ_GROUP].keys()
+        ):
             raise Exception("Please specify a sample name for the read group.")
 
     def _create_config(self) -> Dict:

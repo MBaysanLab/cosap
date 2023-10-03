@@ -20,7 +20,6 @@ class Trimmer(_IPipelineStep, _PipelineStep):
             self.name = "_".join(set(step.name for step in self.input_step[::-1]))
 
     def _create_config(self) -> Dict:
-
         read_filenames = {}
         for reader in self.input_step:
             read_filenames[reader.read] = reader.get_output()

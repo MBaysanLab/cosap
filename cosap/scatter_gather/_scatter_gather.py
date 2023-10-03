@@ -8,9 +8,11 @@ from subprocess import run
 import shortuuid
 
 from .._config import AppConfig
-from .._pipeline_config import PipelineBaseKeys, PipelineKeys, VariantCallingKeys
+from .._pipeline_config import (PipelineBaseKeys, PipelineKeys,
+                                VariantCallingKeys)
 from ..pipeline_builder import VariantCaller
-from .utils import create_tmp_filename, get_region_file_list, split_bam_by_intervals
+from .utils import (create_tmp_filename, get_region_file_list,
+                    split_bam_by_intervals)
 
 
 class ScatterGather:
@@ -18,7 +20,6 @@ class ScatterGather:
     def split_variantcaller_configs(
         config: dict, bed_file=None, split_bams: bool = False
     ) -> list[dict]:
-
         # If the number of threads is not suitable for parellelization, return the original config
         app_config = AppConfig()
         threads = app_config.MAX_THREADS_PER_JOB
@@ -81,7 +82,6 @@ class ScatterGather:
 
     @staticmethod
     def gather_vcfs(configs: list, output_path, mode="vcf"):
-
         GVCF_MODE = "gvcf"
         VCF_MODE = "vcf"
 

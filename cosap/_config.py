@@ -26,7 +26,7 @@ class _AppConfigMeta(type):
 class AppConfig(metaclass=_AppConfigMeta):
     COSAP_PATH: str = os.environ.get("COSAP")
     LIBRARY_PATH: str = os.environ.get("COSAP_LIBRARY_PATH")
-    SNAKEFILE_PATH: str = join_paths(COSAP_PATH, "snakemake_workflows","Snakefile")
+    SNAKEFILE_PATH: str = join_paths(COSAP_PATH, "snakemake_workflows", "Snakefile")
     RAMDISK_PATH: str = os.getenv("COSAP_RAMDISK_PATH", "/dev/shm")
 
     MAX_THREADS_PER_JOB: int = int(os.getenv("COSAP_THREADS_PER_JOB", multiprocessing.cpu_count()))

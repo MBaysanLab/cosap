@@ -1,5 +1,5 @@
 build:
-	DOCKER_BUILDKIT=1 docker build -t itubioinformatics/cosap .
+	DOCKER_BUILDKIT=1 docker build --platform linux/amd64 -t itubioinformatics/cosap . 
 
 install:
 	conda install -c conda-forge mamba
