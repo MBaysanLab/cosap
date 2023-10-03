@@ -11,3 +11,4 @@ from ._variant_factory import VariantCallerFactory
 from ._varnet_variantcaller import VarNetVariantCaller
 from ._varscan_germline_variantcaller import VarScanGermlineVariantCaller
 from ._varscan_variantcaller import VarScanVariantCaller
+from ._variant_factory import VariantCallerFactory
