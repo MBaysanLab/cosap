@@ -22,15 +22,15 @@ class Bowtie2Mapper(_Mapper, _Mappable):
         )
         read_arguments = []
         if MappingKeys.RG_ID in flags.keys():
-            read_arguments.append(fr"--rg-id {flags[MappingKeys.RG_ID]}")
+            read_arguments.append(rf"--rg-id {flags[MappingKeys.RG_ID]}")
         if MappingKeys.RG_SM in flags.keys():
-            read_arguments.append(fr"--rg SM:{flags[MappingKeys.RG_SM]}")
+            read_arguments.append(rf"--rg SM:{flags[MappingKeys.RG_SM]}")
         if MappingKeys.RG_LB in flags.keys():
-            read_arguments.append(fr"--rg LB:{flags[MappingKeys.RG_LB]}")
+            read_arguments.append(rf"--rg LB:{flags[MappingKeys.RG_LB]}")
         if MappingKeys.RG_PL in flags.keys():
-            read_arguments.append(fr"--rg PL:{flags[MappingKeys.RG_PL]}")
+            read_arguments.append(rf"--rg PL:{flags[MappingKeys.RG_PL]}")
         if MappingKeys.RG_PU in flags.keys():
-            read_arguments.append(fr"--rg PU:{flags[MappingKeys.RG_PU]}")
+            read_arguments.append(rf"--rg PU:{flags[MappingKeys.RG_PU]}")
 
         return read_arguments
 
@@ -61,7 +61,7 @@ class Bowtie2Mapper(_Mapper, _Mappable):
         app_config = AppConfig()
 
         read_group = cls._create_read_group(mapper_config=mapper_config)
-        
+
         fastq_reads = cls._create_fastq_reads_command(mapper_config=mapper_config)
 
         bowtie_command = cls._create_command(

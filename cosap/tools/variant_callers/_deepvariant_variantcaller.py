@@ -2,13 +2,11 @@ import os
 from pathlib import Path
 from typing import Dict
 
-import docker
-
 from ..._config import AppConfig
-from ..._containers import DockerContainers
+from ..._docker_images import DockerImages
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import VariantCallingKeys
-from ..._utils import check_if_running_in_docker
+from ...pipeline_runner.runners import DockerRunner
 from ._variantcallers import _Callable, _VariantCaller
 
 
@@ -34,47 +32,19 @@ class DeepVariantVariantCaller(_Callable, _VariantCaller):
         return command
 
     @classmethod
-    def call_variants(cls, caller_config: Dict):
+    def call_variants(cls, caller_config: Dict, device: str = "cpu"):
         library_paths = LibraryPaths()
-        docker_client = docker.from_env()
         os.makedirs(caller_config[VariantCallingKeys.OUTPUT_DIR], exist_ok=True)
 
-        # If running in docker mount volumes from host to container
-        if check_if_running_in_docker():
-            hostname = os.getenv("HOSTNAME")
-            docker_client.containers.run(
-                image=DockerContainers.DEEPVARIANT,
-                working_dir=docker_client.containers.get(hostname).attrs["Config"][
-                    "WorkingDir"
-                ],
-                command=" ".join(
-                    cls.create_run_deepvariant_command(caller_config, library_paths)
-                ),
-                volumes_from=[hostname],
-                remove=True,
-                detach=False,
-            )
-        else:
-            # If not running in docker, mount the required paths to the container
-            input_dir = os.path.abspath(
-                os.path.dirname(caller_config[VariantCallingKeys.GERMLINE_INPUT])
-            )
-            output_dir = os.path.abspath(
-                os.path.dirname(caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT])
-            )
-            library_path = AppConfig.LIBRARY_PATH
-            workdir = str(Path(output_dir).parent.parent)
-            container = docker_client.containers.run(
-                image=DockerContainers.DEEPVARIANT,
-                command=" ".join(
-                    cls.create_run_deepvariant_command(caller_config, library_paths)
-                ),
-                working_dir=workdir,
-                volumes={
-                    library_path: {"bind": library_path, "mode": "ro"},
-                    workdir: {"bind": workdir, "mode": "rw"},
-                },
-                remove=True,
-                detach=False,
-                restart_policy={"Name": "no"},
-            )
+        output_dir = os.path.abspath(
+            os.path.dirname(caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT])
+        )
+        deepvariant_command = cls.create_run_deepvariant_command(
+            caller_config, library_paths
+        )
+        docker_runner = DockerRunner()
+        docker_runner.run(
+            DockerImages.DEEPVARIANT,
+            " ".join(deepvariant_command),
+            workdir=str(Path(output_dir).parent.parent),
+        )

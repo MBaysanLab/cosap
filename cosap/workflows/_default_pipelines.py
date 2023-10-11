@@ -25,6 +25,7 @@ class DNAPipelineInput:
     GVCF: bool = False
     MSI: bool = False
     GENEFUSION: bool = False
+    DEVICE: str = "cpu"
 
     def __post_init__(self):
         if isinstance(self.TUMOR_SAMPLES, tuple):
@@ -278,5 +279,5 @@ class DNAPipeline:
         return self.config
 
     def run_pipeline(self):
-        pipeline_runner = PipelineRunner()
+        pipeline_runner = PipelineRunner(device=self.input.DEVICE)
         pipeline_runner.run_pipeline(self.config)

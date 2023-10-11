@@ -71,10 +71,3 @@ def get_commonpath_from_config(config: dict) -> str:
             raise ValueError("Config value is not a string or list of strings.")
 
     return os.path.commonpath(paths)
-
-
-def check_if_running_in_docker() -> bool:
-    """
-    Returns True if running in docker container.
-    """
-    return os.path.exists("/.dockerenv")

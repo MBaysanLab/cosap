@@ -178,7 +178,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         return command
 
     @classmethod
-    def call_variants(cls, caller_config: dict):
+    def call_variants(cls, caller_config: dict, device: str = "cpu"):
         library_paths = LibraryPaths()
 
         bed_file = (

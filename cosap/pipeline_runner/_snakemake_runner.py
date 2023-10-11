@@ -5,9 +5,10 @@ from .._config import AppConfig
 
 
 class SnakemakeRunner:
-    def __init__(self, pipeline_config, workdir):
+    def __init__(self, pipeline_config, workdir, device):
         self.pipeline_config = pipeline_config
         self.workdir = workdir
+        self.device = device
 
     def _create_unlock_dir_command(self) -> list:
         command = [
@@ -61,6 +62,8 @@ class SnakemakeRunner:
             str(available_cpu // AppConfig.MAX_THREADS_PER_JOB),
             "--configfile",
             self.pipeline_config,
+            "--config",
+            f"device={self.device}",
             "-r",
             "--use-conda",
             "--rerun-incomplete",

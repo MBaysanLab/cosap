@@ -172,7 +172,7 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
         return command
 
     @classmethod
-    def call_variants(cls, caller_config: Dict):
+    def call_variants(cls, caller_config: Dict, device: str = "cpu"):
         library_paths = LibraryPaths()
 
         bed_file = (

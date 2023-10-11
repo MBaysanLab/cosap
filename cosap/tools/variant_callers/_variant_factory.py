@@ -1,4 +1,3 @@
-
 from ._deepvariant_variantcaller import DeepVariantVariantCaller
 from ._haplotypecaller_variantcaller import HaplotypeCallerVariantCaller
 from ._manta_variantcaller import MantaVariantCaller

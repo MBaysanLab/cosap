@@ -18,4 +18,4 @@ rule mapper:
         mapper = MapperFactory.create(
             config[PipelineKeys.MAPPING][wildcards.identification][MappingKeys.LIBRARY]
         )
-        mapper.map(config[PipelineKeys.MAPPING][wildcards.identification])
+        mapper.map(config[PipelineKeys.MAPPING][wildcards.identification], config["device"])

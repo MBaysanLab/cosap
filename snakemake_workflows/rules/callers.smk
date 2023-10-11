@@ -66,7 +66,7 @@ rule variant_caller:
             ]
         )
         variant_caller.call_variants(
-            config[PipelineKeys.VARIANT_CALLING][wildcards.identification]
+            config[PipelineKeys.VARIANT_CALLING][wildcards.identification],config["device"]
         )
 
 
@@ -82,7 +82,7 @@ rule variant_caller_with_gvcf_output:
             ]
         )
         variant_caller.call_variants(
-            config[PipelineKeys.VARIANT_CALLING][wildcards.identification]
+            config[PipelineKeys.VARIANT_CALLING][wildcards.identification], config["device"]
         )
 
 rule py2_variant_caller:

@@ -57,7 +57,9 @@ class _Mapper(ABC):
 
         header = _read_fastq_header(fastq_file)
 
-        illumina_match = re.match(r"^@\w+:\d+:\w+:\d+:\d+:\d+:\d+:[a-zA-Z+]+\s\d+:\w+:\d+:\w+", header)
+        illumina_match = re.match(
+            r"^@\w+:\d+:\w+:\d+:\d+:\d+:\d+:[a-zA-Z+]+\s\d+:\w+:\d+:\w+", header
+        )
 
         readgroup = {}
         if illumina_match:

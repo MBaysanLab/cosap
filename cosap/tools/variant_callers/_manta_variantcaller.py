@@ -62,7 +62,7 @@ class MantaVariantCaller(_Callable, _VariantCaller):
                 shutil.copyfileobj(snv_in, snv_out)
 
     @classmethod
-    def call_variants(cls, caller_config: dict):
+    def call_variants(cls, caller_config: dict, device: str = "cpu"):
         library_paths = LibraryPaths()
 
         with MemoryHandler() as memory_handler:

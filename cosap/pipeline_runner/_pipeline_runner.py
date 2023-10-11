@@ -1,4 +1,5 @@
 import os
+
 import yaml
 
 from .._config import AppConfig
@@ -6,13 +7,15 @@ from .._pipeline_config import MappingKeys, PipelineKeys, VariantCallingKeys
 from .._utils import join_paths
 from ..tools.mappers import MapperFactory
 from ..tools.preprocessors import (BamIndexer, BamMerger, BaseRecalibrator,
-                             MarkDuplicate, SamtoolsSorter)
+                                   MarkDuplicate, SamtoolsSorter)
 from ..tools.variant_callers import VariantCallerFactory
 from ._snakemake_runner import SnakemakeRunner
-import importlib
 
 
 class PipelineRunner:
+    def __init__(self, device="cpu"):
+        self.device = device.lower()
+
     def validate_pipeline_config(self, pipeline_config: dict):
         raise NotImplementedError()
 
@@ -62,11 +65,11 @@ class PipelineRunner:
         )
         self._write_config_to_yaml(config_yaml_path, pipeline_config)
 
-
         if runner.lower() == "snakemake":
             snakemake_runner = SnakemakeRunner(
                 pipeline_config=config_yaml_path,
                 workdir=pipeline_config[PipelineKeys.WORKDIR],
+                device=self.device,
             )
             snakemake_runner.run_snakemake_pipeline()
 

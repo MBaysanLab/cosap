@@ -55,7 +55,7 @@ rule gatk_base_cal:
             preprocessor_type="base_recalibrator"
         )
         duplicate_remover.run_preprocessor(
-            config[PipelineKeys.CALIBRATE][wildcards.identification]
+            config[PipelineKeys.CALIBRATE][wildcards.identification], config["device"]
         )
 
 
