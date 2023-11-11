@@ -3,7 +3,7 @@ from typing import Dict
 import click
 
 from .pipeline_runner import PipelineRunner
-from .workflows import DNAPipeline
+from .workflows import DNAPipeline, DNAPipelineInput
 
 
 class Cosap:
@@ -73,17 +73,18 @@ def cosap_cli(
     bam_qc,
     annotation,
 ):
-    dna_pipeline = DNAPipeline(
+    pipe_input = DNAPipelineInput(
         analysis_type=analysis_type,
         workdir=workdir,
         normal_sample=normal_sample,
-        tumor_samples=tumor_samples,
+        tumor_samples=tumor_samples.split(" "),
         bed_file=bed_file,
-        mappers=mappers,
-        variant_callers=variant_callers,
+        mappers=mappers.split(" "),
+        variant_callers=variant_callers.split(" "),
         normal_sample_name=normal_sample_name,
         tumor_sample_name=tumor_sample_name,
         bam_qc=bam_qc,
         annotation=annotation,
     )
+    dna_pipeline = DNAPipeline(pipe_input=pipe_input)
     dna_pipeline.run_pipeline()

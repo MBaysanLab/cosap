@@ -56,7 +56,7 @@ class Bowtie2Mapper(_Mapper, _Mappable):
         return command
 
     @classmethod
-    def map(cls, mapper_config: Dict):
+    def map(cls, mapper_config: Dict, *args, **kwargs):
         library_paths = LibraryPaths()
         app_config = AppConfig()
 

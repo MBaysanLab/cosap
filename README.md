@@ -47,7 +47,7 @@ sample_fastq = FastqReader("/path/to/fastq.fastq", name="normal_sample")
 Several fastq handler for a sample can be created as:
 ```python
 germline_fastqs = [
-    FastqReader("/path/to/fastq_1.fastq", name="normal_sample", read=1)
+    FastqReader("/path/to/fastq_1.fastq", name="normal_sample", read=1),
     FastqReader("/path/to/fastq_2.fastq", name="normal_sample", read=2)
 ]
 ```
@@ -137,6 +137,10 @@ Currently following libraries are supported:
  - [MuSe](https://github.com/danielfan/MuSE)
  - [VarDict](https://github.com/AstraZeneca-NGS/VarDict)
  - [SomaticSniper](https://github.com/genome/somatic-sniper)
+ - [VarNet](https://github.com/skandlab/VarNet)
+ - [DeepVariant](https://github.com/google/deepvariant)
+ - [HaplotypeCaller](https://gatk.broadinstitute.org/hc/en-us/articles/360037225632-HaplotypeCaller)
+ - [Manta](https://github.com/Illumina/manta)
 
 ```python
 from cosap import VariantCaller
