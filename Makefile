@@ -25,4 +25,4 @@ develop:
 download_files:
 	@echo The files will be downloaded to $(COSAP_LIBRARY_PATH)\; continue? [Y/n]
 	@read line; if [ $$line = "n" ]; then echo aborting; exit 1 ; fi
-	wget -i ./required_files.txt -P $(cosap_data_path)
+	wget -i ./required_files.txt -P $(COSAP_LIBRARY_PATH)
