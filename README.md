@@ -12,13 +12,11 @@ A typical variant calling pipeline consists of Read Trimming, Read Mapping, Dupl
 CoSAP provides several tool options for each of these steps.
 
 
-## Prerequisites and Installation
+## Installation
 
-CoSAP requires [Miniconda](https://docs.conda.io/en/latest/miniconda.html) to install required packages.
-Once you install the miniconda,
 clone the CoSAP repository:
 ```bash
-git@github.com:MBaysanLab/cosap.git
+git clone https://github.com/MBaysanLab/cosap.git
 ```
 cd into CoSAP:
 ```bash
