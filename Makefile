@@ -9,8 +9,8 @@ install:
 		rm Miniforge3-Linux-x86_64.sh; \
 	fi;
 
-	mamba create --name cosap_test -c conda-forge -c bioconda --yes --file requirements.txt
-	mamba run --no-capture-output -n cosap_test pip install . docker celery redis
+	mamba create --name cosap -c conda-forge -c bioconda --yes --file requirements.txt
+	mamba run --no-capture-output -n cosap pip install . docker celery redis
 
 develop:
 	# Check if miniforge3 is installed and install if not
@@ -19,8 +19,8 @@ develop:
 		bash Miniforge3-Linux-x86_64.sh -b -p $(HOME)/miniforge3; \
 		rm Miniforge3-Linux-x86_64.sh; \
 	fi;
-	mamba create --name cosap_test -c conda-forge -c bioconda --yes --file requirements.txt
-	mamba run --no-capture-output -n cosap_test pip install -e . celery redis docker
+	mamba create --name cosap -c conda-forge -c bioconda --yes --file requirements.txt
+	mamba run --no-capture-output -n cosap pip install -e . celery redis docker
 
 download_files:
 	@echo The files will be downloaded to $(COSAP_LIBRARY_PATH)\; continue? [Y/n]
