@@ -19,5 +19,9 @@ jobs:
         ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
     - name: connect and pull
       run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.WORK_DIR }} && git checkout ${{ secrets.MAIN_BRANCH }} && git pull && exit"
+    - name: docker build
+      run: docker compose up -d --build
+    - name: migrate changes
+      run: docker compose exec web bash -l -c "python manage.py makemigrations && python manage.py migrate"
     - name: cleanup
       run: rm -rf ~/.ssh
