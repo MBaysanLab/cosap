@@ -39,7 +39,7 @@ rule mark_dup:
             preprocessor_type="mark_duplicate"
         )
         duplicate_remover.run_preprocessor(
-            config[PipelineKeys.MDUP][wildcards.identification]
+            config[PipelineKeys.MDUP][wildcards.identification], config["device"]
         )
 
 

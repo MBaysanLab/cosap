@@ -35,7 +35,7 @@ class ElprepPreprocess(_Preprocessor, _PreProcessable):
         return command
 
     @classmethod
-    def run_preprocessor(cls, elprep_config: Dict):
+    def run_preprocessor(cls, elprep_config: Dict, *args, **kwargs):
         library_paths = LibraryPaths()
 
         command = cls._create_command(

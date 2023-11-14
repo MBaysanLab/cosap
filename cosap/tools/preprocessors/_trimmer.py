@@ -34,7 +34,7 @@ class Trimmer(_Preprocessor, _PreProcessable):
         return command
 
     @classmethod
-    def run_preprocessor(cls, trimmer_config: Dict):
+    def run_preprocessor(cls, trimmer_config: Dict, *args, **kwargs):
         app_config = AppConfig()
         library_paths = LibraryPaths()
 

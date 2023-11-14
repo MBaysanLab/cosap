@@ -266,7 +266,6 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             command = cls._create_parabricks_mutectcaller_command(
                 caller_config=caller_config, library_paths=library_paths
             )
-            print(" ".join(command))
             output_dir = os.path.abspath(
                 os.path.dirname(caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT])
             )
@@ -276,7 +275,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             runner.run(
                 image=DockerImages.PARABRICKS,
                 command=" ".join(command),
-                workdir=str(Path(output_dir).parent),
+                workdir=str(Path(output_dir).parent.parent),
             )
 
         filter_command = cls._filter_mutect_calls(

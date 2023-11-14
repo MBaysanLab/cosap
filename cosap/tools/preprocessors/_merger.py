@@ -25,7 +25,7 @@ class BamMerger:
         return command
 
     @classmethod
-    def merge(cls, merging_config: Dict):
+    def merge(cls, merging_config: Dict, *args, **kwargs):
         app_config = AppConfig()
         library_paths = LibraryPaths()
 
