@@ -150,9 +150,9 @@ class DNAPipeline:
                     input_step=trimmer_tumor,
                     params={
                         "read_groups": {
-                            "ID": "0",
+                            "ID": "1",
                             "SM": tumor_sample_name,
-                            "PU": "0",
+                            "PU": "1",
                             "PL": "il",
                             "LB": "0",
                         }

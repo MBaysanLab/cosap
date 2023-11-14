@@ -32,10 +32,11 @@ RUN mamba run --no-capture-output -n cosap pip install -e .
 ENV COSAP /app
 ENV COSAP_LIBRARY_PATH /cosap_data
 
+# Activate conda environment
+RUN conda init
+RUN echo "conda activate cosap" >> ~/.bashrc
+SHELL [ "/bin/bash", "--login", "-c" ]
+
 # Create working directory
 RUN mkdir /workdir
 WORKDIR /workdir
-
-# Set up entrypoint
-RUN conda init
-RUN echo "conda activate cosap" >> ~/.bashrc

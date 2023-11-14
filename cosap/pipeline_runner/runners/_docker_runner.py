@@ -30,7 +30,8 @@ class DockerRunner:
         )
         volumes_from = [hostname] if self._check_if_running_in_docker() else None
 
-        self.docker_client.containers.run(
+        # Run and return the log generator
+        logs = self.docker_client.containers.run(
             image=image,
             command=command,
             working_dir=workdir,
@@ -39,10 +40,18 @@ class DockerRunner:
             remove=True,
             detach=False,
             restart_policy={"Name": "no"},
+            stream=True,
+            stdout=True,
+            stderr=True,
             device_requests=[
                 docker.types.DeviceRequest(count=-1, capabilities=[["gpu"]])
             ],
         )
+        
+        # Pring logs
+        for log in logs:
+            print(log.decode("utf-8"), end="")
+
 
     def _check_if_running_in_docker(self) -> bool:
         """
