@@ -1,4 +1,4 @@
-# This foldercontains pipeline examples created wiht COSAP
+# This folder contains pipeline examples created wiht COSAP
 
 # Data
 
