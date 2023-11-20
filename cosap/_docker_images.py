@@ -7,3 +7,4 @@ class DockerImages:
     ENSEMBL_VEP: str = "ensemblorg/ensembl-vep"
     PARABRICKS: str = "nvcr.io/nvidia/clara/clara-parabricks:4.2.0-1"
     COSAP: str = "itubioinformatics/cosap"
+    PHARMCAT: str = "pgkb/pharmcat"

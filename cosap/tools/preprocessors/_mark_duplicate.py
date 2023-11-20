@@ -103,6 +103,25 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
         return command
 
     @classmethod
+    def create_parabricks_sort_command(cls, mdup_config: dict, library_paths: LibraryPaths, sort_order: str) -> list:
+
+        command = [
+            "pbrun",
+            "bamsort",
+            "--ref",
+            library_paths.REF_FASTA,
+            "--in-bam",
+            mdup_config[MDUPKeys.INPUT],
+            "--out-bam",
+            mdup_config[MDUPKeys.INPUT],
+            "--sort-order",
+            sort_order,
+        ]
+
+        return command
+    
+
+    @classmethod
     def run_preprocessor(cls, mdup_config: Dict, device: str = "cpu"):
         app_config = AppConfig()
         library_paths = LibraryPaths()
@@ -124,20 +143,38 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
                 run(command)
             
         elif device == "gpu":
-            command = cls.create_parabricks_markdup_command(
-                library_paths=library_paths,
-                app_config=app_config,
-                mdup_config=mdup_config,
-                memory_handler=None,
-            )
+
             output_dir = os.path.abspath(
                 os.path.dirname(mdup_config[MDUPKeys.OUTPUT])
             )
             os.makedirs(output_dir, exist_ok=True)
 
             runner = DockerRunner()
+            # Parabricks markdup requires input bam to be queryname sorted
+            query_name_sort_command = cls.create_parabricks_sort_command(mdup_config, library_paths, "queryname")
             runner.run(
                 image=DockerImages.PARABRICKS,
-                command=" ".join(command),
+                command=" ".join(query_name_sort_command),
+                workdir=str(Path(output_dir).parent.parent),
+            )
+
+            mdup_command = cls.create_parabricks_markdup_command(
+                library_paths=library_paths,
+                app_config=app_config,
+                mdup_config=mdup_config,
+                memory_handler=None,
+            )
+
+            runner.run(
+                image=DockerImages.PARABRICKS,
+                command=" ".join(mdup_command),
+                workdir=str(Path(output_dir).parent.parent),
+            )
+
+            # Convert output to coordinate sorted bam
+            coordinate_sort_command = cls.create_parabricks_sort_command(mdup_config, library_paths, "coordinate")
+            runner.run(
+                image=DockerImages.PARABRICKS,
+                command=" ".join(coordinate_sort_command),
                 workdir=str(Path(output_dir).parent.parent),
             )

@@ -43,10 +43,10 @@ class AnnovarAnnotator(_Annotatable, _Annotator):
             output_filename,
             "--remove",
             "--protocol",
-            "refGene,esp6500siv2_all,1000g2015aug_all,avsnp147,dbnsfp42a,"
-            "clinvar_20210501,gnomad_genome,dbscsnv11,rmsk,ensGene,knownGene",
+            "ensGene,gnomad40,icgc28,avsnp150,dbnsfp42a,"
+            "clinvar_20221231,intervar_20180118",
             "--operation",
-            "g,f,f,f,f,f,f,f,r,g,g",
+            "g,f,f,f,f,f,f",
             "--nastring",
             ".",
         ]

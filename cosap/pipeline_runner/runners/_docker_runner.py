@@ -31,22 +31,20 @@ class DockerRunner:
         volumes_from = [hostname] if self._check_if_running_in_docker() else None
 
         # Run and return the log generator
-        logs = self.docker_client.containers.run(
+        container = self.docker_client.containers.run(
             image=image,
             command=command,
             working_dir=workdir,
             volumes=volumes,
             volumes_from=volumes_from,
             remove=True,
-            detach=False,
+            detach=True,
             restart_policy={"Name": "no"},
-            stream=True,
-            stdout=True,
-            stderr=True,
             device_requests=[
                 docker.types.DeviceRequest(count=-1, capabilities=[["gpu"]])
             ],
         )
+        logs = container.attach(stdout=True, stderr=True, stream=True, logs=True)
         
         # Pring logs
         for log in logs:

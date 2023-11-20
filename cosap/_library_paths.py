@@ -30,9 +30,9 @@ class _LibraryPaths:
     CANCERVAR: str = os.path.join(AppConfig.LIBRARY_PATH, "cancervar")
     PHARMCAT_DIR: str = os.path.join(AppConfig.LIBRARY_PATH, "pharmcat")
     PHARMCAT_PREPROCESSOR: str = os.path.join(
-        PHARMCAT_DIR, "PharmCAT_VCF_Preprocess.py"
+        PHARMCAT_DIR, "preprocessor", "pharmcat_vcf_preprocessor.py"
     )
-    PHARMCAT_JAR: str = os.path.join(PHARMCAT_DIR, "pharmcat-1.6.0-all")
+    PHARMCAT_JAR: str = os.path.join(PHARMCAT_DIR, "pharmcat-2.8.3-all.jar")
     VARNET: str = os.path.join(AppConfig.LIBRARY_PATH, "varnet")
     GENEFUSE_CANCER_GENE_LIST: str = os.path.join(
         AppConfig.LIBRARY_PATH, "genefuse_cancer.hg38.csv"

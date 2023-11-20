@@ -6,6 +6,10 @@ from ..._library_paths import LibraryPaths
 from ..._pipeline_config import AnnotatorKeys
 from ..._utils import join_paths
 from ._annotators import _Annotatable, _Annotator
+from ..._docker_images import DockerImages
+from ...pipeline_runner.runners import DockerRunner
+import os
+from pathlib import Path
 
 
 class VepAnnotator(_Annotatable, _Annotator):
@@ -45,9 +49,15 @@ class VepAnnotator(_Annotatable, _Annotator):
         library_paths = LibraryPaths()
         app_config = AppConfig()
 
-        command = cls.create_command(
-            library_paths=library_paths,
-            app_config=app_config,
-            annotator_config=annotator_config,
+        output_dir = os.path.abspath(
+            os.path.dirname(annotator_config[AnnotatorKeys.OUTPUT])
         )
-        run(command)
+        os.makedirs(output_dir, exist_ok=True)
+
+        runner = DockerRunner()
+        runner.run(
+            DockerImages.ENSEMBL_VEP,
+            " ".join(cls.create_command(library_paths, app_config, annotator_config)),
+            workdir=str(Path(output_dir).parent.parent),
+        )
+

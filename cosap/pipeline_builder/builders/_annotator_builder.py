@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Dict
 
 from ..._formats import FileFormats, OutputFolders
-from ..._pipeline_config import AnnotatorKeys, PipelineKeys
+from ..._pipeline_config import AnnotatorKeys, PipelineKeys, VariantCallingKeys
 from ..._utils import join_paths
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 from ._variantcaller_builder import VariantCaller
@@ -25,9 +25,9 @@ class Annotator(_IPipelineStep, _PipelineStep):
         if self.sample_name is None:
             if self.input_step.__class__ == VariantCaller:
                 self.sample_name = (
-                    self.input_step.tumor
+                    self.input_step.params[VariantCallingKeys.TUMOR_SAMPLE_NAME]
                     if self.input_step.tumor is not None
-                    else self.input_step.normal
+                    else self.input_step.params[VariantCallingKeys.GERMLINE_SAMPLE_NAME]
                 )
             elif self.input_step.__class__ == Annotator:
                 self.sample_name = self.input_step.sample_name
@@ -47,6 +47,10 @@ class Annotator(_IPipelineStep, _PipelineStep):
         elif self.library.lower() == "annotsv":
             return FileFormats.ANNOTATION_OUTPUT.format(
                 identification=self.name, custom_ext="tsv"
+            )
+        elif self.library.lower() == "pharmcat":
+            return FileFormats.ANNOTATION_OUTPUT.format(
+                identification=self.name, custom_ext="json"
             )
         else:
             return FileFormats.ANNOTATION_OUTPUT.format(

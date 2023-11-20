@@ -12,7 +12,7 @@ class AnnotatorFactory:
     INTERVAR_ANNOTATOR = "intervar"
     CANCERVAR_ANNOTATOR = "cancervar"
     VEP_ANNOTATOR = "vep"
-    PHARMGKB_ANNOTATOR = "pharmgkb"
+    PHARMGKB_ANNOTATOR = "pharmcat"
     ANNOTSV = "annotsv"
 
     @classmethod
