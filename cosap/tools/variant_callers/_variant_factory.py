@@ -14,13 +14,13 @@ from ._varscan_variantcaller import VarScanVariantCaller
 
 
 class VariantCallerFactory:
-    MUTECT2_CALLER = "mutect"
+    MUTECT2_CALLER = ["mutect", "mutect2"]
     SOMATICSNIPER_CALLER = "somaticsniper"
     STRELKA2_CALLER = "strelka"
-    VARSCAN_CALLER = "varscan"
+    VARSCAN_CALLER = ["varscan", "varscan2"]
     OCTOPUS_CALLER = "octopus"
     MUSE_CALLER = "muse"
-    VARDICT_CALLER = "vardict"
+    VARDICT_CALLER = ["vardict", "vardictjava"]
     HAPLOTYPECALLER = "haplotypecaller"
     VARSCAN_GERMLINE_CALLER = "varscan_germline"
     VARNET = "varnet"
@@ -31,17 +31,17 @@ class VariantCallerFactory:
     def create(cls, caller_type: str) -> _VariantCaller:
         caller_type = str(caller_type).lower()
 
-        if caller_type == cls.MUTECT2_CALLER:
+        if caller_type in cls.MUTECT2_CALLER:
             caller = Mutect2VariantCaller
         elif caller_type == cls.SOMATICSNIPER_CALLER:
             caller = SomaticSniperVariantCaller
-        elif caller_type == cls.VARSCAN_CALLER:
+        elif caller_type in cls.VARSCAN_CALLER:
             caller = VarScanVariantCaller
         elif caller_type == cls.OCTOPUS_CALLER:
             caller = OctopusVariantCaller
         elif caller_type == cls.MUSE_CALLER:
             caller = MuseVariantCaller
-        elif caller_type == cls.VARDICT_CALLER:
+        elif caller_type in cls.VARDICT_CALLER:
             caller = VarDictVariantCaller
         elif caller_type == cls.STRELKA2_CALLER:
             caller = StrelkaVariantCaller

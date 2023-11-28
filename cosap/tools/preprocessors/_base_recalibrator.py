@@ -147,7 +147,7 @@ class BaseRecalibrator(_Preprocessor, _PreProcessable):
             )
             os.makedirs(output_dir, exist_ok=True)
 
-            runner = DockerRunner()
+            runner = DockerRunner(device=device)
             runner.run(
                 image=DockerImages.PARABRICKS,
                 command=" ".join(bqsr_command),

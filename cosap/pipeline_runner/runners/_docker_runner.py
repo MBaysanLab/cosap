@@ -6,7 +6,8 @@ from ..._config import AppConfig
 
 
 class DockerRunner:
-    def __init__(self) -> None:
+    def __init__(self, device:str = "cpu") -> None:
+        self.devie = device
         self.docker_client = docker.from_env()
 
     def run(self, image: str, command: str, workdir: str = None) -> None:
@@ -31,6 +32,7 @@ class DockerRunner:
         volumes_from = [hostname] if self._check_if_running_in_docker() else None
 
         # Run and return the log generator
+
         container = self.docker_client.containers.run(
             image=image,
             command=command,
@@ -42,7 +44,7 @@ class DockerRunner:
             restart_policy={"Name": "no"},
             device_requests=[
                 docker.types.DeviceRequest(count=-1, capabilities=[["gpu"]])
-            ],
+            ] if self.devie == "gpu" else None,
         )
         logs = container.attach(stdout=True, stderr=True, stream=True, logs=True)
         

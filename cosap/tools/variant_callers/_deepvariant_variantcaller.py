@@ -42,7 +42,7 @@ class DeepVariantVariantCaller(_Callable, _VariantCaller):
         deepvariant_command = cls.create_run_deepvariant_command(
             caller_config, library_paths
         )
-        docker_runner = DockerRunner()
+        docker_runner = DockerRunner(device=device)
         docker_runner.run(
             DockerImages.DEEPVARIANT,
             " ".join(deepvariant_command),

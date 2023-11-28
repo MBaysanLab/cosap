@@ -143,7 +143,7 @@ class BWAMapper(_Mapper, _Mappable):
                 os.path.dirname(mapper_config[MappingKeys.OUTPUT])
             )
             os.makedirs(output_dir, exist_ok=True)
-            runner = DockerRunner()
+            runner = DockerRunner(device=device)
             runner.run(
                 image=DockerImages.PARABRICKS,
                 command=" ".join(bwa_command),

@@ -149,7 +149,7 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
             )
             os.makedirs(output_dir, exist_ok=True)
 
-            runner = DockerRunner()
+            runner = DockerRunner(device=device)
             # Parabricks markdup requires input bam to be queryname sorted
             query_name_sort_command = cls.create_parabricks_sort_command(mdup_config, library_paths, "queryname")
             runner.run(
