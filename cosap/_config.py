@@ -40,3 +40,4 @@ class AppConfig(metaclass=_AppConfigMeta):
     #Set this to True if you are running cosap on a slurm cluster.
     SLURM_CLUSTER = strtobool(os.getenv("COSAP_SLURM_CLUSTER_MODE", "False"))
     IN_MEMORY_MODE = strtobool(os.getenv("COSAP_IN_MEMORY_MODE", "False"))
+    DEVICE = os.getenv("COSAP_DEVICE", "cpu")

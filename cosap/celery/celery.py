@@ -5,8 +5,12 @@ from pathlib import Path
 import yaml
 from celery import Celery, shared_task
 
+from .._config import AppConfig
 from ..parsers import ProjectResultsParser
+from ..pipeline_builder.builders import Annotator
+from ..tools.annotators import AnnotatorFactory
 from ..workflows import DNAPipeline, DNAPipelineInput
+from ..workflows._variant_annotation import VariantMultipleAnnotator
 
 celery_app = Celery("cosap")
 celery_app.config_from_object("cosap.celery.celeryconfig")
@@ -42,6 +46,7 @@ def cosap_dna_pipeline_task(
         ANNOTATORS=annotation,
         MSI=msi,
         GENEFUSION=gene_fusion,
+        DEVICE=AppConfig().DEVICE,
     )
 
     dna_pipeline = DNAPipeline(
@@ -63,4 +68,11 @@ def parse_project_data(path):
         "variant_stats": parser.variant_stats,
         "variants": parser.variants,
         "qc_results": parser.qc_genome_results,
+        "msi_score": parser.msi_score,
     }
+
+
+@shared_task(name="annotation_task")
+def annotate_variants(variants: list):
+    variant_annotator = VariantMultipleAnnotator(variants)
+    return variant_annotator.annotate()

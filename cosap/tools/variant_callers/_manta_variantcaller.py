@@ -1,11 +1,15 @@
 import gzip
+import os
 import shutil
+from pathlib import Path
 from subprocess import run
 
 from ..._config import AppConfig
+from ..._docker_images import DockerImages
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import VariantCallingKeys
 from ...memory_handler import MemoryHandler
+from ...pipeline_runner.runners import DockerRunner
 from ._variantcallers import _Callable, _VariantCaller
 
 
@@ -15,16 +19,15 @@ class MantaVariantCaller(_Callable, _VariantCaller):
         cls,
         caller_config: dict,
         library_paths: LibraryPaths,
-        memory_handler: MemoryHandler,
     ) -> tuple[str, list]:
         tumor_bam = caller_config[VariantCallingKeys.TUMOR_INPUT]
-        tmp_dir = memory_handler.get_temp_dir()
+        run_dir = str(Path(caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]).parent)
 
         command = [
             "configManta.py",
             f"--tumorBam={tumor_bam}",
             f"--referenceFasta={library_paths.REF_FASTA}",
-            f"--runDir={tmp_dir}",
+            f"--runDir={run_dir}",
         ]
         bed_file = (
             caller_config[VariantCallingKeys.BED_FILE]
@@ -34,7 +37,7 @@ class MantaVariantCaller(_Callable, _VariantCaller):
         if bed_file is not None:
             command.extend(["--callRegions", bed_file, "--exome"])
 
-        return tmp_dir, command
+        return run_dir, command
 
     @classmethod
     def _create_run_manta_workflow_command(
@@ -65,19 +68,30 @@ class MantaVariantCaller(_Callable, _VariantCaller):
     def call_variants(cls, caller_config: dict, device: str = "cpu"):
         library_paths = LibraryPaths()
 
-        with MemoryHandler() as memory_handler:
-            rundir, manta_command = cls._create_manta_command(
-                caller_config=caller_config,
-                library_paths=library_paths,
-                memory_handler=memory_handler,
-            )
-            manta_run_wf_command = cls._create_run_manta_workflow_command(
-                caller_config=caller_config, library_paths=library_paths, rundir=rundir
-            )
+        output_dir = os.path.abspath(
+            os.path.dirname(caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT])
+        )
 
-            run(manta_command)
-            run(manta_run_wf_command)
+        rundir, manta_command = cls._create_manta_command(
+            caller_config=caller_config, library_paths=library_paths
+        )
+        manta_run_wf_command = cls._create_run_manta_workflow_command(
+            caller_config=caller_config, library_paths=library_paths, rundir=rundir
+        )
 
-            cls._move_manta_vcfs(
-                caller_config=caller_config, library_paths=library_paths, rundir=rundir
-            )
+        docker_runner = DockerRunner(device=device)
+        docker_runner.run(
+            DockerImages.MANTA,
+            " ".join(manta_command),
+            workdir=str(Path(output_dir).parent.parent),
+        )
+        docker_runner.run(
+            DockerImages.MANTA,
+            " ".join(manta_run_wf_command),
+            workdir=str(Path(output_dir).parent.parent),
+        )
+        cls._move_manta_vcfs(
+            caller_config=caller_config,
+            library_paths=library_paths,
+            rundir=rundir,
+        )

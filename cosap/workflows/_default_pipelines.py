@@ -162,7 +162,9 @@ class DNAPipeline:
 
                 if self.input.MSI:
                     msicaller = MSICaller(
-                        normal=mdup_normal, tumor=mdup_tumor, library="msisensor"
+                        normal=mdup_normal if self.input.NORMAL_SAMPLE else None,
+                        tumor=mdup_tumor,
+                        library="msisensor"
                     )
                     self.pipeline.add(msicaller)
 
