@@ -83,4 +83,9 @@ class Bowtie2Mapper(_Mapper, _Mappable):
         bowtie = Popen(bowtie_command, stdout=PIPE)
         samtools = check_output(sort_command, stdin=bowtie.stdout)
         bowtie.wait()
+
+        if bowtie.returncode != 0:
+            raise Exception("Bowtie2 mapper failed.")
+        else:
+            print(samtools.decode("utf-8"))
         # run(index_command)

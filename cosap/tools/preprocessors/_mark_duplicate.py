@@ -1,16 +1,17 @@
 import os
+from pathlib import Path
 from subprocess import run
 from typing import Dict, List
 
 from ..._config import AppConfig
+from ..._docker_images import DockerImages
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import MDUPKeys
 from ..._utils import join_paths
 from ...memory_handler import MemoryHandler
-from ._preprocessors import _PreProcessable, _Preprocessor
 from ...pipeline_runner.runners import DockerRunner
-from ..._docker_images import DockerImages
-from pathlib import Path
+from ._preprocessors import _PreProcessable, _Preprocessor
+
 
 class MarkDuplicate(_Preprocessor, _PreProcessable):
     @classmethod
@@ -103,7 +104,9 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
         return command
 
     @classmethod
-    def create_parabricks_sort_command(cls, mdup_config: dict, library_paths: LibraryPaths, sort_order: str) -> list:
+    def create_parabricks_sort_command(
+        cls, mdup_config: dict, library_paths: LibraryPaths, sort_order: str
+    ) -> list:
 
         command = [
             "pbrun",
@@ -119,7 +122,6 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
         ]
 
         return command
-    
 
     @classmethod
     def run_preprocessor(cls, mdup_config: Dict, device: str = "cpu"):
@@ -141,17 +143,17 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
                     memory_handler=memory_handler,
                 )
                 run(command)
-            
+
         elif device == "gpu":
 
-            output_dir = os.path.abspath(
-                os.path.dirname(mdup_config[MDUPKeys.OUTPUT])
-            )
+            output_dir = os.path.abspath(os.path.dirname(mdup_config[MDUPKeys.OUTPUT]))
             os.makedirs(output_dir, exist_ok=True)
 
             runner = DockerRunner(device=device)
             # Parabricks markdup requires input bam to be queryname sorted
-            query_name_sort_command = cls.create_parabricks_sort_command(mdup_config, library_paths, "queryname")
+            query_name_sort_command = cls.create_parabricks_sort_command(
+                mdup_config, library_paths, "queryname"
+            )
             runner.run(
                 image=DockerImages.PARABRICKS,
                 command=" ".join(query_name_sort_command),
@@ -172,7 +174,9 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
             )
 
             # Convert output to coordinate sorted bam
-            coordinate_sort_command = cls.create_parabricks_sort_command(mdup_config, library_paths, "coordinate")
+            coordinate_sort_command = cls.create_parabricks_sort_command(
+                mdup_config, library_paths, "coordinate"
+            )
             runner.run(
                 image=DockerImages.PARABRICKS,
                 command=" ".join(coordinate_sort_command),

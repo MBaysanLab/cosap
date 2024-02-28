@@ -76,6 +76,11 @@ class BWA2Mapper(_Mapper, _Mappable):
             app_config=app_config, input_path=mapper_config[MappingKeys.OUTPUT]
         )
         bwa = Popen(bwa_command, stdout=PIPE)
+
         samtools = check_output(sort_command, stdin=bwa.stdout)
         bwa.wait()
+        if bwa.returncode != 0:
+            raise Exception("BWA2 failed")
+        else:
+            print(samtools.decode("utf-8"))
         # run(index_command)

@@ -1,16 +1,16 @@
 import os
 from itertools import chain, repeat
+from pathlib import Path
 from subprocess import run
 
 from ..._config import AppConfig
+from ..._docker_images import DockerImages
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import VariantCallingKeys
 from ...memory_handler import MemoryHandler
+from ...pipeline_runner.runners import DockerRunner
 from ...scatter_gather import ScatterGather
 from ._variantcallers import _Callable, _VariantCaller
-from ...pipeline_runner.runners import DockerRunner
-from ..._docker_images import DockerImages
-from pathlib import Path
 
 
 class Mutect2VariantCaller(_Callable, _VariantCaller):
@@ -161,7 +161,9 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         return command
 
     @classmethod
-    def _create_parabricks_mutectcaller_command(cls, caller_config: dict, library_paths: LibraryPaths) -> list:
+    def _create_parabricks_mutectcaller_command(
+        cls, caller_config: dict, library_paths: LibraryPaths
+    ) -> list:
 
         germline_bam = None
         if VariantCallingKeys.GERMLINE_INPUT in caller_config.keys():
@@ -179,7 +181,9 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             "--ref",
             library_paths.REF_FASTA,
             "--tumor-name",
-            caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.TUMOR_SAMPLE_NAME],
+            caller_config[VariantCallingKeys.PARAMS][
+                VariantCallingKeys.TUMOR_SAMPLE_NAME
+            ],
             "--in-tumor-bam",
             tumor_bam,
             "--out-vcf",
@@ -198,7 +202,6 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             )
 
         return command
-
 
     @classmethod
     def _filter_mutect_calls(
@@ -245,21 +248,21 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
                 ]
                 ScatterGather.run_parallel(run, scattered_commands)
 
-                stats_output = (
-                    f"{caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]}.stats"
-                )
+                stats_output = f"{caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]}.stats"
                 gather_stats_command = cls._gather_mutect_stats_command(
                     splitted_configs, stats_output
                 )
             ScatterGather.gather_vcfs(
                 splitted_configs,
-                output_path=caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT],
+                output_path=caller_config[
+                    VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT
+                ],
             )
 
             run(gather_stats_command)
 
             ScatterGather.clean_temp_files(caller_config[VariantCallingKeys.OUTPUT_DIR])
-            
+
         elif device == "gpu":
 
             print("Running Mutect2 on GPU")
@@ -267,7 +270,9 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
                 caller_config=caller_config, library_paths=library_paths
             )
             output_dir = os.path.abspath(
-                os.path.dirname(caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT])
+                os.path.dirname(
+                    caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
+                )
             )
             os.makedirs(output_dir, exist_ok=True)
 
@@ -279,8 +284,8 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             )
 
         filter_command = cls._filter_mutect_calls(
-                caller_config=caller_config, library_paths=library_paths
-            )
+            caller_config=caller_config, library_paths=library_paths
+        )
         get_snp_command = cls._create_get_snp_variants_command(
             caller_config=caller_config, library_paths=library_paths
         )

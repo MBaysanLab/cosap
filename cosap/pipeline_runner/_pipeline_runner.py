@@ -6,8 +6,13 @@ from .._config import AppConfig
 from .._pipeline_config import MappingKeys, PipelineKeys, VariantCallingKeys
 from .._utils import join_paths
 from ..tools.mappers import MapperFactory
-from ..tools.preprocessors import (BamIndexer, BamMerger, BaseRecalibrator,
-                                   MarkDuplicate, SamtoolsSorter)
+from ..tools.preprocessors import (
+    BamIndexer,
+    BamMerger,
+    BaseRecalibrator,
+    MarkDuplicate,
+    SamtoolsSorter,
+)
 from ..tools.variant_callers import VariantCallerFactory
 from ._snakemake_runner import SnakemakeRunner
 

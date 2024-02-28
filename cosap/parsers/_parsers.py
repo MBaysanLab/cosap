@@ -1,5 +1,6 @@
 import re
 from abc import ABC, abstractmethod
+from glob import glob
 
 from .._pipeline_config import *
 from .._utils import convert_vcf_to_json, join_paths, read_vcf_into_df
@@ -24,6 +25,7 @@ class ProjectResultsParser:
         self.qc_genome_results = self._parse_qc_genome_results()
         self.variants = self._parse_vcf()
         self.variant_stats = self._parse_variant_stats()
+        self.msi_score = self._parse_msi_score()
 
     def _parse_qc_coverage_histogram(self):
         # If there are multiple combinations, parse the first one
@@ -85,6 +87,10 @@ class ProjectResultsParser:
                 list(self.pipeline_config[PipelineKeys.VARIANT_CALLING].keys())[0]
             ][VariantCallingKeys.SNP_OUTPUT]
         return join_paths(self.pipeline_workdir, vcf)
+
+    def _parse_msi_score(self):
+        msi_file = glob(join_paths(self.pipeline_workdir, "MSI", "*.msisensor.txt"))[0]
+        return parse_msi_results(msi_file)
 
 
 # Adapted from MultiQC https://github.com/ewels/MultiQC
@@ -163,3 +169,18 @@ def parse_qualimap_coverage_histogram(path) -> dict:
 
     results_dict["hist"] = d
     return results_dict
+
+
+def parse_msi_results(path):
+    """
+    Read msisensor results file and return msi score.
+    """
+
+    # The results are in the second line of the file
+    with open(path) as f:
+        next(f)
+        line = next(f)
+
+        msi_score = line.split()[2]
+
+    return msi_score

@@ -50,10 +50,6 @@ def get_bams(wildcards, calling_rule: str) -> list[str]:
 
     return input_bams
 
-
-ruleorder: py2_variant_caller > variant_caller
-
-
 rule variant_caller:
     input:
         lambda wildcards: get_bams(wildcards,"variant_caller"),
@@ -84,18 +80,6 @@ rule variant_caller_with_gvcf_output:
         variant_caller.call_variants(
             config[PipelineKeys.VARIANT_CALLING][wildcards.identification], config["device"]
         )
-
-rule py2_variant_caller:
-    input:
-        lambda wildcards: get_bams(wildcards,"variant_caller"),
-    output:
-        vcf=FolderedOutputs.VARIANT_CALLING_VCF_OUTPUT,
-    conda:
-        "../../environments/py2_environment.yaml"
-    wildcard_constraints:
-        identification=SnakemakeConstraints.PY2_VARIANT_CALLERS,
-    script:
-        "../scripts/variantcaller_script.py"
 
 rule genefusion_caller:
     input:

@@ -71,3 +71,37 @@ def get_commonpath_from_config(config: dict) -> str:
             raise ValueError("Config value is not a string or list of strings.")
 
     return os.path.commonpath(paths)
+
+
+def convert_list_to_ensembl_vep_input(variants: list) -> str:
+    """
+    Converts list of variants to default vep input format and writes to a temporary file.
+    The default vep input format is:
+        1   881907    881906    -/C   +
+        2   946507    946507    G/C   +
+    """
+    import tempfile
+
+    with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+        for variant in variants:
+            f.write(
+                f"{variant['Chr']}\t{variant['Start']}\t{variant['End']}\t{variant['Ref']}/{variant['Alt']}\t+\n"
+            )
+        return f.name
+
+
+def convert_list_to_annovar_input(variants: list) -> str:
+    """
+    Converts list of variants to default annovar input format and writes to a temporary file.
+    The default annovar input format is:
+        1 948921 948921 T C
+        1 1404001 1404001 G T
+    """
+    import tempfile
+
+    with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+        for variant in variants:
+            f.write(
+                f"{variant['Chr']}\t{variant['Start']}\t{variant['End']}\t{variant['Ref']}\t{variant['Alt']}\n"
+            )
+        return f.name

@@ -1,9 +1,0 @@
-name: cosap_py2
-channels:
-  - bioconda
-  - conda-forge
-  - defaults
-dependencies:
-  - python=2.7.15
-  - strelka=2.9.10
-  - manta

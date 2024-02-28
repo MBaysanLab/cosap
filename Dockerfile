@@ -35,7 +35,7 @@ ENV COSAP_LIBRARY_PATH /cosap_data
 # Activate conda environment
 RUN conda init
 RUN echo "conda activate cosap" >> ~/.bashrc
-SHELL [ "/bin/bash", "--login", "-c" ]
+ENV PATH /opt/conda/envs/cosap/bin:$PATH
 
 # Create working directory
 RUN mkdir /workdir
