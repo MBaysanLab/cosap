@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 from subprocess import run
+import os
+from ..._pipeline_config import AnnotatorKeys
 
 
 class _Annotator(ABC):
@@ -17,7 +19,9 @@ class _Annotatable:
 
         chromosomes = ",".join([f"chr{i}" for i in list(range(1, 23))])
         input_without_ext = "".join(vcf_path.split(".")[:-1])
-        output_vcf = f"{input_without_ext}_chr1_22.vcf"
+        input_extension = vcf_path.split(".")[-1]
+        output_file = f"{input_without_ext}_chr1_22.{input_extension}"
+
         command = [
             "bcftools",
             "view",
@@ -25,7 +29,22 @@ class _Annotatable:
             "--targets",
             chromosomes,
             "-o",
-            output_vcf,
+            output_file,
         ]
         run(command)
-        return output_vcf
+        return output_file
+
+    @classmethod
+    def create_output_dir(cls, annotator_config: dict, workdir:str = None) -> str:
+        """
+        Creates output directory for annotator.
+        """
+        output_dir = os.path.dirname(annotator_config[AnnotatorKeys.OUTPUT])
+        if workdir:
+            output_dir = os.path.join(workdir, output_dir)
+        else:
+            output_dir = os.path.abspath(output_dir)
+
+        print(f"Creating output directory: {output_dir}")
+        os.makedirs(output_dir, exist_ok=True)
+        return output_dir

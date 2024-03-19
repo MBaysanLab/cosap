@@ -1,6 +1,8 @@
 import os
 
 import pandas as pd
+from subprocess import run
+import pyranges as pr
 
 
 def join_paths(path: str, *paths) -> str:
@@ -26,6 +28,7 @@ def read_vcf_into_df(path: str) -> pd.DataFrame:
                 "INFO": str,
             },
             sep="\t",
+            index_col=False,
         ).rename(
             columns={"#Chr": "Chr", "Ref.Gene": "Gene", "Func.refGene": "Function"}
         )
@@ -35,13 +38,168 @@ def read_vcf_into_df(path: str) -> pd.DataFrame:
     return df
 
 
-def convert_vcf_to_json(path: str) -> list:
+def convert_vcf_to_tsv(path: str, caller_type: str = "mutect") -> str:
+
+    # Gatk VariantsToTable gives error when ref and alt alleles are same, so remove those lines
+    awk_command = rf"awk -F '\t' '/^#/ || $4 != $5' {path} > {path}.tmp && mv {path}.tmp {path}"
+    run(["bash", "-c", awk_command], check=True)
+
+    output_filename = path.replace(".vcf", ".tsv")
+
+    if os.path.exists(output_filename):
+        return output_filename
+
+    # Run GATK VariantsToTable to convert vcf to tsv
+    command = [
+        "gatk",
+        "VariantsToTable",
+        "-V",
+        path,
+        "-F",
+        "CHROM",
+        "-F",
+        "POS",
+        "-F",
+        "REF",
+        "-F",
+        "ALT",
+        "-F",
+        "QUAL",
+        "-F",
+        "FILTER",
+        "-F",
+        "STATUS",
+        "-F",
+        "INFO",
+        "-GF",
+        "AF",
+        "-GF",
+        "AD",
+        "-GF",
+        "DP",
+        "-SMA",
+        "-O",
+        output_filename,
+    ]
+
+    # If caller is strelka, to calculate AF we need AU, CU, GU, TU
+    if caller_type.lower() == "strelka":
+        command.extend(["-GF", "AU", "-GF", "CU", "-GF", "GU", "-GF", "TU"])
+    
+    if caller_type.lower() == "varscan":
+        command.extend(["-GF", "FREQ"])
+    
+    if caller_type.lower() == "varnet":
+        command.extend(["-GF", "AO"])
+
+    _ = run(command, check=True, capture_output=True, text=True)
+
+    return output_filename
+
+def calculate_strelka_af(row: pd.Series) -> float:
+    """
+    Calculates AF from AU, CU, GU, TU columns.
+    From https://github.com/Illumina/strelka/blob/v2.9.x/docs/userGuide/README.md#somatic
+    """
+    ref = row["REF"]
+    alt = row["ALT"]
+    ref_u = f"TUMOR.{ref}U"
+    alt_u = f"TUMOR.{alt}U"
+    ref_counts = row[ref_u]
+    alt_counts = row[alt_u]
+    tier1_refcounts = ref_counts.split(",")[0]
+    tier1_altcounts = alt_counts.split(",")[1]
+    af = float(tier1_altcounts) / (float(tier1_altcounts) + float(tier1_refcounts))
+    return af
+
+def calculate_strelka_ad(row: pd.Series) -> float:
+    """
+    Calculates AD as sum of AU, CU, GU, TU columns.
+    """
+    return sum([int(i) for i in row[["TUMOR.AU", "TUMOR.CU", "TUMOR.GU", "TUMOR.TU"]].values[0].split(",")])
+
+def convert_vcf_to_json(
+    path: str, caller_type: str = "mutect", sample_name: str = "TUMOR"
+) -> list:
     """
     Returns list of variants as json objects.
     """
-    vcf_df = read_vcf_into_df(path)
-    return vcf_df.to_dict("records")
 
+    sample_name = sample_name.upper()
+
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"File not found: {path}")
+
+    variants_table = convert_vcf_to_tsv(path, caller_type)
+
+    vcf_df = read_vcf_into_df(variants_table)
+
+    if caller_type == "strelka":
+        for i, row in vcf_df.iterrows():
+            af = calculate_strelka_af(row)
+            vcf_df.at[i, "AF"] = af
+            ad = calculate_strelka_ad(row)
+            vcf_df.at[i, "AD"] = ad
+
+    # Convert all columns to UPPERCASE
+    vcf_df.columns = vcf_df.columns.str.upper()
+
+    # Rename columns
+    if f"{sample_name}.AF" in vcf_df.columns:
+        vcf_df.rename(
+            columns={
+                f"{sample_name}.AF": "AF",
+                f"{sample_name}.AD": "AD",
+                f"{sample_name}.DP": "DP",
+            },
+            inplace=True,
+        )
+    if "SAMPLE.AF" in vcf_df.columns:
+        vcf_df.rename(
+            columns={
+                "SAMPLE.AF": "AF",
+                "SAMPLE.AD": "AD",
+                "SAMPLE.DP": "DP",
+            },
+            inplace=True,
+        )
+    # VarScan uses FREQ instead of AF
+    if f"{sample_name}.FREQ" in vcf_df.columns:
+        vcf_df.rename(
+            columns={
+                f"{sample_name}.FREQ": "AF",
+            },
+            inplace=True,
+        )
+        vcf_df["AF"] = vcf_df["AF"].replace("%", "", regex=True).astype(float) / 100
+
+    if caller_type.lower() == "varnet":
+        vcf_df.rename(
+            columns={
+                f"SAMPLE.AO": "AD",
+            },
+            inplace=True,
+        )
+
+    columns_to_keep = [
+        "CHROM",
+        "POS",
+        "REF",
+        "ALT",
+        "AF",
+        "AD",
+        "DP",
+        "STATUS",
+    ]
+
+    vcf_df = vcf_df[columns_to_keep]
+
+    # AD column contains comma separated values of ref and alt allele counts, get only alt allele counts
+    # IF AD contains comma separated values, get the second value
+    vcf_df["AD"] = vcf_df["AD"].apply(lambda x: x.split(",")[-1] if "," in x else x)
+    
+
+    return vcf_df.to_dict("records")
 
 def is_valid_path(path: str) -> bool:
     """
@@ -73,7 +231,7 @@ def get_commonpath_from_config(config: dict) -> str:
     return os.path.commonpath(paths)
 
 
-def convert_list_to_ensembl_vep_input(variants: list) -> str:
+def convert_list_to_ensembl_vep_input(variants: list, workdir: str) -> str:
     """
     Converts list of variants to default vep input format and writes to a temporary file.
     The default vep input format is:
@@ -82,15 +240,18 @@ def convert_list_to_ensembl_vep_input(variants: list) -> str:
     """
     import tempfile
 
-    with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt", dir=workdir) as f:
         for variant in variants:
+
+            end = variant["POS"] + len(variant["REF"]) - 1
+
             f.write(
-                f"{variant['Chr']}\t{variant['Start']}\t{variant['End']}\t{variant['Ref']}/{variant['Alt']}\t+\n"
+                f"{variant['CHROM']}\t{variant['POS']}\t{end}\t{variant['REF']}/{variant['ALT']}\t+\n"
             )
         return f.name
 
 
-def convert_list_to_annovar_input(variants: list) -> str:
+def convert_list_to_annovar_input(variants: list, workdir:str) -> str:
     """
     Converts list of variants to default annovar input format and writes to a temporary file.
     The default annovar input format is:
@@ -99,9 +260,31 @@ def convert_list_to_annovar_input(variants: list) -> str:
     """
     import tempfile
 
-    with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".avinput", dir=workdir) as f:
         for variant in variants:
+            chrom = variant["CHROM"].replace("chr", "")
+            end = variant["POS"] + len(variant["REF"]) - 1
             f.write(
-                f"{variant['Chr']}\t{variant['Start']}\t{variant['End']}\t{variant['Ref']}\t{variant['Alt']}\n"
+                f"{chrom}\t{variant['POS']}\t{end}\t{variant['REF']}\t{variant['ALT']}\n"
             )
         return f.name
+
+def get_variants_within_bed_regions(variants_df, bed_df):
+    """
+    Returns variants that are within the bed regions.
+    """
+    variants_df["POS"] = variants_df["POS"].astype(int)
+    bed_df["POS"] = bed_df["POS"].astype(int)
+    bed_df["END"] = bed_df["END"].astype(int)
+    variants_df = pd.merge(
+        variants_df,
+        bed_df,
+        on=["CHROM"],
+        how="inner",
+        suffixes=("_variants", "_bed"),
+    )
+    variants_df = variants_df[
+        (variants_df["POS_variants"] >= variants_df["POS_bed"])
+        & (variants_df["POS_variants"] <= variants_df["END"])
+    ]
+    return variants_df

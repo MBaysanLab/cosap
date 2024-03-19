@@ -16,10 +16,13 @@ class Annotator(_IPipelineStep, _PipelineStep):
     name: str = None
     key: str = PipelineKeys.ANNOTATION
     next_step: _PipelineStep = None
+    input_type: str = "vcf"
 
     def __post_init__(self):
         if self.name is None:
             self.name = f"{self.input_step.name}_{self.library}"
+        
+        self.library = self.library.upper()
 
         # Retrieve sample name from input step if possible.
         if self.sample_name is None:
@@ -44,7 +47,7 @@ class Annotator(_IPipelineStep, _PipelineStep):
             return FileFormats.ANNOTATION_OUTPUT.format(
                 identification=self.name, custom_ext="txt"
             )
-        elif self.library.lower() == "annotsv":
+        elif self.library.lower() in ["vep", "annotsv"]:
             return FileFormats.ANNOTATION_OUTPUT.format(
                 identification=self.name, custom_ext="tsv"
             )
@@ -70,6 +73,7 @@ class Annotator(_IPipelineStep, _PipelineStep):
                     OutputFolders.ANNOTATION, self.library, output_filename
                 ),
                 AnnotatorKeys.OUTPUT_DIR: OutputFolders.ANNOTATION,
+                AnnotatorKeys.INPUT_TYPE: self.input_type,
             }
         }
         if self.library.lower() == "annovar":

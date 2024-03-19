@@ -30,3 +30,8 @@ conda
 msisensor-pro
 genefuse
 shortuuid
+pyranges
+upsetplot
+seaborn
+scikit-learn
+matplotlib-venn

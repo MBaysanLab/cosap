@@ -17,6 +17,7 @@ class GeneFuse(_GeneFusionCaller):
             fastq for fastq in caller_config[GeneFusionCallingKeys.INPUT].values()
         ]
         output_json = caller_config[GeneFusionCallingKeys.OUTPUT]
+        output_html = caller_config[GeneFusionCallingKeys.OUTPUT].replace(".json", ".html")
 
         command = [
             "genefuse",
@@ -30,6 +31,8 @@ class GeneFuse(_GeneFusionCaller):
             fastq_inputs[1],
             "-j",
             output_json,
+            "-h",
+            output_html,
             "-t",
             str(app_config.MAX_THREADS_PER_JOB),
         ]

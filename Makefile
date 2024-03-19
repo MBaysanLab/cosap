@@ -1,3 +1,5 @@
+PWD = $(shell pwd)
+
 docker_build:
 	DOCKER_BUILDKIT=1 docker build --platform linux/amd64 -t itubioinformatics/cosap . 
 
@@ -11,6 +13,9 @@ install:
 
 	mamba create --name cosap -c conda-forge -c bioconda --yes --file requirements.txt
 	mamba run --no-capture-output -n cosap pip install . docker celery redis
+
+	# Set environment variables in conda environment
+	conda env config vars set COSAP=$(PWD) -n cosap
 
 develop:
 	# Check if miniforge3 is installed and install if not

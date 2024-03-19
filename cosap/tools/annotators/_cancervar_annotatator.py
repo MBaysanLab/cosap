@@ -21,7 +21,12 @@ class CancervarAnnotator(_Annotatable, _Annotator):
         cancervar_db = join_paths(library_paths.CANCERVAR, "cancervardb")
         convert2annovar = join_paths(library_paths.ANNOVAR, "convert2annovar.pl")
 
-        # filtered_input = cls.chr_filter_vcf(input_vcf)
+        input_file_type = annotator_config[AnnotatorKeys.INPUT_TYPE]
+        if input_file_type.lower() == "vcf":
+            input_file_type = "VCF"
+            input_file = cls.chr_filter_vcf(input_vcf)
+        elif input_file_type.lower() == "avinput":
+            input_file = input_vcf
 
         command = [
             "python",
@@ -29,8 +34,8 @@ class CancervarAnnotator(_Annotatable, _Annotator):
             "-b",
             "hg38",
             "-i",
-            input_vcf,
-            "--input_type=VCF",
+            input_file,
+            f"--input_type={input_file_type}",
             "-o",
             output_vcf,
             f"--database_cancervar={cancervar_db}",
@@ -43,11 +48,12 @@ class CancervarAnnotator(_Annotatable, _Annotator):
         return command
 
     @classmethod
-    def annotate(cls, annotator_config: Dict):
+    def annotate(cls, annotator_config: Dict, workdir:str = None):
         library_paths = LibraryPaths()
 
         cancervar_command = cls.create_command(
             library_paths=library_paths,
             annotator_config=annotator_config,
         )
-        run(cancervar_command)
+        cls.create_output_dir(annotator_config, workdir=workdir)
+        run(cancervar_command, cwd=workdir)
