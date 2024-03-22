@@ -76,7 +76,7 @@ class PipelineRunner:
                 workdir=pipeline_config[PipelineKeys.WORKDIR],
                 device=self.device,
             )
-            snakemake_runner.run_snakemake_pipeline()
+            return snakemake_runner.run_snakemake_pipeline()
 
         else:
             self.validate_pipeline_config(pipeline_config)
@@ -89,5 +89,3 @@ class PipelineRunner:
             self.calibrate(pipeline_config[PipelineKeys.CALIBRATE])
 
             self.call_variants(pipeline_config[PipelineKeys.VARIANT_CALLING])
-
-        return pipeline_config

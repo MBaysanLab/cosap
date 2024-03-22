@@ -16,8 +16,8 @@ celery_app = Celery("cosap")
 celery_app.config_from_object("cosap.celery.celeryconfig")
 
 
-@shared_task(name="cosap_dna_pipeline_task")
-def cosap_dna_pipeline_task(
+@shared_task(name="dna_pipeline_task")
+def dna_pipeline_task(
     analysis_type,
     workdir,
     normal_sample,
@@ -52,7 +52,7 @@ def cosap_dna_pipeline_task(
     dna_pipeline = DNAPipeline(
         dna_pipeline_input=dna_pipeline_input,
     )
-    dna_pipeline.run_pipeline()
+    return dna_pipeline.run_pipeline()
 
 
 @shared_task(name="parse_project_results")
@@ -64,8 +64,7 @@ def parse_project_data(path):
     config_dict = yaml.load(Path(latest_config).read_text(), Loader=yaml.Loader)
     parser = ProjectResultsParser(pipeline_config=config_dict)
     return {
-        "qc_coverage_histogram": parser.qc_coverage_histogram,
-        "variant_stats": parser.variant_stats,
+        # "qc_coverage_histogram": parser.qc_coverage_histogram,
         "variants": parser.variants,
         "qc_results": parser.qc_genome_results,
         "msi_score": parser.msi_score,
@@ -73,6 +72,6 @@ def parse_project_data(path):
 
 
 @shared_task(name="annotation_task")
-def annotate_variants(variants: list):
-    variant_annotator = VariantMultipleAnnotator(variants)
+def annotate_variants(variants: list, workdir: str) -> list:
+    variant_annotator = VariantMultipleAnnotator(variants, workdir)
     return variant_annotator.annotate()

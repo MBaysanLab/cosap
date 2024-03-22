@@ -60,6 +60,7 @@ class _LibraryPaths38(_LibraryPaths):
         AppConfig.LIBRARY_PATH, "Homo_sapiens_assembly38.elfasta"
     )
     REF_BED: str = os.path.join(AppConfig.LIBRARY_PATH, "hg38_intervals.bed")
+    REF_GFF3: str = os.path.join(AppConfig.LIBRARY_PATH, "Homo_sapiens.GRCh38.111.gff3.gz")
     DBSNP: str = os.path.join(
         AppConfig.LIBRARY_PATH,
         "Homo_sapiens_assembly38.dbsnp138.vcf",
@@ -95,6 +96,7 @@ class _LibraryPaths38(_LibraryPaths):
         AppConfig.LIBRARY_PATH, "Homo_sapiens_assembly38"
     )
     INTERVALS: str = os.path.join(AppConfig.LIBRARY_PATH, "intervals")
+    STRINGENCIES: str = os.path.join(AppConfig.LIBRARY_PATH, "stringencies")
 
 
 @dataclass

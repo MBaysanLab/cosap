@@ -100,5 +100,11 @@ class SnakemakeRunner:
         # if cont.lower() == "n":
         #     sys.exit()
         run(dry_run, cwd=self.workdir)
-        run(snakemake, cwd=self.workdir)
-        # run(report, cwd=self.workdir)
+
+        # Run and return sys output
+        results = run(snakemake, cwd=self.workdir, text=True, capture_output=True)
+        return {
+            "stdout": results.stdout,
+            "stderr": results.stderr,
+            "returncode": results.returncode,
+        }

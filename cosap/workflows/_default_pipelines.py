@@ -150,9 +150,9 @@ class DNAPipeline:
                     input_step=trimmer_tumor,
                     params={
                         "read_groups": {
-                            "ID": "1",
+                            "ID": "0",
                             "SM": tumor_sample_name,
-                            "PU": "1",
+                            "PU": "0",
                             "PL": "il",
                             "LB": "0",
                         }
@@ -161,12 +161,15 @@ class DNAPipeline:
                 mdup_tumor = MDUP(input_step=mapper_tumor)
 
                 if self.input.MSI:
-                    msicaller = MSICaller(
-                        normal=mdup_normal if self.input.NORMAL_SAMPLE else None,
-                        tumor=mdup_tumor,
-                        library="msisensor"
-                    )
-                    self.pipeline.add(msicaller)
+                    # If normal is not supplied, skip MSICaller
+                    if self.input.NORMAL_SAMPLE is not None:
+                        msicaller = MSICaller(
+                            normal=mdup_normal,
+                            tumor=mdup_tumor,
+                            library="msisensor",
+                        )
+                        self.pipeline.add(msicaller)
+                        
 
                 bqsr_tumor = Recalibrator(
                     input_step=mdup_tumor, bed_file=self.input.BED_FILE
@@ -282,4 +285,4 @@ class DNAPipeline:
 
     def run_pipeline(self):
         pipeline_runner = PipelineRunner(device=self.input.DEVICE)
-        pipeline_runner.run_pipeline(self.config)
+        return pipeline_runner.run_pipeline(self.config)

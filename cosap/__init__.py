@@ -17,4 +17,5 @@ from .tools.msi_callers import *
 from .tools.preprocessors import *
 from .tools.quality_controllers import *
 from .tools.variant_callers import *
+from .tools.comparator import *
 from .workflows import *

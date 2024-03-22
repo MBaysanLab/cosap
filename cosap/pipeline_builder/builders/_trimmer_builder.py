@@ -5,6 +5,7 @@ from ..._formats import FileFormats, OutputFolders
 from ..._pipeline_config import PipelineKeys, TrimmingKeys
 from ..._utils import join_paths
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
+import os
 
 
 @dataclass
@@ -17,7 +18,7 @@ class Trimmer(_IPipelineStep, _PipelineStep):
     def __post_init__(self):
         self.key = PipelineKeys.TRIM
         if self.name == None:
-            self.name = "_".join(set(step.name for step in self.input_step[::-1]))
+            self.name = self._create_name_from_input()
 
     def _create_config(self) -> Dict:
         read_filenames = {}
@@ -34,7 +35,7 @@ class Trimmer(_IPipelineStep, _PipelineStep):
         output_filenames = {}
         for reader in self.input_step:
             output_filename = FileFormats.TRIMMING_OUTPUT.format(
-                identification=reader.name, pair=reader.read
+                identification=self.name, pair=reader.read
             )
             output_filenames[reader.read] = join_paths(
                 OutputFolders.TRIMMING, output_filename
@@ -63,3 +64,18 @@ class Trimmer(_IPipelineStep, _PipelineStep):
         trim_config = self._create_config()
         config = {self.key: trim_config}
         return config
+
+    def _create_name_from_input(self):
+        """
+        Create name from input steps if name is not provided.
+        
+        Returns:
+            str: Name of the step
+        """
+
+        # Get common prefix of the input fastq files
+        prefix = os.path.commonprefix([reader.get_output() for reader in self.input_step])
+
+        # Remove trailing underscore and the rest of the name
+        prefix = os.path.basename(prefix).rstrip("_")
+        return prefix

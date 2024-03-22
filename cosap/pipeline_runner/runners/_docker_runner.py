@@ -8,31 +8,41 @@ from typing import Union
 
 class DockerRunner:
     def __init__(self, device: str = "cpu") -> None:
-        self.devie = device
+        self.device = device
         self.docker_client = docker.from_env()
 
-    def run(self, image: str, command: Union[str, list], workdir: str = None) -> None:
+    def run(
+        self,
+        image: str,
+        command: Union[str, list],
+        workdir: str = None,
+        paths_to_bind: list = [],
+    ) -> None:
 
         # Check if the image exists
         if not self._check_if_image_exists(image):
             self._pull_image(image)
 
         library_path = AppConfig.LIBRARY_PATH
-
         hostname = os.getenv("HOSTNAME") if self._check_if_running_in_docker() else None
 
-        volumes = (
-            {
+        # Set volumes
+        volumes_dict = {
                 library_path: {"bind": library_path, "mode": "ro"},
                 workdir: {"bind": workdir, "mode": "rw"},
+
             }
+        for path in paths_to_bind:
+            volumes_dict[path] = {"bind": path, "mode": "rw"}
+
+        volumes = (
+            volumes_dict
             if not self._check_if_running_in_docker()
             else None
         )
         volumes_from = [hostname] if self._check_if_running_in_docker() else None
-
+        
         # Run and return the log generator
-
         container = self.docker_client.containers.run(
             image=image,
             command=command,
@@ -45,7 +55,7 @@ class DockerRunner:
             device_requests=[
                 docker.types.DeviceRequest(count=-1, capabilities=[["gpu"]])
             ]
-            if self.devie == "gpu"
+            if self.device == "gpu"
             else None,
         )
         logs = container.attach(stdout=True, stderr=True, stream=True, logs=True)

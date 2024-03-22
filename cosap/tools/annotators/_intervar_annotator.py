@@ -5,6 +5,7 @@ from ..._library_paths import LibraryPaths
 from ..._pipeline_config import AnnotatorKeys
 from ..._utils import join_paths
 from ._annotators import _Annotatable, _Annotator
+import os
 
 
 class IntervarAnnotator(_Annotatable, _Annotator):
@@ -21,15 +22,20 @@ class IntervarAnnotator(_Annotatable, _Annotator):
         table_annovar = join_paths(library_paths.ANNOVAR, "table_annovar.pl")
         convert2annovar = join_paths(library_paths.ANNOVAR, "convert2annovar.pl")
 
-        filtered_input = cls.chr_filter_vcf(input_vcf)
+
+        input_file_type = annotator_config[AnnotatorKeys.INPUT_TYPE]
+        if input_file_type == "vcf":
+            input_file = cls.chr_filter_vcf(input_vcf)
+        elif input_file_type.lower() == "avinput":
+            input_file = input_vcf
 
         command = [
             join_paths(library_paths.INTERVAR, "Intervar.py"),
             "-b",
             "hg38",
             "-i",
-            filtered_input,
-            "--input_type=VCF",
+            input_file,
+            f"--input_type={input_file_type}",
             "-o",
             output_vcf,
             f"--database_intervar={intervar_db}",
@@ -42,11 +48,13 @@ class IntervarAnnotator(_Annotatable, _Annotator):
         return command
 
     @classmethod
-    def annotate(cls, annotator_config: Dict):
+    def annotate(cls, annotator_config: Dict, workdir:str = None):
         library_paths = LibraryPaths()
 
         intervar_command = cls.create_command(
             library_paths=library_paths,
             annotator_config=annotator_config,
         )
-        run(intervar_command)
+
+        cls.create_output_dir(annotator_config, workdir=workdir)
+        run(intervar_command, cwd=workdir)

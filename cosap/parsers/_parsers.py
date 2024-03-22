@@ -1,7 +1,7 @@
 import re
 from abc import ABC, abstractmethod
 from glob import glob
-
+import os
 from .._pipeline_config import *
 from .._utils import convert_vcf_to_json, join_paths, read_vcf_into_df
 
@@ -20,19 +20,25 @@ class ProjectResultsParser:
     def __init__(self, pipeline_config):
         self.pipeline_config = pipeline_config
         self.pipeline_workdir = pipeline_config[PipelineKeys.WORKDIR]
-        self.vcf = self._get_vcf()
+        self.variants = self._get_variants()
         self.qc_coverage_histogram = self._parse_qc_coverage_histogram()
         self.qc_genome_results = self._parse_qc_genome_results()
-        self.variants = self._parse_vcf()
-        self.variant_stats = self._parse_variant_stats()
         self.msi_score = self._parse_msi_score()
 
     def _parse_qc_coverage_histogram(self):
         # If there are multiple combinations, parse the first one
         # TODO: Taking the first one might not be the preferred way.
-        qc_dir = self.pipeline_config[PipelineKeys.QUALITY_CONTROL][
-            list(self.pipeline_config[PipelineKeys.QUALITY_CONTROL].keys())[0]
-        ][QualityControlKeys.OUTPUT]
+
+        try:
+            qc_dir = self.pipeline_config[PipelineKeys.QUALITY_CONTROL][
+                list(self.pipeline_config[PipelineKeys.QUALITY_CONTROL].keys())[0]
+            ][QualityControlKeys.OUTPUT]
+        except IndexError:
+            qc_dir = None
+
+        if qc_dir is None:
+            return None
+        
         return parse_qualimap_coverage_histogram(
             join_paths(
                 self.pipeline_workdir,
@@ -43,50 +49,51 @@ class ProjectResultsParser:
         )
 
     def _parse_qc_genome_results(self):
-        qc_dir = self.pipeline_config[PipelineKeys.QUALITY_CONTROL][
-            list(self.pipeline_config[PipelineKeys.QUALITY_CONTROL].keys())[0]
-        ][QualityControlKeys.OUTPUT]
+        try:
+            qc_dir = self.pipeline_config[PipelineKeys.QUALITY_CONTROL][
+                list(self.pipeline_config[PipelineKeys.QUALITY_CONTROL].keys())[0]
+            ][QualityControlKeys.OUTPUT]
+        except IndexError:
+            qc_dir = None
+
+        if qc_dir is None:
+            return None
+        
         return parse_qualimap_genome_results(
             join_paths(self.pipeline_workdir, qc_dir, "genome_results.txt")
         )
 
-    def _parse_vcf(self):
-        return convert_vcf_to_json(join_paths(self.pipeline_workdir, self.vcf))
+    def _parse_vcf(self, vcf, caller_type, sample_name):
+        return convert_vcf_to_json(join_paths(self.pipeline_workdir, vcf), caller_type, sample_name)
 
-    def _parse_variant_stats(self):
-        vcf_df = read_vcf_into_df(self.vcf)
-        total_variants = vcf_df.shape[0]
-        significant_variants = None
-        uncertain_variants = None
 
-        if "Classification" in vcf_df.columns:
-            significant_variants = (
-                vcf_df[
-                    (vcf_df.Classification.str.contains("strong", case=False))
-                    | (vcf_df.Classification.str.contains("pathogenic", case=False))
-                    | (vcf_df.Classification.str.contains("potential", case=False))
-                ]
-            ).shape[0]
-            uncertain_variants = (
-                vcf_df[vcf_df.Classification.str.contains("uncertain", case=False)]
-            ).shape[0]
-
-        return {
-            "total_variants": total_variants,
-            "significant_variants": significant_variants,
-            "uncertain_variants": uncertain_variants,
-        }
-
-    def _get_vcf(self):
-        if PipelineKeys.ANNOTATION in self.pipeline_config.keys():
-            vcf = self.pipeline_config[PipelineKeys.ANNOTATION][
-                list(self.pipeline_config[PipelineKeys.ANNOTATION].keys())[0]
-            ][AnnotatorKeys.OUTPUT]
-        elif PipelineKeys.VARIANT_CALLING in self.pipeline_config.keys():
-            vcf = self.pipeline_config[PipelineKeys.VARIANT_CALLING][
+    def _get_variants(self):
+        try:
+            variant_caller_config = self.pipeline_config[PipelineKeys.VARIANT_CALLING][
                 list(self.pipeline_config[PipelineKeys.VARIANT_CALLING].keys())[0]
-            ][VariantCallingKeys.SNP_OUTPUT]
-        return join_paths(self.pipeline_workdir, vcf)
+            ]
+            vcf = variant_caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
+            variant_caller = variant_caller_config[VariantCallingKeys.LIBRARY]
+            tumor_sample_name = variant_caller_config[VariantCallingKeys.PARAMS][
+                VariantCallingKeys.TUMOR_SAMPLE_NAME
+            ]
+        except IndexError:
+            vcf = None
+            raise ValueError("No VCF found in pipeline config.")
+        
+        vcf_path = join_paths(self.pipeline_workdir, vcf)
+        
+        return self._parse_vcf(vcf_path, caller_type=variant_caller, sample_name=tumor_sample_name)
+
+    def _parse_msi_score(self):
+        try:
+            msi_file = glob(join_paths(self.pipeline_workdir, "MSI", "*.msisensor.txt"))[0]
+        except IndexError:
+            msi_file = None
+        
+        if msi_file is None:
+            return None
+        return parse_msi_results(msi_file)
 
     def _parse_msi_score(self):
         msi_file = glob(join_paths(self.pipeline_workdir, "MSI", "*.msisensor.txt"))[0]
@@ -98,6 +105,10 @@ def parse_qualimap_genome_results(path: str) -> dict:
     """
     Parse qualimap genome_results.txt and return metrics as dict.
     """
+
+    if not os.path.exists(path):
+        return None
+
     file_content = open(path).read()
 
     results_dict = dict()
@@ -141,6 +152,9 @@ def parse_qualimap_coverage_histogram(path) -> dict:
     Parse qualimap coverage_histogram.txt and return metrics as dict.
     """
 
+    if not os.path.exists(path):
+        return None
+
     file_content = open(path).readlines()
 
     results_dict = dict()
@@ -175,6 +189,9 @@ def parse_msi_results(path):
     """
     Read msisensor results file and return msi score.
     """
+
+    if not os.path.exists(path):
+        return None
 
     # The results are in the second line of the file
     with open(path) as f:

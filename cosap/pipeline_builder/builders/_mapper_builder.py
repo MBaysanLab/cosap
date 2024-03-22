@@ -29,6 +29,8 @@ class Mapper(_IPipelineStep, _PipelineStep):
                     + self.library
                 )
 
+        self.library = self.library.upper()
+
         if isinstance(self.input_step, list):
             for step in self.input_step:
                 step.next_step = self
