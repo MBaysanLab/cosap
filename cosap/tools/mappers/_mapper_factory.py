@@ -7,7 +7,7 @@ from ._mappers import _Mapper
 class MapperFactory:
     BWA_MAPPER = "bwa"
     BWA2_MAPPER = "bwa2"
-    BOWTIE2_MAPPER = "bowtie"
+    BOWTIE2_MAPPER = ("bowtie", "bowtie2")
 
     @classmethod
     def create(cls, mapper_type: str) -> _Mapper:
@@ -15,7 +15,7 @@ class MapperFactory:
 
         if mapper_type == cls.BWA_MAPPER:
             mapper = BWAMapper
-        elif mapper_type == cls.BOWTIE2_MAPPER:
+        elif mapper_type in cls.BOWTIE2_MAPPER:
             mapper = Bowtie2Mapper
         elif mapper_type == cls.BWA2_MAPPER:
             mapper = BWA2Mapper
