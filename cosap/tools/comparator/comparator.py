@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-from ..._utils import convert_vcf_to_json
+from ..._utils import convert_vcf_to_json, read_vcf_into_df
 import upsetplot
 import seaborn as sns
 from sklearn.metrics import pairwise_distances
@@ -155,11 +155,12 @@ class VariantComparator:
             set_labels=(pipeline1, pipeline2, pipeline3),
         )
 
-    def draw_precision_recall_plot(self, precision_recall_values):
+    def draw_precision_recall_plot(self, truth_vcf: str):
         """
         Scatter plot of precision and recall of each caller where x-axis is precision and y-axis is recall.
         """
 
+        precision_recall_values = self._create_precision_recall_dict(truth_vcf)
         precision_recall_df = pd.DataFrame(precision_recall_values).T
         precision_recall_df.columns = ["precision", "recall"]
 
@@ -170,6 +171,35 @@ class VariantComparator:
             hue=precision_recall_df.index,
             s=150,
         )
+    
+    def _create_precision_recall_dict(self, truth_vcf: str):
+        """
+        Calculate precision and recall of each caller with respect to the truth vcf file.
+        """
+
+        truth_df = read_vcf_into_df(truth_vcf)
+
+        truth_df["variant_id"] = truth_df[["CHROM", "POS", "REF", "ALT"]].apply(
+            lambda x: "-".join(x.astype(str)), axis=1
+        )
+
+        truth_set = set(truth_df["variant_id"].tolist())
+
+        precision_recall_values = {}
+        for pipeline in self.variants_df["pipeline"].unique():
+            pipeline_set = set(
+                self.variants_df[self.variants_df["pipeline"] == pipeline][
+                    "variant_id"
+                ].tolist()
+            )
+
+            precision_value = self._precision(pipeline_set, truth_set)
+            recall_value = self._recall(pipeline_set, truth_set)
+
+            precision_recall_values[pipeline] = (precision_value, recall_value)
+
+        return precision_recall_values
+
 
     def get_variants(self):
         return self.variants_df

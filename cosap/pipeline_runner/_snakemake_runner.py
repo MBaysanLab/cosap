@@ -1,5 +1,6 @@
 import multiprocessing
 from subprocess import PIPE, Popen, check_output, run
+import sys
 
 from .._config import AppConfig
 
@@ -102,7 +103,7 @@ class SnakemakeRunner:
         run(dry_run, cwd=self.workdir)
 
         # Run and return sys output
-        results = run(snakemake, cwd=self.workdir, text=True, capture_output=True)
+        results = run(snakemake, cwd=self.workdir, text=True, stderr=sys.stderr)
         return {
             "stdout": results.stdout,
             "stderr": results.stderr,

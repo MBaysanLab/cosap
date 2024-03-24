@@ -24,21 +24,24 @@ class Cosap:
 @click.option("--workdir", help="Directory that outputs will be saved", required=True)
 @click.option("--normal_sample", help="Path to normal sample", required=False)
 @click.option(
-    "--tumor_samples",
-    help="Path to tumor sample. Can be multiple paths seperated with white space",
+    "--tumor_sample",
+    help="Path to tumor sample. This option can be used multiple times.",
     required=False,
+    multiple=True,
 )
 @click.option("--bed_file", help="Path to BED file", required=False)
 @click.option(
-    "--mappers",
-    help="Mapper algorithms to use while aligning reads. Can be multiple option seperated with white space. Options = ['bwa', 'bwa2', 'bowtie2']",
+    "--mapper",
+    help="Mapper algorithm to use while aligning reads. This option can be used multiple times. Options = ['bwa', 'bwa2', 'bowtie2']",
     required=False,
+    multiple=True,
 )
 @click.option(
-    "--variant_callers",
+    "--variant_caller",
     help="Variant caller algorithm to use for variant detection. \
-    Can be multiple option seperated with white space, Options = ['mutect2','varscan2','haplotypecaller','octopus','strelka','somaticsniper','vardict', 'deepvariant']",
+    This option can be used multiple times, Options = ['mutect2','varscan2','haplotypecaller','octopus','strelka','somaticsniper','vardict', 'deepvariant']",
     required=False,
+    multiple=True,
 )
 @click.option(
     "--normal_sample_name",
@@ -59,6 +62,7 @@ class Cosap:
     "--annotators",
     help="Annotation tool to annotate variants in vcf files.",
     required=False,
+    multiple=True,
 )
 @click.option(
     "--gvcf",
@@ -88,10 +92,10 @@ def cosap_cli(
     analysis_type,
     workdir,
     normal_sample,
-    tumor_samples,
+    tumor_sample,
     bed_file,
-    mappers,
-    variant_callers,
+    mapper,
+    variant_caller,
     normal_sample_name,
     tumor_sample_name,
     bam_qc,
@@ -107,10 +111,10 @@ def cosap_cli(
             analysis_type: {analysis_type} \n \
             workdir: {workdir} \n \
             normal_sample: {normal_sample} \n \
-            tumor_samples: {tumor_samples} \n \
+            tumor_samples: {tumor_sample} \n \
             bed_file: {bed_file} \n \
-            mappers: {mappers} \n \
-            variant_callers: {variant_callers} \n \
+            mappers: {mapper} \n \
+            variant_callers: {variant_caller} \n \
             normal_sample_name: {normal_sample_name} \n \
             tumor_sample_name: {tumor_sample_name} \n \
             bam_qc: {bam_qc} \n \
@@ -125,14 +129,10 @@ def cosap_cli(
         ANALYSIS_TYPE=analysis_type,
         WORKDIR=workdir,
         NORMAL_SAMPLE=tuple(normal_sample.split(",")) if normal_sample else None,
-        TUMOR_SAMPLES=(
-            [tuple(t_sm.split(",")) for t_sm in tumor_samples.split(" ")]
-            if tumor_samples
-            else None
-        ),
+        TUMOR_SAMPLES=[tuple(t_sm.split(",")) for t_sm in tumor_sample],
         BED_FILE=bed_file,
-        MAPPERS=mappers.split(" "),
-        VARIANT_CALLERS=variant_callers.split(" "),
+        MAPPERS=mapper,
+        VARIANT_CALLERS=variant_caller,
         NORMAL_SAMPLE_NAME=normal_sample_name if normal_sample_name else None,
         TUMOR_SAMPLE_NAME=tumor_sample_name if tumor_sample_name else None,
         BAM_QC=bam_qc,

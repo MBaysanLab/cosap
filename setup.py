@@ -7,6 +7,7 @@ setup(
     version="0.0.2",
     description="COSAP python library for NGS data analysis",
     packages=find_packages(),
+    package_data={"cosap": ["snakemake_workflows/*"]},
     license="MIT license",
     entry_points={
         "console_scripts": [

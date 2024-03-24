@@ -33,7 +33,7 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
 
             self.name = "_".join(name_temp)
 
-        self.library = self.library.upper()
+        self.library = self.library.lower()
 
         # TODO: Read sample names from bam.
         if VariantCallingKeys.GERMLINE_SAMPLE_NAME not in self.params and self.germline:

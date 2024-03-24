@@ -1,8 +1,10 @@
 import os
 
 import pandas as pd
+from pandas.api.types import is_numeric_dtype
 from subprocess import run
 import pyranges as pr
+import gzip
 
 
 def join_paths(path: str, *paths) -> str:
@@ -13,7 +15,12 @@ def join_paths(path: str, *paths) -> str:
 def read_vcf_into_df(path: str) -> pd.DataFrame:
     import io
 
-    with open(path, "r") as f:
+    def file_open(path):
+        if path.endswith(".gz"):
+            return gzip.open(path, "rt")
+        return open(path, "r")
+
+    with file_open(path) as f:
         lines = [l for l in f if not l.startswith("##")]
         df = pd.read_csv(
             io.StringIO("".join(lines)),
@@ -29,9 +36,7 @@ def read_vcf_into_df(path: str) -> pd.DataFrame:
             },
             sep="\t",
             index_col=False,
-        ).rename(
-            columns={"#Chr": "Chr", "Ref.Gene": "Gene", "Func.refGene": "Function"}
-        )
+        ).rename(columns={"#CHROM": "CHROM"})
 
     df.reset_index(inplace=True)
     df.rename(columns={"index": "id"}, inplace=True)
@@ -132,7 +137,7 @@ def convert_vcf_to_json(
 
     variants_table = convert_vcf_to_tsv(path, caller_type)
 
-    vcf_df = read_vcf_into_df(variants_table)
+    vcf_df = pd.read_csv(variants_table, sep="\t")
 
     if caller_type == "strelka":
         for i, row in vcf_df.iterrows():
@@ -195,8 +200,10 @@ def convert_vcf_to_json(
     vcf_df = vcf_df[columns_to_keep]
 
     # AD column contains comma separated values of ref and alt allele counts, get only alt allele counts
-    # IF AD contains comma separated values, get the second value
-    vcf_df["AD"] = vcf_df["AD"].apply(lambda x: x.split(",")[-1] if "," in x else x)
+    # IF AD is str type and contains comma separated values, get the second value
+    if not is_numeric_dtype(vcf_df["AD"]):
+        vcf_df["AD"] = vcf_df["AD"].apply(lambda x: x.split(",")[-1] if "," in x else x)
+
     
 
     return vcf_df.to_dict("records")
