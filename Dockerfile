@@ -25,8 +25,7 @@ RUN mkdir /app
 COPY . /app/.
 
 WORKDIR /app
-RUN mamba run --no-capture-output -n cosap pip install celery redis docker
-RUN mamba run --no-capture-output -n cosap pip install -e .
+RUN mamba run --no-capture-output -n cosap pip install .
 
 # Set environment variables
 ENV COSAP /app

@@ -12,7 +12,6 @@ install:
 	fi;
 
 	mamba create --name cosap -c conda-forge -c bioconda --yes --file requirements.txt
-	mamba run --no-capture-output -n cosap pip install . docker celery redis
 
 	# Set environment variables in conda environment
 	conda env config vars set COSAP=$(PWD) -n cosap

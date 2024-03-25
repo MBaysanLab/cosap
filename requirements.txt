@@ -35,3 +35,6 @@ upsetplot
 seaborn
 scikit-learn
 matplotlib-venn
+celery
+redis-py
+docker-py
