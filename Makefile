@@ -1,7 +1,7 @@
 PWD = $(shell pwd)
 
 docker_build:
-	DOCKER_BUILDKIT=1 docker build --platform linux/amd64 -t itubioinformatics/cosap . 
+	DOCKER_BUILDKIT=1 docker build --platform linux/amd64 -t itubioinformatics/cosap:$(version) -t itubioinformatics/cosap:latest . 
 
 install:
 	# Check if miniforge3 is installed and install if not

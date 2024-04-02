@@ -1,7 +1,8 @@
+import os
 import re
 from abc import ABC, abstractmethod
 from glob import glob
-import os
+
 from .._pipeline_config import *
 from .._utils import convert_vcf_to_json, join_paths, read_vcf_into_df
 
@@ -38,7 +39,7 @@ class ProjectResultsParser:
 
         if qc_dir is None:
             return None
-        
+
         return parse_qualimap_coverage_histogram(
             join_paths(
                 self.pipeline_workdir,
@@ -58,14 +59,15 @@ class ProjectResultsParser:
 
         if qc_dir is None:
             return None
-        
+
         return parse_qualimap_genome_results(
             join_paths(self.pipeline_workdir, qc_dir, "genome_results.txt")
         )
 
     def _parse_vcf(self, vcf, caller_type, sample_name):
-        return convert_vcf_to_json(join_paths(self.pipeline_workdir, vcf), caller_type, sample_name)
-
+        return convert_vcf_to_json(
+            join_paths(self.pipeline_workdir, vcf), caller_type, sample_name
+        )
 
     def _get_variants(self):
         try:
@@ -80,23 +82,21 @@ class ProjectResultsParser:
         except IndexError:
             vcf = None
             raise ValueError("No VCF found in pipeline config.")
-        
+
         vcf_path = join_paths(self.pipeline_workdir, vcf)
-        
-        return self._parse_vcf(vcf_path, caller_type=variant_caller, sample_name=tumor_sample_name)
+
+        return self._parse_vcf(
+            vcf_path, caller_type=variant_caller, sample_name=tumor_sample_name
+        )
 
     def _parse_msi_score(self):
         try:
-            msi_file = glob(join_paths(self.pipeline_workdir, "MSI", "*.msisensor.txt"))[0]
+            msi_file = glob(
+                join_paths(self.pipeline_workdir, "MSI", "*.msisensor.txt")
+            )[0]
         except IndexError:
             msi_file = None
-        
-        if msi_file is None:
-            return None
-        return parse_msi_results(msi_file)
 
-    def _parse_msi_score(self):
-        msi_file = glob(join_paths(self.pipeline_workdir, "MSI", "*.msisensor.txt"))[0]
         return parse_msi_results(msi_file)
 
 

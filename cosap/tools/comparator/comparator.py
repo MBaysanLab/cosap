@@ -1,11 +1,12 @@
-import os
-import pandas as pd
-from ..._utils import convert_vcf_to_json, read_vcf_into_df
-import upsetplot
-import seaborn as sns
-from sklearn.metrics import pairwise_distances
-from matplotlib_venn import venn2, venn3
+
 import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+import upsetplot
+from matplotlib_venn import venn2, venn3
+from sklearn.metrics import pairwise_distances
+
+from ..._utils import convert_vcf_to_json, read_vcf_into_df
 
 
 class VariantComparator:
@@ -171,7 +172,7 @@ class VariantComparator:
             hue=precision_recall_df.index,
             s=150,
         )
-    
+
     def _create_precision_recall_dict(self, truth_vcf: str):
         """
         Calculate precision and recall of each caller with respect to the truth vcf file.
@@ -199,7 +200,6 @@ class VariantComparator:
             precision_recall_values[pipeline] = (precision_value, recall_value)
 
         return precision_recall_values
-
 
     def get_variants(self):
         return self.variants_df
@@ -305,5 +305,3 @@ class VariantComparator:
 
     def _intersection_size(self, a: set, *b: set) -> int:
         return len(a.intersection(*b))
-    
-

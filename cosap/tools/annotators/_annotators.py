@@ -1,6 +1,7 @@
+import os
 from abc import ABC, abstractmethod
 from subprocess import run
-import os
+
 from ..._pipeline_config import AnnotatorKeys
 
 
@@ -35,7 +36,7 @@ class _Annotatable:
         return output_file
 
     @classmethod
-    def create_output_dir(cls, annotator_config: dict, workdir:str = None) -> str:
+    def create_output_dir(cls, annotator_config: dict, workdir: str = None) -> str:
         """
         Creates output directory for annotator.
         """

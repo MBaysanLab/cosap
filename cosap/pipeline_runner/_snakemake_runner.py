@@ -1,6 +1,6 @@
 import multiprocessing
-from subprocess import PIPE, Popen, check_output, run
 import sys
+from subprocess import PIPE, Popen, check_output, run
 
 from .._config import AppConfig
 
@@ -91,7 +91,7 @@ class SnakemakeRunner:
         save_dag = self._create_save_dag_as_svg_command()
         dry_run = self._create_dry_run_command()
         snakemake = self._create_snakemake_run_command()
-        report = self._create_snakemake_report_command()
+        self._create_snakemake_report_command()
 
         run(unlock_dir, cwd=self.workdir)
         dag = Popen(create_dag, cwd=self.workdir, stdout=PIPE)

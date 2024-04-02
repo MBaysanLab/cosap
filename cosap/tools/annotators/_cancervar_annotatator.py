@@ -48,7 +48,7 @@ class CancervarAnnotator(_Annotatable, _Annotator):
         return command
 
     @classmethod
-    def annotate(cls, annotator_config: Dict, workdir:str = None):
+    def annotate(cls, annotator_config: Dict, workdir: str = None):
         library_paths = LibraryPaths()
 
         cancervar_command = cls.create_command(

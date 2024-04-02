@@ -2,7 +2,6 @@ import gzip
 import os
 import shutil
 from pathlib import Path
-from subprocess import run
 
 from ..._config import AppConfig
 from ..._docker_images import DockerImages
@@ -21,7 +20,9 @@ class MantaVariantCaller(_Callable, _VariantCaller):
         library_paths: LibraryPaths,
     ) -> tuple[str, list]:
         tumor_bam = caller_config[VariantCallingKeys.TUMOR_INPUT]
-        run_dir = str(Path(caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]).parent)
+        run_dir = str(
+            Path(caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]).parent
+        )
 
         command = [
             "configManta.py",

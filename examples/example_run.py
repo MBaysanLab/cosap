@@ -1,19 +1,7 @@
-from cosap import (
-    MDUP,
-    BamReader,
-    DNAPipeline,
-    DNAPipelineInput,
-    FastqReader,
-    GeneFusionCaller,
-    Mapper,
-    MSICaller,
-    Pipeline,
-    PipelineRunner,
-    Recalibrator,
-    Sorter,
-    Trimmer,
-    VariantCaller,
-)
+from cosap import (MDUP, BamReader, DNAPipeline, DNAPipelineInput, FastqReader,
+                   GeneFusionCaller, Mapper, MSICaller, Pipeline,
+                   PipelineRunner, Recalibrator, Sorter, Trimmer,
+                   VariantCaller)
 
 # Reading the fastq files
 normal_fastqs = [

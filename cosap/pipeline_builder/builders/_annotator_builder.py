@@ -21,7 +21,7 @@ class Annotator(_IPipelineStep, _PipelineStep):
     def __post_init__(self):
         if self.name is None:
             self.name = f"{self.input_step.name}_{self.library}"
-        
+
         self.library = self.library.upper()
 
         # Retrieve sample name from input step if possible.

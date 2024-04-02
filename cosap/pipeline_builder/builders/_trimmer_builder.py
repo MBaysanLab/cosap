@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass
 from typing import Dict, List
 
@@ -5,7 +6,6 @@ from ..._formats import FileFormats, OutputFolders
 from ..._pipeline_config import PipelineKeys, TrimmingKeys
 from ..._utils import join_paths
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
-import os
 
 
 @dataclass
@@ -68,14 +68,16 @@ class Trimmer(_IPipelineStep, _PipelineStep):
     def _create_name_from_input(self):
         """
         Create name from input steps if name is not provided.
-        
+
         Returns:
             str: Name of the step
         """
 
-        # Get common prefix of the input fastq files
-        prefix = os.path.commonprefix([reader.get_output() for reader in self.input_step])
+        # Get common prefix of the input fastq files
+        prefix = os.path.commonprefix(
+            [reader.get_output() for reader in self.input_step]
+        )
 
-        # Remove trailing underscore and the rest of the name
+        # Remove trailing underscore and the rest of the name
         prefix = os.path.basename(prefix).rstrip("_")
         return prefix

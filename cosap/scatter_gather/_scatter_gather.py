@@ -8,9 +8,11 @@ from subprocess import run
 import shortuuid
 
 from .._config import AppConfig
-from .._pipeline_config import PipelineBaseKeys, PipelineKeys, VariantCallingKeys
+from .._pipeline_config import (PipelineBaseKeys, PipelineKeys,
+                                VariantCallingKeys)
 from ..pipeline_builder import VariantCaller
-from .utils import create_tmp_filename, get_region_file_list, split_bam_by_intervals
+from .utils import (create_tmp_filename, get_region_file_list,
+                    split_bam_by_intervals)
 
 
 class ScatterGather:
@@ -118,8 +120,7 @@ class ScatterGather:
 
     @staticmethod
     def run_parallel(run_function: Callable, func_params: list):
-        app_config = AppConfig()
-        with ProcessPoolExecutor(
-            max_workers=app_config.MAX_THREADS_PER_JOB
-        ) as executor:
+        max_threads_per_job = AppConfig().MAX_THREADS_PER_JOB
+        print(f"Running {len(func_params)} jobs on {max_threads_per_job} threads")
+        with ProcessPoolExecutor(max_workers=max_threads_per_job) as executor:
             executor.map(run_function, func_params)

@@ -1,6 +1,4 @@
-import os
 from pathlib import Path
-from subprocess import run
 from typing import Dict, List
 
 from ..._config import AppConfig

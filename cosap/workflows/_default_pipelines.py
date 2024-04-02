@@ -18,8 +18,8 @@ class DNAPipelineInput:
     BED_FILE: str = None
     MAPPERS: List[str] = field(default_factory=lambda: ["bwa"])
     VARIANT_CALLERS: List[str] = field(default_factory=lambda: [""])
-    NORMAL_SAMPLE_NAME: str = "normal"
-    TUMOR_SAMPLE_NAME: str = "tumor"
+    NORMAL_SAMPLE_NAME: str = None
+    TUMOR_SAMPLE_NAME: str = None
     BAM_QC: str = None
     ANNOTATORS: List[str] = field(default_factory=lambda: None)
     GVCF: bool = False
@@ -39,6 +39,12 @@ class DNAPipelineInput:
                 raise Exception(
                     "Bed file should be provided for VarDict variant caller"
                 )
+
+        if self.TUMOR_SAMPLE_NAME is None:
+            self.TUMOR_SAMPLE_NAME = "tumor"
+
+        if self.NORMAL_SAMPLE_NAME is None:
+            self.NORMAL_SAMPLE_NAME = "normal"
 
 
 class DNAPipeline:
@@ -169,7 +175,6 @@ class DNAPipeline:
                             library="msisensor",
                         )
                         self.pipeline.add(msicaller)
-                        
 
                 bqsr_tumor = Recalibrator(
                     input_step=mdup_tumor, bed_file=self.input.BED_FILE

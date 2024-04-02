@@ -11,11 +11,13 @@ from .pipeline_runner import *
 from .scatter_gather import *
 from .tools.annotators import *
 from .tools.cnv_callers import *
+from .tools.comparator import *
 from .tools.gene_fusion_callers import *
 from .tools.mappers import *
 from .tools.msi_callers import *
 from .tools.preprocessors import *
 from .tools.quality_controllers import *
 from .tools.variant_callers import *
-from .tools.comparator import *
 from .workflows import *
+
+__version__ = version

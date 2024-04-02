@@ -1,13 +1,19 @@
 #!/usr/bin/env python
 
-from setuptools import find_packages, setup
+from setuptools import find_namespace_packages, setup
+
+from cosap import __version__
 
 setup(
     name="cosap",
-    version="0.1.0",
+    version=__version__,
     description="COSAP python library for NGS data analysis",
-    packages=find_packages(),
-    package_data={"cosap": ["snakemake_workflows/*"]},
+    packages=find_namespace_packages(),
+    package_dir={"cosap": "cosap"},
+    package_data={
+        "cosap": ["snakemake_workflows/*"],
+        "cosap.snakemake_workflows": ["rules/*"],
+    },
     license="MIT license",
     entry_points={
         "console_scripts": [

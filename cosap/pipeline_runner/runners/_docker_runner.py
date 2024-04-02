@@ -1,9 +1,9 @@
 import os
+from typing import Union
 
 import docker
 
 from ..._config import AppConfig
-from typing import Union
 
 
 class DockerRunner:
@@ -28,20 +28,15 @@ class DockerRunner:
 
         # Set volumes
         volumes_dict = {
-                library_path: {"bind": library_path, "mode": "ro"},
-                workdir: {"bind": workdir, "mode": "rw"},
-
-            }
+            library_path: {"bind": library_path, "mode": "ro"},
+            workdir: {"bind": workdir, "mode": "rw"},
+        }
         for path in paths_to_bind:
             volumes_dict[path] = {"bind": path, "mode": "rw"}
 
-        volumes = (
-            volumes_dict
-            if not self._check_if_running_in_docker()
-            else None
-        )
+        volumes = volumes_dict if not self._check_if_running_in_docker() else None
         volumes_from = [hostname] if self._check_if_running_in_docker() else None
-        
+
         # Run and return the log generator
         container = self.docker_client.containers.run(
             image=image,

@@ -1,10 +1,10 @@
+import gzip
 import os
+from subprocess import run
 
 import pandas as pd
-from pandas.api.types import is_numeric_dtype
-from subprocess import run
 import pyranges as pr
-import gzip
+from pandas.api.types import is_numeric_dtype
 
 
 def join_paths(path: str, *paths) -> str:
@@ -45,8 +45,10 @@ def read_vcf_into_df(path: str) -> pd.DataFrame:
 
 def convert_vcf_to_tsv(path: str, caller_type: str = "mutect") -> str:
 
-    # Gatk VariantsToTable gives error when ref and alt alleles are same, so remove those lines
-    awk_command = rf"awk -F '\t' '/^#/ || $4 != $5' {path} > {path}.tmp && mv {path}.tmp {path}"
+    # Gatk VariantsToTable gives error when ref and alt alleles are same, so remove those lines
+    awk_command = (
+        rf"awk -F '\t' '/^#/ || $4 != $5' {path} > {path}.tmp && mv {path}.tmp {path}"
+    )
     run(["bash", "-c", awk_command], check=True)
 
     output_filename = path.replace(".vcf", ".tsv")
@@ -90,16 +92,17 @@ def convert_vcf_to_tsv(path: str, caller_type: str = "mutect") -> str:
     # If caller is strelka, to calculate AF we need AU, CU, GU, TU
     if caller_type.lower() == "strelka":
         command.extend(["-GF", "AU", "-GF", "CU", "-GF", "GU", "-GF", "TU"])
-    
+
     if caller_type.lower() == "varscan":
         command.extend(["-GF", "FREQ"])
-    
+
     if caller_type.lower() == "varnet":
         command.extend(["-GF", "AO"])
 
     _ = run(command, check=True, capture_output=True, text=True)
 
     return output_filename
+
 
 def calculate_strelka_af(row: pd.Series) -> float:
     """
@@ -117,11 +120,20 @@ def calculate_strelka_af(row: pd.Series) -> float:
     af = float(tier1_altcounts) / (float(tier1_altcounts) + float(tier1_refcounts))
     return af
 
+
 def calculate_strelka_ad(row: pd.Series) -> float:
     """
     Calculates AD as sum of AU, CU, GU, TU columns.
     """
-    return sum([int(i) for i in row[["TUMOR.AU", "TUMOR.CU", "TUMOR.GU", "TUMOR.TU"]].values[0].split(",")])
+    return sum(
+        [
+            int(i)
+            for i in row[["TUMOR.AU", "TUMOR.CU", "TUMOR.GU", "TUMOR.TU"]]
+            .values[0]
+            .split(",")
+        ]
+    )
+
 
 def convert_vcf_to_json(
     path: str, caller_type: str = "mutect", sample_name: str = "TUMOR"
@@ -146,7 +158,7 @@ def convert_vcf_to_json(
             ad = calculate_strelka_ad(row)
             vcf_df.at[i, "AD"] = ad
 
-    # Convert all columns to UPPERCASE
+    # Convert all columns to UPPERCASE
     vcf_df.columns = vcf_df.columns.str.upper()
 
     # Rename columns
@@ -199,14 +211,13 @@ def convert_vcf_to_json(
 
     vcf_df = vcf_df[columns_to_keep]
 
-    # AD column contains comma separated values of ref and alt allele counts, get only alt allele counts
+    # AD column contains comma separated values of ref and alt allele counts, get only alt allele counts
     # IF AD is str type and contains comma separated values, get the second value
     if not is_numeric_dtype(vcf_df["AD"]):
         vcf_df["AD"] = vcf_df["AD"].apply(lambda x: x.split(",")[-1] if "," in x else x)
 
-    
-
     return vcf_df.to_dict("records")
+
 
 def is_valid_path(path: str) -> bool:
     """
@@ -247,7 +258,9 @@ def convert_list_to_ensembl_vep_input(variants: list, workdir: str) -> str:
     """
     import tempfile
 
-    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt", dir=workdir) as f:
+    with tempfile.NamedTemporaryFile(
+        mode="w", delete=False, suffix=".txt", dir=workdir
+    ) as f:
         for variant in variants:
 
             end = variant["POS"] + len(variant["REF"]) - 1
@@ -258,7 +271,7 @@ def convert_list_to_ensembl_vep_input(variants: list, workdir: str) -> str:
         return f.name
 
 
-def convert_list_to_annovar_input(variants: list, workdir:str) -> str:
+def convert_list_to_annovar_input(variants: list, workdir: str) -> str:
     """
     Converts list of variants to default annovar input format and writes to a temporary file.
     The default annovar input format is:
@@ -267,7 +280,9 @@ def convert_list_to_annovar_input(variants: list, workdir:str) -> str:
     """
     import tempfile
 
-    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".avinput", dir=workdir) as f:
+    with tempfile.NamedTemporaryFile(
+        mode="w", delete=False, suffix=".avinput", dir=workdir
+    ) as f:
         for variant in variants:
             chrom = variant["CHROM"].replace("chr", "")
             end = variant["POS"] + len(variant["REF"]) - 1
@@ -275,6 +290,7 @@ def convert_list_to_annovar_input(variants: list, workdir:str) -> str:
                 f"{chrom}\t{variant['POS']}\t{end}\t{variant['REF']}\t{variant['ALT']}\n"
             )
         return f.name
+
 
 def get_variants_within_bed_regions(variants_df, bed_df):
     """

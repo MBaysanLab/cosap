@@ -2,7 +2,6 @@ import gzip
 import os
 import shutil
 from pathlib import Path
-from subprocess import run
 
 from ..._config import AppConfig
 from ..._docker_images import DockerImages
@@ -22,7 +21,9 @@ class StrelkaVariantCaller(_Callable, _VariantCaller):
     ) -> tuple[str, list]:
         germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
         tumor_bam = caller_config[VariantCallingKeys.TUMOR_INPUT]
-        run_dir = str(Path(caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]).parent)
+        run_dir = str(
+            Path(caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]).parent
+        )
 
         command = [
             "configureStrelkaSomaticWorkflow.py",

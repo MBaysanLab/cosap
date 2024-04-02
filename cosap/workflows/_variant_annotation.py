@@ -1,11 +1,14 @@
+import io
+import os
+
 import pandas as pd
 
-from .._utils import convert_list_to_annovar_input, convert_list_to_ensembl_vep_input, join_paths
+from .._pipeline_config import PipelineKeys
+from .._utils import (convert_list_to_annovar_input,
+                      convert_list_to_ensembl_vep_input, join_paths)
 from ..pipeline_builder.builders import Annotator, VCFReader
 from ..tools.annotators import AnnotatorFactory
-from .._pipeline_config import PipelineKeys
-import os
-import io
+
 
 class VariantMultipleAnnotator:
     def __init__(self, variants: list, workdir: str):
@@ -13,98 +16,97 @@ class VariantMultipleAnnotator:
         self.workdir = workdir
 
     def annotate(self):
-            """
-            Annotates the variants using VEP, Intervar, and Cancervar.
+        """
+        Annotates the variants using VEP, Intervar, and Cancervar.
 
-            Returns:
-                dict: A dictionary containing the annotated variant records.
-            """
-            vep_input_file = convert_list_to_ensembl_vep_input(self.variants, self.workdir)
-            annovar_input_file = convert_list_to_annovar_input(self.variants, self.workdir)
+        Returns:
+            dict: A dictionary containing the annotated variant records.
+        """
+        vep_input_file = convert_list_to_ensembl_vep_input(self.variants, self.workdir)
+        annovar_input_file = convert_list_to_annovar_input(self.variants, self.workdir)
 
-            vep_input = VCFReader(filename=vep_input_file)
-            annovar_input = VCFReader(filename=annovar_input_file)
+        vep_input = VCFReader(filename=vep_input_file)
+        annovar_input = VCFReader(filename=annovar_input_file)
 
-            vep_config = Annotator(
-                library="vep", input_step=vep_input, sample_name="multiple_anotator", name="multiple_anotator"
-            )
-            intervar_config = Annotator(
-                library="intervar",
-                input_step=annovar_input,
-                sample_name="multiple_anotator",
-                input_type="AVinput",
-                name="multiple_anotator"
-            )
-            cancervar_config = Annotator(
-                library="cancervar",
-                input_step=annovar_input,
-                sample_name="multiple_anotator",
-                input_type="AVinput",
-                name="multiple_anotator"
-            )
+        vep_config = Annotator(
+            library="vep",
+            input_step=vep_input,
+            sample_name="multiple_anotator",
+            name="multiple_anotator",
+        )
+        intervar_config = Annotator(
+            library="intervar",
+            input_step=annovar_input,
+            sample_name="multiple_anotator",
+            input_type="AVinput",
+            name="multiple_anotator",
+        )
+        cancervar_config = Annotator(
+            library="cancervar",
+            input_step=annovar_input,
+            sample_name="multiple_anotator",
+            input_type="AVinput",
+            name="multiple_anotator",
+        )
 
-            vep_annotator = AnnotatorFactory.create("vep")
-            intervar_annotator = AnnotatorFactory.create("intervar")
-            cancervar_annotator = AnnotatorFactory.create("cancervar")
+        vep_annotator = AnnotatorFactory.create("vep")
+        intervar_annotator = AnnotatorFactory.create("intervar")
+        cancervar_annotator = AnnotatorFactory.create("cancervar")
 
-            if not os.path.exists(
-                join_paths(self.workdir, vep_config.get_output())
-            ):
-                vep_annotator.annotate(
-                    self._get_annotator_config(vep_config), workdir=self.workdir
-                )
-            
-            if not os.path.exists(
-                join_paths(self.workdir, intervar_config.get_output())
-            ):
-                intervar_annotator.annotate(
-                    self._get_annotator_config(intervar_config), workdir=self.workdir
-                )
-            
-            if not os.path.exists(
-                join_paths(self.workdir, cancervar_config.get_output())
-            ):
-                cancervar_annotator.annotate(
-                    self._get_annotator_config(cancervar_config), workdir=self.workdir
-                )
-
-            vep_results = self._parse_ensembl_vep_results(join_paths(self.workdir, vep_config.get_output()))
-            intervar_results = self._parse_annovar_results(
-                join_paths(self.workdir, intervar_config.get_output()), subtype="intervar"
-            )
-            cancervar_results = self._parse_annovar_results(
-                join_paths(self.workdir, cancervar_config.get_output()), subtype="cancervar"
+        if not os.path.exists(join_paths(self.workdir, vep_config.get_output())):
+            vep_annotator.annotate(
+                self._get_annotator_config(vep_config), workdir=self.workdir
             )
 
-            results = pd.merge(
-                vep_results,
-                intervar_results,
-                on="variant_id",
-                how="outer",
-            ).merge(
-                cancervar_results,
-                on="variant_id",
-                how="outer",
-                suffixes=("_drop", ""),
+        if not os.path.exists(join_paths(self.workdir, intervar_config.get_output())):
+            intervar_annotator.annotate(
+                self._get_annotator_config(intervar_config), workdir=self.workdir
             )
 
-            results = results.drop(
-                columns=[c for c in results.columns if c.endswith("_drop")]
+        if not os.path.exists(join_paths(self.workdir, cancervar_config.get_output())):
+            cancervar_annotator.annotate(
+                self._get_annotator_config(cancervar_config), workdir=self.workdir
             )
 
-            # Make all columns lowercase
-            results.columns = [c.lower() for c in results.columns]
+        vep_results = self._parse_ensembl_vep_results(
+            join_paths(self.workdir, vep_config.get_output())
+        )
+        intervar_results = self._parse_annovar_results(
+            join_paths(self.workdir, intervar_config.get_output()), subtype="intervar"
+        )
+        cancervar_results = self._parse_annovar_results(
+            join_paths(self.workdir, cancervar_config.get_output()), subtype="cancervar"
+        )
 
-            results = self._convert_null_values_to_nan(results)
+        results = pd.merge(
+            vep_results,
+            intervar_results,
+            on="variant_id",
+            how="outer",
+        ).merge(
+            cancervar_results,
+            on="variant_id",
+            how="outer",
+            suffixes=("_drop", ""),
+        )
 
-            # Remove temp input files
-            os.remove(vep_input_file)
-            os.remove(annovar_input_file)
-            os.remove(join_paths(self.workdir, vep_config.get_output()))
-            os.remove(join_paths(self.workdir, intervar_config.get_output()))
-            os.remove(join_paths(self.workdir, cancervar_config.get_output()))
+        results = results.drop(
+            columns=[c for c in results.columns if c.endswith("_drop")]
+        )
 
-            return results.to_dict(orient="records")
+        # Make all columns lowercase
+        results.columns = [c.lower() for c in results.columns]
+
+        results = self._convert_null_values_to_nan(results)
+
+        # Remove temp input files
+        os.remove(vep_input_file)
+        os.remove(annovar_input_file)
+        os.remove(join_paths(self.workdir, vep_config.get_output()))
+        os.remove(join_paths(self.workdir, intervar_config.get_output()))
+        os.remove(join_paths(self.workdir, cancervar_config.get_output()))
+
+        return results.to_dict(orient="records")
 
     def _parse_ensembl_vep_results(self, path: str) -> pd.DataFrame:
         """
@@ -134,7 +136,6 @@ class VariantMultipleAnnotator:
             "clinical_significane": "CLIN_SIG",
         }
 
-        
         # Skip rows that start with ##
         df = self._read_ensembl_tabs_to_dataframe(path)
         df = df.rename(columns={v: k for k, v in vep_column_mapping.items()})
@@ -178,9 +179,7 @@ class VariantMultipleAnnotator:
         )
         df = df.rename(columns={v: k for k, v in annovar_column_mapping.items()})
 
-        df = df[
-            ["variant_id", *annovar_column_mapping.keys()]
-        ]
+        df = df[["variant_id", *annovar_column_mapping.keys()]]
 
         return df
 
@@ -212,4 +211,3 @@ class VariantMultipleAnnotator:
         None values can be "-", ".", or any other string that represents a null value.
         """
         return df.replace("-", pd.NA).replace(".", pd.NA)
-    

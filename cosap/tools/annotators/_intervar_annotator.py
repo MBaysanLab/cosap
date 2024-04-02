@@ -5,7 +5,6 @@ from ..._library_paths import LibraryPaths
 from ..._pipeline_config import AnnotatorKeys
 from ..._utils import join_paths
 from ._annotators import _Annotatable, _Annotator
-import os
 
 
 class IntervarAnnotator(_Annotatable, _Annotator):
@@ -21,7 +20,6 @@ class IntervarAnnotator(_Annotatable, _Annotator):
         annotate_variation = join_paths(library_paths.ANNOVAR, "annotate_variation.pl")
         table_annovar = join_paths(library_paths.ANNOVAR, "table_annovar.pl")
         convert2annovar = join_paths(library_paths.ANNOVAR, "convert2annovar.pl")
-
 
         input_file_type = annotator_config[AnnotatorKeys.INPUT_TYPE]
         if input_file_type == "vcf":
@@ -48,7 +46,7 @@ class IntervarAnnotator(_Annotatable, _Annotator):
         return command
 
     @classmethod
-    def annotate(cls, annotator_config: Dict, workdir:str = None):
+    def annotate(cls, annotator_config: Dict, workdir: str = None):
         library_paths = LibraryPaths()
 
         intervar_command = cls.create_command(

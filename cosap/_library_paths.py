@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import os
+import warnings
 from dataclasses import dataclass
 from threading import Lock
-import warnings
 
 from ._config import AppConfig
 
@@ -50,6 +50,7 @@ class _LibraryPaths:
     ANNOTSV: str = os.path.join(AppConfig.LIBRARY_PATH, "annotsv", "bin", "AnnotSV")
     CLASSIFYCNV: str = os.path.join(AppConfig.LIBRARY_PATH, "classifycnv")
 
+
 @dataclass
 class _LibraryPaths38(_LibraryPaths):
     REF_DIR: str = AppConfig.LIBRARY_PATH
@@ -60,7 +61,9 @@ class _LibraryPaths38(_LibraryPaths):
         AppConfig.LIBRARY_PATH, "Homo_sapiens_assembly38.elfasta"
     )
     REF_BED: str = os.path.join(AppConfig.LIBRARY_PATH, "hg38_intervals.bed")
-    REF_GFF3: str = os.path.join(AppConfig.LIBRARY_PATH, "Homo_sapiens.GRCh38.111.gff3.gz")
+    REF_GFF3: str = os.path.join(
+        AppConfig.LIBRARY_PATH, "Homo_sapiens.GRCh38.111.gff3.gz"
+    )
     DBSNP: str = os.path.join(
         AppConfig.LIBRARY_PATH,
         "Homo_sapiens_assembly38.dbsnp138.vcf",
@@ -137,7 +140,7 @@ class LibraryPaths(metaclass=_LibraryMeta):
     Metaclass will automatically create the correct instance
     """
 
-    # Check if all the paths are correct
+    # Check if all the paths are correct
     def __post_init__(self):
         for key, value in self.__dict__.items():
             if not os.path.exists(value):

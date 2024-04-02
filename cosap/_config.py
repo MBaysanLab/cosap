@@ -5,8 +5,8 @@ import os
 from dataclasses import dataclass
 from distutils.util import strtobool
 from threading import Lock
-import pkg_resources
 
+import pkg_resources
 import psutil
 
 from ._utils import join_paths

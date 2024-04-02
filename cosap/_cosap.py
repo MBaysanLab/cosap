@@ -103,7 +103,7 @@ def cosap_cli(
     gvcf,
     msi,
     gene_fusion,
-    device=None
+    device=None,
 ):
 
     print(

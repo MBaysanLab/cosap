@@ -7,8 +7,6 @@ from celery import Celery, shared_task
 
 from .._config import AppConfig
 from ..parsers import ProjectResultsParser
-from ..pipeline_builder.builders import Annotator
-from ..tools.annotators import AnnotatorFactory
 from ..workflows import DNAPipeline, DNAPipelineInput
 from ..workflows._variant_annotation import VariantMultipleAnnotator
 

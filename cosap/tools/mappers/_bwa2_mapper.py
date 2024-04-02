@@ -16,15 +16,15 @@ class BWA2Mapper(_Mapper, _Mappable):
 
         read_arguments = []
         if MappingKeys.RG_ID in flags.keys():
-            read_arguments.append(fr"\tID:{flags[MappingKeys.RG_ID]}")
+            read_arguments.append(rf"\tID:{flags[MappingKeys.RG_ID]}")
         if MappingKeys.RG_SM in flags.keys():
-            read_arguments.append(fr"\tSM:{flags[MappingKeys.RG_SM]}")
+            read_arguments.append(rf"\tSM:{flags[MappingKeys.RG_SM]}")
         if MappingKeys.RG_LB in flags.keys():
-            read_arguments.append(fr"\tLB:{flags[MappingKeys.RG_LB]}")
+            read_arguments.append(rf"\tLB:{flags[MappingKeys.RG_LB]}")
         if MappingKeys.RG_PL in flags.keys():
-            read_arguments.append(fr"\tPL:{flags[MappingKeys.RG_PL]}")
+            read_arguments.append(rf"\tPL:{flags[MappingKeys.RG_PL]}")
         if MappingKeys.RG_PU in flags.keys():
-            read_arguments.append(fr"\tPU:{flags[MappingKeys.RG_PU]}")
+            read_arguments.append(rf"\tPU:{flags[MappingKeys.RG_PU]}")
 
         if len(read_arguments) > 0:
             read_arguments.insert(0, "@RG")
