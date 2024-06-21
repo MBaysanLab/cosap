@@ -1,5 +1,4 @@
-from copy import copy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, List, Union
 
 from ..._formats import FileFormats, OutputFolders
@@ -14,7 +13,7 @@ from ._trimmer_builder import Trimmer
 class Mapper(_IPipelineStep, _PipelineStep):
     library: str
     input_step: Union[_PipelineStep, List[_PipelineStep]]
-    params: Dict
+    params: Dict = field(default_factory=dict)
     name: str = None
     key: str = PipelineKeys.MAPPING
     next_step: _PipelineStep = None
@@ -30,11 +29,18 @@ class Mapper(_IPipelineStep, _PipelineStep):
                     + self.library
                 )
 
+        self.library = self.library.lower()
+
         if isinstance(self.input_step, list):
             for step in self.input_step:
                 step.next_step = self
         else:
             self.input_step.next_step = self
+
+        if (MappingKeys.READ_GROUP not in self.params.keys()) or (
+            MappingKeys.RG_SM not in self.params[MappingKeys.READ_GROUP].keys()
+        ):
+            raise Exception("Please specify a sample name for the read group.")
 
     def _create_config(self) -> Dict:
         output_filename = FileFormats.MAPPING_OUTPUT.format(identification=self.name)

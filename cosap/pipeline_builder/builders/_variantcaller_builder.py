@@ -1,5 +1,4 @@
 import os
-from copy import copy
 from dataclasses import dataclass, field
 from subprocess import PIPE, STDOUT, Popen
 from typing import Dict
@@ -12,7 +11,6 @@ from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
 @dataclass
 class VariantCaller(_IPipelineStep, _PipelineStep):
-    PY2_PACKAGES = ["strelka", "manta"]
 
     library: str
     params: dict = field(default_factory=dict)
@@ -26,7 +24,6 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
 
     def __post_init__(self):
         if self.name is None:
-
             name_temp = []
             if self.germline:
                 name_temp.append(self.germline.name)
@@ -35,6 +32,8 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
             name_temp.append(self.library)
 
             self.name = "_".join(name_temp)
+
+        self.library = self.library.lower()
 
         # TODO: Read sample names from bam.
         if VariantCallingKeys.GERMLINE_SAMPLE_NAME not in self.params and self.germline:

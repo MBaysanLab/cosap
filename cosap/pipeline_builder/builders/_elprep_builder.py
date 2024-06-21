@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict
 
 from ..._formats import FileFormats, OutputFolders
 from ..._pipeline_config import ElprepKeys, PipelineKeys

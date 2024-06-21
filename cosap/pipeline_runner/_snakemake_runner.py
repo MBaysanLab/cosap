@@ -1,13 +1,15 @@
 import multiprocessing
-from subprocess import PIPE, Popen, check_call, check_output, run
+from subprocess import PIPE, Popen, check_output, run
+import sys
 
 from .._config import AppConfig
 
 
 class SnakemakeRunner:
-    def __init__(self, pipeline_config, workdir):
+    def __init__(self, pipeline_config, workdir, device):
         self.pipeline_config = pipeline_config
         self.workdir = workdir
+        self.device = device
 
     def _create_unlock_dir_command(self) -> list:
         command = [
@@ -61,6 +63,8 @@ class SnakemakeRunner:
             str(available_cpu // AppConfig.MAX_THREADS_PER_JOB),
             "--configfile",
             self.pipeline_config,
+            "--config",
+            f"device={self.device}",
             "-r",
             "--use-conda",
             "--rerun-incomplete",
@@ -97,5 +101,11 @@ class SnakemakeRunner:
         # if cont.lower() == "n":
         #     sys.exit()
         run(dry_run, cwd=self.workdir)
-        run(snakemake, cwd=self.workdir)
-        # run(report, cwd=self.workdir)
+
+        # Run and return sys output
+        results = run(snakemake, cwd=self.workdir, text=True, stderr=sys.stderr)
+        return {
+            "stdout": results.stdout,
+            "stderr": results.stderr,
+            "returncode": results.returncode,
+        }

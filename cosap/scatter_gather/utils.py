@@ -59,7 +59,7 @@ def get_region_file_list(file_type="bed", bed_file=None) -> list:
 
     region_files_dir = FolderedOutputs.REGIONS_FILE_OUTPUT
     if not os.path.exists(region_files_dir):
-        os.makedirs(region_files_dir)
+        os.makedirs(region_files_dir, exist_ok=True)
         create_gatk_intervals(
             library_path=library_paths,
             scatter_count=app_config.MAX_THREADS_PER_JOB,

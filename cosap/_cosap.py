@@ -2,8 +2,8 @@ from typing import Dict
 
 import click
 
-from .default_pipelines import DNAPipeline
 from .pipeline_runner import PipelineRunner
+from .workflows import DNAPipeline, DNAPipelineInput
 
 
 class Cosap:
@@ -24,21 +24,24 @@ class Cosap:
 @click.option("--workdir", help="Directory that outputs will be saved", required=True)
 @click.option("--normal_sample", help="Path to normal sample", required=False)
 @click.option(
-    "--tumor_samples",
-    help="Path to tumor sample. Can be multiple paths seperated with white space",
+    "--tumor_sample",
+    help="Path to tumor sample. This option can be used multiple times.",
     required=False,
+    multiple=True,
 )
 @click.option("--bed_file", help="Path to BED file", required=False)
 @click.option(
-    "--mappers",
-    help="Mapper algorithms to use while aligning reads. Can be multiple option seperated with white space. Options = ['bwa', 'bwa2', 'bowtie2']",
+    "--mapper",
+    help="Mapper algorithm to use while aligning reads. This option can be used multiple times. Options = ['bwa', 'bwa2', 'bowtie2']",
     required=False,
+    multiple=True,
 )
 @click.option(
-    "--variant_callers",
+    "--variant_caller",
     help="Variant caller algorithm to use for variant detection. \
-    Can be multiple option seperated with white space, Options = ['mutect2','varscan2','haplotypecaller','octopus','strelka','somaticsniper','vardict', 'deepvariant']",
+    This option can be used multiple times, Options = ['mutect2','varscan2','haplotypecaller','octopus','strelka','somaticsniper','vardict', 'deepvariant']",
     required=False,
+    multiple=True,
 )
 @click.option(
     "--normal_sample_name",
@@ -52,38 +55,92 @@ class Cosap:
 )
 @click.option(
     "--bam_qc",
-    help="Qaulity control algorithm for .bam quality check.",
+    help="Qaulity control algorithm for .bam quality check. Options = ['qualimap', 'mosdepth']",
     required=False,
 )
 @click.option(
-    "--annotation",
-    help="Annotation source to annotate variants in vcf files.",
-    required=True,
+    "--annotators",
+    help="Annotation tool to annotate variants in vcf files.",
+    required=False,
+    multiple=True,
+)
+@click.option(
+    "--gvcf",
+    help="Generate gvcf files",
+    type=bool,
+    required=False,
+)
+@click.option(
+    "--msi",
+    help="Run microsatellite instability analysis",
+    required=False,
+    is_flag=True,
+)
+@click.option(
+    "--gene_fusion",
+    help="Run gene fusion analysis",
+    required=False,
+    is_flag=True,
+)
+@click.option(
+    "--device",
+    help="Device to run the pipeline on. Options = ['cpu', 'gpu']",
+    required=False,
+    default="cpu",
 )
 def cosap_cli(
     analysis_type,
     workdir,
     normal_sample,
-    tumor_samples,
+    tumor_sample,
     bed_file,
-    mappers,
-    variant_callers,
+    mapper,
+    variant_caller,
     normal_sample_name,
     tumor_sample_name,
     bam_qc,
-    annotation,
+    annotators,
+    gvcf,
+    msi,
+    gene_fusion,
+    device=None
 ):
-    dna_pipeline = DNAPipeline(
-        analysis_type=analysis_type,
-        workdir=workdir,
-        normal_sample=normal_sample,
-        tumor_samples=tumor_samples,
-        bed_file=bed_file,
-        mappers=mappers,
-        variant_callers=variant_callers,
-        normal_sample_name=normal_sample_name,
-        tumor_sample_name=tumor_sample_name,
-        bam_qc=bam_qc,
-        annotation=annotation,
+
+    print(
+        f"Running cosap pipeline with the following parameters: \n \
+            analysis_type: {analysis_type} \n \
+            workdir: {workdir} \n \
+            normal_sample: {normal_sample} \n \
+            tumor_samples: {tumor_sample} \n \
+            bed_file: {bed_file} \n \
+            mappers: {mapper} \n \
+            variant_callers: {variant_caller} \n \
+            normal_sample_name: {normal_sample_name} \n \
+            tumor_sample_name: {tumor_sample_name} \n \
+            bam_qc: {bam_qc} \n \
+            annotators: {annotators} \n \
+            gvcf: {gvcf} \n \
+            msi: {msi} \n \
+            gene_fusion: {gene_fusion} \n \
+            device: {device} \n"
     )
+
+    pipeline_input = DNAPipelineInput(
+        ANALYSIS_TYPE=analysis_type,
+        WORKDIR=workdir,
+        NORMAL_SAMPLE=tuple(normal_sample.split(",")) if normal_sample else None,
+        TUMOR_SAMPLES=[tuple(t_sm.split(",")) for t_sm in tumor_sample],
+        BED_FILE=bed_file,
+        MAPPERS=mapper,
+        VARIANT_CALLERS=variant_caller,
+        NORMAL_SAMPLE_NAME=normal_sample_name if normal_sample_name else None,
+        TUMOR_SAMPLE_NAME=tumor_sample_name if tumor_sample_name else None,
+        BAM_QC=bam_qc,
+        ANNOTATORS=annotators,
+        GVCF=gvcf,
+        MSI=msi,
+        GENEFUSION=gene_fusion,
+        DEVICE=device,
+    )
+    dna_pipeline = DNAPipeline(pipeline_input)
     dna_pipeline.run_pipeline()

@@ -128,6 +128,7 @@ class CNVCallingKeys(PipelineBaseKeys):
 @dataclass
 class AnnotatorKeys(PipelineBaseKeys):
     AVOUTPUT: str = "av_output"
+    INPUT_TYPE: str = "input_type"
 
 
 @dataclass

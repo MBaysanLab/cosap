@@ -1,6 +1,5 @@
 import os
 from dataclasses import dataclass
-from posixpath import lexists
 from typing import Dict
 
 from ..._formats import FileFormats

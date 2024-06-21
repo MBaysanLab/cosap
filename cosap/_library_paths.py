@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from threading import Lock
+import warnings
 
 from ._config import AppConfig
 
@@ -11,10 +12,10 @@ class _LibraryMeta(type):
     _instances = {}
     _lock: Lock = Lock()
 
-    def __call__(cls, grch: str = "hg38") -> _LibraryPaths:
+    def __call__(cls, version: str = "hg38") -> _LibraryPaths:
         with cls._lock:
             if cls not in cls._instances:
-                if grch == "hg38":
+                if version == "hg38":
                     instance = _LibraryPaths38
                 else:
                     instance = _LibraryPaths19
@@ -30,9 +31,9 @@ class _LibraryPaths:
     CANCERVAR: str = os.path.join(AppConfig.LIBRARY_PATH, "cancervar")
     PHARMCAT_DIR: str = os.path.join(AppConfig.LIBRARY_PATH, "pharmcat")
     PHARMCAT_PREPROCESSOR: str = os.path.join(
-        PHARMCAT_DIR, "PharmCAT_VCF_Preprocess.py"
+        PHARMCAT_DIR, "preprocessor", "pharmcat_vcf_preprocessor.py"
     )
-    PHARMCAT_JAR: str = os.path.join(PHARMCAT_DIR, "pharmcat-1.6.0-all")
+    PHARMCAT_JAR: str = os.path.join(PHARMCAT_DIR, "pharmcat-2.8.3-all.jar")
     VARNET: str = os.path.join(AppConfig.LIBRARY_PATH, "varnet")
     GENEFUSE_CANCER_GENE_LIST: str = os.path.join(
         AppConfig.LIBRARY_PATH, "genefuse_cancer.hg38.csv"
@@ -49,7 +50,6 @@ class _LibraryPaths:
     ANNOTSV: str = os.path.join(AppConfig.LIBRARY_PATH, "annotsv", "bin", "AnnotSV")
     CLASSIFYCNV: str = os.path.join(AppConfig.LIBRARY_PATH, "classifycnv")
 
-
 @dataclass
 class _LibraryPaths38(_LibraryPaths):
     REF_DIR: str = AppConfig.LIBRARY_PATH
@@ -60,6 +60,7 @@ class _LibraryPaths38(_LibraryPaths):
         AppConfig.LIBRARY_PATH, "Homo_sapiens_assembly38.elfasta"
     )
     REF_BED: str = os.path.join(AppConfig.LIBRARY_PATH, "hg38_intervals.bed")
+    REF_GFF3: str = os.path.join(AppConfig.LIBRARY_PATH, "Homo_sapiens.GRCh38.111.gff3.gz")
     DBSNP: str = os.path.join(
         AppConfig.LIBRARY_PATH,
         "Homo_sapiens_assembly38.dbsnp138.vcf",
@@ -95,6 +96,7 @@ class _LibraryPaths38(_LibraryPaths):
         AppConfig.LIBRARY_PATH, "Homo_sapiens_assembly38"
     )
     INTERVALS: str = os.path.join(AppConfig.LIBRARY_PATH, "intervals")
+    STRINGENCIES: str = os.path.join(AppConfig.LIBRARY_PATH, "stringencies")
 
 
 @dataclass
@@ -134,3 +136,9 @@ class LibraryPaths(metaclass=_LibraryMeta):
     Only this class is imported from outside
     Metaclass will automatically create the correct instance
     """
+
+    # Check if all the paths are correct
+    def __post_init__(self):
+        for key, value in self.__dict__.items():
+            if not os.path.exists(value):
+                warnings.warn(f"Path {value} does not exist")

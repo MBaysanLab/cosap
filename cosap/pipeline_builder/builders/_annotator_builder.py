@@ -1,8 +1,8 @@
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict
 
 from ..._formats import FileFormats, OutputFolders
-from ..._pipeline_config import AnnotatorKeys, PipelineKeys
+from ..._pipeline_config import AnnotatorKeys, PipelineKeys, VariantCallingKeys
 from ..._utils import join_paths
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 from ._variantcaller_builder import VariantCaller
@@ -16,18 +16,21 @@ class Annotator(_IPipelineStep, _PipelineStep):
     name: str = None
     key: str = PipelineKeys.ANNOTATION
     next_step: _PipelineStep = None
+    input_type: str = "vcf"
 
     def __post_init__(self):
         if self.name is None:
             self.name = f"{self.input_step.name}_{self.library}"
+        
+        self.library = self.library.upper()
 
         # Retrieve sample name from input step if possible.
         if self.sample_name is None:
             if self.input_step.__class__ == VariantCaller:
                 self.sample_name = (
-                    self.input_step.tumor
+                    self.input_step.params[VariantCallingKeys.TUMOR_SAMPLE_NAME]
                     if self.input_step.tumor is not None
-                    else self.input_step.normal
+                    else self.input_step.params[VariantCallingKeys.GERMLINE_SAMPLE_NAME]
                 )
             elif self.input_step.__class__ == Annotator:
                 self.sample_name = self.input_step.sample_name
@@ -44,9 +47,13 @@ class Annotator(_IPipelineStep, _PipelineStep):
             return FileFormats.ANNOTATION_OUTPUT.format(
                 identification=self.name, custom_ext="txt"
             )
-        elif self.library.lower() == "annotsv":
+        elif self.library.lower() in ["vep", "annotsv"]:
             return FileFormats.ANNOTATION_OUTPUT.format(
                 identification=self.name, custom_ext="tsv"
+            )
+        elif self.library.lower() == "pharmcat":
+            return FileFormats.ANNOTATION_OUTPUT.format(
+                identification=self.name, custom_ext="json"
             )
         else:
             return FileFormats.ANNOTATION_OUTPUT.format(
@@ -66,6 +73,7 @@ class Annotator(_IPipelineStep, _PipelineStep):
                     OutputFolders.ANNOTATION, self.library, output_filename
                 ),
                 AnnotatorKeys.OUTPUT_DIR: OutputFolders.ANNOTATION,
+                AnnotatorKeys.INPUT_TYPE: self.input_type,
             }
         }
         if self.library.lower() == "annovar":

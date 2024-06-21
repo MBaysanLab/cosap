@@ -1,57 +1,58 @@
 import os
-from subprocess import PIPE, Popen, check_output, run
-from typing import Dict, List
 
 import yaml
 
 from .._config import AppConfig
 from .._pipeline_config import MappingKeys, PipelineKeys, VariantCallingKeys
 from .._utils import join_paths
-from ..mappers import MapperFactory
-from ..preprocessors import (
+from ..tools.mappers import MapperFactory
+from ..tools.preprocessors import (
     BamIndexer,
     BamMerger,
     BaseRecalibrator,
     MarkDuplicate,
     SamtoolsSorter,
 )
-from ..variant_callers import VariantCallerFactory
+from ..tools.variant_callers import VariantCallerFactory
 from ._snakemake_runner import SnakemakeRunner
 
 
 class PipelineRunner:
-    def validate_pipeline_config(self, pipeline_config: Dict):
+    def __init__(self, device="cpu"):
+        self.device = device.lower()
+
+    def validate_pipeline_config(self, pipeline_config: dict):
         raise NotImplementedError()
 
-    def map(self, mapping_configs: List):
+    def map(self, mapping_configs: list):
         for config in mapping_configs:
             mapper = MapperFactory.create(config[MappingKeys.LIBRARY])
             mapper.map(config)
 
-    def sort(self, sorting_configs: List):
+    def sort(self, sorting_configs: list):
         for config in sorting_configs:
             SamtoolsSorter.sort(config)
 
-    def create_index(self, indexing_configs: List):
+    def create_index(self, indexing_configs: list):
         # TODO: should check if each element is ready to be processed
         # maybe for all steps it can be done and even a mock run can be made this way
         for config in indexing_configs:
             BamIndexer.create_index(config)
 
-    def merge(self, merge_config: List):
+    def merge(self, merge_config: list):
         # TODO: if there is a single bam skip this
         for config in merge_config:
             BamMerger.merge(config)
 
-    def calibrate(self, calibrate_config: List):
+    def calibrate(self, calibrate_config: list):
         for config in calibrate_config:
             BaseRecalibrator.calibrate(config)
 
-    def mark_duplicates(self, duplicates_config: List):
+    def mark_duplicates(self, duplicates_config: list):
         for config in duplicates_config:
             MarkDuplicate.mark(config)
 
-    def call_variants(self, variant_configs: List):
+    def call_variants(self, variant_configs: list):
         for config in variant_configs:
             caller = VariantCallerFactory.create(config[VariantCallingKeys.LIBRARY])
             caller.call_variants(config)
@@ -60,7 +61,7 @@ class PipelineRunner:
         with open(config_yaml_path, "w") as config_yaml:
             yaml.dump(pipeline_config, config_yaml, default_flow_style=False)
 
-    def run_pipeline(self, pipeline_config: Dict, runner: str = "snakemake") -> str:
+    def run_pipeline(self, pipeline_config: dict, runner: str = "snakemake") -> str:
         workdir = pipeline_config[PipelineKeys.WORKDIR]
         config_yaml_path = os.path.normpath(
             join_paths(
@@ -73,8 +74,9 @@ class PipelineRunner:
             snakemake_runner = SnakemakeRunner(
                 pipeline_config=config_yaml_path,
                 workdir=pipeline_config[PipelineKeys.WORKDIR],
+                device=self.device,
             )
-            snakemake_runner.run_snakemake_pipeline()
+            return snakemake_runner.run_snakemake_pipeline()
 
         else:
             self.validate_pipeline_config(pipeline_config)
@@ -87,5 +89,3 @@ class PipelineRunner:
             self.calibrate(pipeline_config[PipelineKeys.CALIBRATE])
 
             self.call_variants(pipeline_config[PipelineKeys.VARIANT_CALLING])
-
-        return pipeline_config
