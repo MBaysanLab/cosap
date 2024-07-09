@@ -54,7 +54,7 @@ class ProjectResultsParser:
             qc_dir = self.pipeline_config[PipelineKeys.QUALITY_CONTROL][
                 list(self.pipeline_config[PipelineKeys.QUALITY_CONTROL].keys())[0]
             ][QualityControlKeys.OUTPUT]
-        except IndexError:
+        except (KeyError, IndexError):
             qc_dir = None
 
         if qc_dir is None:
@@ -70,34 +70,41 @@ class ProjectResultsParser:
         )
 
     def _get_variants(self):
-        try:
+        
+        # If there is variant caller in the pipeline config, parse the VCF
+        if PipelineKeys.VARIANT_CALLING in self.pipeline_config:
             variant_caller_config = self.pipeline_config[PipelineKeys.VARIANT_CALLING][
                 list(self.pipeline_config[PipelineKeys.VARIANT_CALLING].keys())[0]
             ]
-            vcf = variant_caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
             variant_caller = variant_caller_config[VariantCallingKeys.LIBRARY]
-            tumor_sample_name = variant_caller_config[VariantCallingKeys.PARAMS][
-                VariantCallingKeys.TUMOR_SAMPLE_NAME
-            ]
-        except IndexError:
-            vcf = None
+            vcf = variant_caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
+        else:
+            raise ValueError("No variant caller found in pipeline config.")
+        
+        # If tumor sample is present, parse it, otherwise parse the normal sample
+        if VariantCallingKeys.TUMOR_INPUT in variant_caller_config:
+            sample_name = variant_caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.TUMOR_SAMPLE_NAME]
+        elif VariantCallingKeys.GERMLINE_INPUT in variant_caller_config:
+            sample_name = variant_caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.GERMLINE_SAMPLE_NAME]
+        else:
             raise ValueError("No VCF found in pipeline config.")
 
         vcf_path = join_paths(self.pipeline_workdir, vcf)
 
         return self._parse_vcf(
-            vcf_path, caller_type=variant_caller, sample_name=tumor_sample_name
+            vcf_path, caller_type=variant_caller, sample_name=sample_name
         )
 
     def _parse_msi_score(self):
         try:
-            msi_file = glob(
-                join_paths(self.pipeline_workdir, "MSI", "*.msisensor.txt")
-            )[0]
-        except IndexError:
-            msi_file = None
+            msi_config = self.pipeline_config[PipelineKeys.MSI][
+                list(self.pipeline_config[PipelineKeys.MSI].keys())[0]
+            ]
+            msi_file = msi_config[MSICallingKeys.OUTPUT]
+        except (IndexError, KeyError):
+            return None
 
-        return parse_msi_results(msi_file)
+        return parse_msi_results(join_paths(self.pipeline_workdir, msi_file))
 
 
 # Adapted from MultiQC https://github.com/ewels/MultiQC

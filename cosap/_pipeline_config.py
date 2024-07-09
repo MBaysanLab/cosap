@@ -46,6 +46,7 @@ class MappingKeys(PipelineBaseKeys):
     RG_LB: str = "LB"
     RG_PL: str = "PL"
     RG_PU: str = "PU"
+    POST_PROCESSING: str = "post_processing"
 
 
 @dataclass

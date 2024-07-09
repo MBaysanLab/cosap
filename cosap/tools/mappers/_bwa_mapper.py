@@ -97,8 +97,23 @@ class BWAMapper(_Mapper, _Mappable):
             *fastq_inputs,
             "--out-bam",
             mapper_config[MappingKeys.OUTPUT],
-            "--no-markdups",
         ]
+        if not mapper_config[MappingKeys.POST_PROCESSING]:
+            command.extend(["--no-markdups"])
+        else:
+            command.extend(
+                [
+                    "--knownSites",
+                    library_paths.DBSNP,
+                    "--knownSites",
+                    library_paths.MILLS_INDEL,
+                    "--knownSites",
+                    library_paths.ONE_THOUSAND_G,
+                    "--out-recal-file",
+                    f"{mapper_config[MappingKeys.OUTPUT]}.recal",
+                ]
+            )
+
 
         if read_group:
             command.extend([read_group])
@@ -144,6 +159,9 @@ class BWAMapper(_Mapper, _Mappable):
                 read_group=read_group,
                 library_paths=library_paths,
             )
+            input_dir = os.path.abspath(
+                os.path.dirname(mapper_config[MappingKeys.INPUT]["1"])
+            )
             output_dir = os.path.abspath(
                 os.path.dirname(mapper_config[MappingKeys.OUTPUT])
             )
@@ -153,4 +171,5 @@ class BWAMapper(_Mapper, _Mappable):
                 image=DockerImages.PARABRICKS,
                 command=" ".join(bwa_command),
                 workdir=str(Path(output_dir).parent.parent),
+                paths_to_bind=[input_dir],
             )

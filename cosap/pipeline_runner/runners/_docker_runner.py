@@ -17,10 +17,12 @@ class DockerRunner:
         command: Union[str, list],
         workdir: str = None,
         paths_to_bind: list = [],
+        remove: bool = True,
     ) -> None:
 
         # Check if the image exists
         if not self._check_if_image_exists(image):
+            print(f"Pulling image {image}")
             self._pull_image(image)
 
         library_path = AppConfig.LIBRARY_PATH
@@ -44,7 +46,7 @@ class DockerRunner:
             working_dir=workdir,
             volumes=volumes,
             volumes_from=volumes_from,
-            remove=True,
+            remove=remove,
             detach=True,
             restart_policy={"Name": "no"},
             device_requests=[

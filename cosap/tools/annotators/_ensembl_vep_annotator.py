@@ -8,6 +8,7 @@ from ..._pipeline_config import AnnotatorKeys
 from ..._utils import join_paths
 from ...pipeline_runner.runners import DockerRunner
 from ._annotators import _Annotatable, _Annotator
+from subprocess import run
 
 
 class VepAnnotator(_Annotatable, _Annotator):
@@ -17,6 +18,7 @@ class VepAnnotator(_Annotatable, _Annotator):
     ) -> List:
         input_vcf = annotator_config[AnnotatorKeys.INPUT]
         output_vcf = annotator_config[AnnotatorKeys.OUTPUT]
+        input_format = annotator_config[AnnotatorKeys.INPUT_TYPE]
 
         command = [
             "vep",
@@ -25,22 +27,25 @@ class VepAnnotator(_Annotatable, _Annotator):
             library_paths.REF_FASTA,
             "-i",
             input_vcf,
+            "--format",
+            input_format,
             "-o",
             output_vcf,
             "--dir",
             library_paths.ENSEMBL_VEP,
             "--dir_cache",
             join_paths(library_paths.ENSEMBL_VEP, "cache"),
-            "--fasta",
-            library_paths.REF_FASTA,
             "--cache",
             "--offline",
-            "--tab",
+            "--vcf",
             "-e",
             "--fork",
             str(app_config.MAX_THREADS_PER_JOB),
             "--force_overwrite",
             "--show_ref_allele",
+            "--pick",
+            "--cache_version",
+            "109",
         ]
         return command
 
@@ -51,6 +56,12 @@ class VepAnnotator(_Annotatable, _Annotator):
 
         output_dir = cls.create_output_dir(annotator_config, workdir=workdir)
 
+        # Change the read/write permissions of the output directory
+        run(["chmod", "-R", "a+rwx", output_dir], cwd=workdir)
+
+        # Change the read/write permissions of the input file
+        run(["chmod", "a+rwx", annotator_config[AnnotatorKeys.INPUT]], cwd=workdir)
+        
         runner = DockerRunner()
         runner.run(
             DockerImages.ENSEMBL_VEP,

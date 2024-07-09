@@ -6,7 +6,7 @@ from .._config import AppConfig
 from .._pipeline_config import MappingKeys, PipelineKeys, VariantCallingKeys
 from .._utils import join_paths
 from ..tools.mappers import MapperFactory
-from ..tools.preprocessors import (BamIndexer, BamMerger, BaseRecalibrator,
+from ..tools.preprocessors import (BamIndexer, BaseRecalibrator,
                                    MarkDuplicate, SamtoolsSorter)
 from ..tools.variant_callers import VariantCallerFactory
 from ._snakemake_runner import SnakemakeRunner
@@ -34,10 +34,10 @@ class PipelineRunner:
         for config in indexing_configs:
             BamIndexer.create_index(config)
 
-    def merge(self, merge_config: list):
-        # TODO: if there is a single bam skip this
-        for config in merge_config:
-            BamMerger.merge(config)
+    # def merge(self, merge_config: list):
+    #     # TODO: if there is a single bam skip this
+    #     for config in merge_config:
+    #         BamMerger.merge(config)
 
     def calibrate(self, calibrate_config: list):
         for config in calibrate_config:

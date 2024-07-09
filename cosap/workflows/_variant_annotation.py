@@ -9,7 +9,6 @@ from .._utils import (convert_list_to_annovar_input,
 from ..pipeline_builder.builders import Annotator, VCFReader
 from ..tools.annotators import AnnotatorFactory
 
-
 class VariantMultipleAnnotator:
     def __init__(self, variants: list, workdir: str):
         self.variants = variants
@@ -33,6 +32,7 @@ class VariantMultipleAnnotator:
             input_step=vep_input,
             sample_name="multiple_anotator",
             name="multiple_anotator",
+            input_type="ensembl"
         )
         intervar_config = Annotator(
             library="intervar",
@@ -96,15 +96,11 @@ class VariantMultipleAnnotator:
 
         # Make all columns lowercase
         results.columns = [c.lower() for c in results.columns]
-
         results = self._convert_null_values_to_nan(results)
 
         # Remove temp input files
         os.remove(vep_input_file)
         os.remove(annovar_input_file)
-        os.remove(join_paths(self.workdir, vep_config.get_output()))
-        os.remove(join_paths(self.workdir, intervar_config.get_output()))
-        os.remove(join_paths(self.workdir, cancervar_config.get_output()))
 
         return results.to_dict(orient="records")
 
@@ -137,7 +133,7 @@ class VariantMultipleAnnotator:
         }
 
         # Skip rows that start with ##
-        df = self._read_ensembl_tabs_to_dataframe(path)
+        df = self._read_ensembl_vcf_to_dataframe(path)
         df = df.rename(columns={v: k for k, v in vep_column_mapping.items()})
         # df = df[[*vep_column_mapping.keys()]]ü
 
@@ -203,6 +199,35 @@ class VariantMultipleAnnotator:
         df.reset_index(inplace=True)
 
         return df
+    
+    def _read_ensembl_vcf_to_dataframe(self, path: str) -> pd.DataFrame:
+        """
+        Reads the output of ensembl vep and returns a dataframe.
+        """
+        with open(path, "r") as f:
+            lines = list(f)
+            header_lines = [l for l in lines if l.startswith("##")]
+            data_lines = [l for l in lines if not l.startswith("##")]
+            df = pd.read_csv(
+                io.StringIO("".join(data_lines)),
+                sep="\t",
+            )
+
+            # Get vep fields from vcf header and add them to the dataframe
+            vep_info_field  = [l for l in header_lines if l.startswith("##INFO=<ID=CSQ")][0]
+            vep_fields = vep_info_field.split("Format: ")[1].split("|")
+
+            # The vep data is the last value of the INFO field
+            df_vep = df["INFO"].str.split("CSQ=", expand=True)[1].str.split("|", expand=True)
+            df_vep.columns = vep_fields
+            
+            df_vep["variant_id"] = df["#CHROM"] + "_" + df["POS"].astype(str) + "_" + df["REF"] + "_" + df["ALT"]
+            df_vep["ref"] = df["REF"]
+            df_vep["alt"] = df["ALT"]
+
+        df_vep.reset_index(inplace=True)
+
+        return df_vep
 
     def _convert_null_values_to_nan(self, df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -210,4 +235,4 @@ class VariantMultipleAnnotator:
 
         None values can be "-", ".", or any other string that represents a null value.
         """
-        return df.replace("-", pd.NA).replace(".", pd.NA)
+        return df.replace("-", pd.NA).replace(".", pd.NA).replace("", pd.NA)

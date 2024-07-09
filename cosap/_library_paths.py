@@ -12,12 +12,14 @@ class _LibraryMeta(type):
     _instances = {}
     _lock: Lock = Lock()
 
-    def __call__(cls, version: str = "hg38") -> _LibraryPaths:
+    def __call__(cls) -> _LibraryPaths:
+        
+        version = AppConfig.REF_VERSION
         with cls._lock:
             if cls not in cls._instances:
-                if version == "hg38":
+                if version.lower() == "hg38":
                     instance = _LibraryPaths38
-                else:
+                elif version.lower() == "hg19":
                     instance = _LibraryPaths19
                 cls._instances[cls] = instance.__call__()
         return cls._instances[cls]
@@ -35,18 +37,6 @@ class _LibraryPaths:
     )
     PHARMCAT_JAR: str = os.path.join(PHARMCAT_DIR, "pharmcat-2.8.3-all.jar")
     VARNET: str = os.path.join(AppConfig.LIBRARY_PATH, "varnet")
-    GENEFUSE_CANCER_GENE_LIST: str = os.path.join(
-        AppConfig.LIBRARY_PATH, "genefuse_cancer.hg38.csv"
-    )
-    MSISENSOR_MICROSATELLITES: str = os.path.join(
-        AppConfig.LIBRARY_PATH, "msisensor_hg38.list"
-    )
-    CNVKIT_ANNOTATION: str = os.path.join(
-        AppConfig.LIBRARY_PATH, "cnvkit_hg38_refFlat.txt"
-    )
-    CNVKIT_ACCESS: str = os.path.join(
-        AppConfig.LIBRARY_PATH, "cnvkit_hg38_access-5kb.bed"
-    )
     ANNOTSV: str = os.path.join(AppConfig.LIBRARY_PATH, "annotsv", "bin", "AnnotSV")
     CLASSIFYCNV: str = os.path.join(AppConfig.LIBRARY_PATH, "classifycnv")
 
@@ -98,38 +88,48 @@ class _LibraryPaths38(_LibraryPaths):
     BOWTIE2_ASSEMBLY: str = os.path.join(
         AppConfig.LIBRARY_PATH, "Homo_sapiens_assembly38"
     )
+    GENEFUSE_CANCER_GENE_LIST: str = os.path.join(
+        AppConfig.LIBRARY_PATH, "genefuse_cancer.hg38.csv"
+    )
+    MSISENSOR_MICROSATELLITES: str = os.path.join(
+        AppConfig.LIBRARY_PATH, "msisensor_hg38.list"
+    )
+    CNVKIT_ANNOTATION: str = os.path.join(
+        AppConfig.LIBRARY_PATH, "cnvkit_hg38_refFlat.txt"
+    )
+    CNVKIT_ACCESS: str = os.path.join(
+        AppConfig.LIBRARY_PATH, "cnvkit_hg38_access-5kb.bed"
+    )
     INTERVALS: str = os.path.join(AppConfig.LIBRARY_PATH, "intervals")
     STRINGENCIES: str = os.path.join(AppConfig.LIBRARY_PATH, "stringencies")
 
 
 @dataclass
 class _LibraryPaths19(_LibraryPaths):
-    REF_DIR: str = os.path.join(
-        AppConfig.LIBRARY_PATH, "ref_genome_indexes", "hg19_bundle"
+    REF_DIR: str = AppConfig.LIBRARY_PATH
+    REF_FASTA: str = os.path.join(
+        AppConfig.LIBRARY_PATH, "Homo_sapiens_assembly19.fasta"
+    )
+    REF_ELFASTA: str = os.path.join(
+        AppConfig.LIBRARY_PATH, "Homo_sapiens_assembly19.elfasta"
     )
     DBSNP: str = os.path.join(
         AppConfig.LIBRARY_PATH,
-        "ref_genome_indexes",
-        "hg19_bundle",
-        "dbsnp_138.hg19.vcf.gz",
+        "Homo_sapiens_assembly19.dbsnp138.vcf",
     )
     MILLS_INDEL: str = os.path.join(
         AppConfig.LIBRARY_PATH,
-        "ref_genome_indexes",
-        "hg19_bundle",
-        "Mills_and_1000G_gold_standard.indels.hg19.sites.vcf.gz",
-    )
-    COSMIC: str = os.path.join(
-        AppConfig.LIBRARY_PATH,
-        "ref_genome_indexes",
-        "hg19_bundle",
-        "cosmic_hg19_lifted_over.vcf",
+        "Mills_and_1000G_gold_standard.indels.hg19.vcf.gz",
     )
     ONE_THOUSAND_G: str = os.path.join(
         AppConfig.LIBRARY_PATH,
-        "ref_genome_indexes",
-        "hg19_bundle",
-        "1000G_phase1.snps.high_confidence.hg19.sites.vcf.gz",
+        "1000G_phase1.snps.high_confidence.hg19.vcf.gz",
+    )
+    BWA_ASSEMBLY: str = os.path.join(
+        AppConfig.LIBRARY_PATH, "Homo_sapiens_assembly19.fasta"
+    )
+    BOWTIE2_ASSEMBLY: str = os.path.join(
+        AppConfig.LIBRARY_PATH, "Homo_sapiens_assembly19"
     )
 
 

@@ -2,7 +2,6 @@ from ._base_recalibrator import BaseRecalibrator
 from ._elprep_preprocess import ElprepPreprocess
 from ._indexer import BamIndexer
 from ._mark_duplicate import MarkDuplicate
-from ._merger import BamMerger
 from ._preprocessors import _Preprocessor
 from ._sorter import SamtoolsSorter
 from ._trimmer import Trimmer
@@ -27,8 +26,6 @@ class PreprocessorFactory:
             preprocessor = BamIndexer
         elif preprocessor_type == cls.base_recalibrator:
             preprocessor = BaseRecalibrator
-        elif preprocessor_type == cls.merger:
-            preprocessor = BamMerger
         elif preprocessor_type == cls.sorter:
             preprocessor = SamtoolsSorter
         elif preprocessor_type == cls.trimmer:

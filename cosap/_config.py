@@ -35,6 +35,7 @@ class AppConfig(metaclass=_AppConfigMeta):
     LIBRARY_PATH: str = os.getenv("COSAP_LIBRARY_PATH", "")
     SNAKEFILE_PATH: str = get_snakefile_path()
     RAMDISK_PATH: str = os.getenv("COSAP_RAMDISK_PATH", "/dev/shm")
+    REF_VERSION = os.getenv("COSAP_REF_VERSION", "hg38")
 
     MAX_THREADS_PER_JOB: int = int(
         os.getenv("COSAP_THREADS_PER_JOB", multiprocessing.cpu_count())

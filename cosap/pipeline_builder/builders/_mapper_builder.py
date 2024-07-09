@@ -17,6 +17,7 @@ class Mapper(_IPipelineStep, _PipelineStep):
     name: str = None
     key: str = PipelineKeys.MAPPING
     next_step: _PipelineStep = None
+    post_processing: bool = False
 
     def __post_init__(self):
         self.key = PipelineKeys.MAPPING
@@ -69,6 +70,7 @@ class Mapper(_IPipelineStep, _PipelineStep):
                 ),
                 MappingKeys.OUTPUT_DIR: join_paths(OutputFolders.MAPPING, self.library),
                 MappingKeys.PARAMS: self.params,
+                MappingKeys.POST_PROCESSING: self.post_processing,
             },
         }
         return config

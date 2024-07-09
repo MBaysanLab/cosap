@@ -77,7 +77,7 @@ def convert_vcf_to_tsv(path: str, caller_type: str = "mutect") -> str:
         "-F",
         "STATUS",
         "-F",
-        "INFO",
+        "AF",
         "-GF",
         "AF",
         "-GF",
@@ -142,14 +142,15 @@ def convert_vcf_to_json(
     Returns list of variants as json objects.
     """
 
-    sample_name = sample_name.upper()
-
     if not os.path.exists(path):
         raise FileNotFoundError(f"File not found: {path}")
 
     variants_table = convert_vcf_to_tsv(path, caller_type)
 
     vcf_df = pd.read_csv(variants_table, sep="\t")
+    # Convert all columns to UPPERCASE
+    vcf_df.columns = vcf_df.columns.str.upper()
+    sample_name = sample_name.upper()
 
     if caller_type == "strelka":
         for i, row in vcf_df.iterrows():
@@ -157,12 +158,26 @@ def convert_vcf_to_json(
             vcf_df.at[i, "AF"] = af
             ad = calculate_strelka_ad(row)
             vcf_df.at[i, "AD"] = ad
-
-    # Convert all columns to UPPERCASE
-    vcf_df.columns = vcf_df.columns.str.upper()
-
-    # Rename columns
-    if f"{sample_name}.AF" in vcf_df.columns:
+    
+    elif caller_type == "haplotypecaller":
+        vcf_df.rename(
+            columns={
+                f"{sample_name}.AD": "AD",
+                f"{sample_name}.DP": "DP",
+            },
+            inplace=True,
+        )
+    
+    elif caller_type == "varscan":
+        vcf_df.rename(
+            columns={
+                f"{sample_name}.FREQ": "AF",
+            },
+            inplace=True,
+        )
+        vcf_df["AF"] = vcf_df["AF"].replace("%", "", regex=True).astype(float) / 100
+    
+    elif caller_type in ["mutect", "somaticsniper", "vardict"]:
         vcf_df.rename(
             columns={
                 f"{sample_name}.AF": "AF",
@@ -171,29 +186,13 @@ def convert_vcf_to_json(
             },
             inplace=True,
         )
-    if "SAMPLE.AF" in vcf_df.columns:
-        vcf_df.rename(
-            columns={
-                "SAMPLE.AF": "AF",
-                "SAMPLE.AD": "AD",
-                "SAMPLE.DP": "DP",
-            },
-            inplace=True,
-        )
-    # VarScan uses FREQ instead of AF
-    if f"{sample_name}.FREQ" in vcf_df.columns:
-        vcf_df.rename(
-            columns={
-                f"{sample_name}.FREQ": "AF",
-            },
-            inplace=True,
-        )
-        vcf_df["AF"] = vcf_df["AF"].replace("%", "", regex=True).astype(float) / 100
 
-    if caller_type.lower() == "varnet":
+    elif caller_type == "varnet":
         vcf_df.rename(
             columns={
                 f"SAMPLE.AO": "AD",
+                f"SAMPLE.DP": "DP",
+                f"SAMPLE.AF": "AF",
             },
             inplace=True,
         )
