@@ -32,7 +32,7 @@ class _AppConfigMeta(type):
 
 @dataclass
 class AppConfig(metaclass=_AppConfigMeta):
-    LIBRARY_PATH: str = os.getenv("COSAP_LIBRARY_PATH", "")
+    LIBRARY_PATH: str = os.getenv("COSAP_LIBRARY_PATH", os.path.join(os.getenv("HOME"), "cosap_data"))
     SNAKEFILE_PATH: str = get_snakefile_path()
     RAMDISK_PATH: str = os.getenv("COSAP_RAMDISK_PATH", "/dev/shm")
 

@@ -23,7 +23,7 @@ def _get_file_hash_md5(file_path: str, block_size: int = 2**20) -> str:
     return hasher.hexdigest()
 
 
-def reporthook(downloaded_size, total_file_size):
+def _reporthook(downloaded_size, total_file_size):
     downloaded_ratio = downloaded_size / total_file_size
     downloaded_percentage = downloaded_ratio * 100 if downloaded_ratio < 1 else 100.0
     print(f"\r  {downloaded_percentage:.2f}%", end="")
@@ -86,21 +86,18 @@ class DownloadFile:
             with open(self.download_path, "ab") as output_file:
                 for i, chunk in enumerate(response.iter_content(chunk_size=chunk_size)):
                     output_file.write(chunk)
-                    reporthook(self.downloaded_size + ((i+1)*chunk_size), self.size)
+                    _reporthook(self.downloaded_size + ((i+1)*chunk_size), self.size)
 
-        if not self.check_size() or not self.check_hash(delete_on_mismatch=True):
+        if self.check_size() and self.check_hash(delete_on_mismatch=True):
+            self.status = DownloadFileStatus.downloaded_fully
+        else:
             if retry_count >= 2:
                 print("  This file cannot be downloaded at this time.")
                 print("  Please try again in a few hours.")
                 self.status = DownloadFileStatus.download_blocked
-                return
             else:
                 print("Retrying...")
                 self.download(retry_count=retry_count+1)
-                return
-        
-        self.status = DownloadFileStatus.downloaded_fully
-        return
     
 
     def check_size(self):
@@ -138,12 +135,15 @@ class DownloadFile:
     
 
     def delete_file(self):
-        os.remove(self.download_path)
+        if os.path.isfile(self.download_path):
+            os.remove(self.download_path)
+        
         self.downloaded_size = 0
         self.status = DownloadFileStatus.to_be_downloaded
 
 
 if __name__ == "__main__":
+    # TODO: Check available space
     print(f"Files will be downloaded to ` {cosap_library_path} `. The directory will be created if it does not exist.")
     print("To change the download location, set the environment variable ` COSAP_LIBRARY_PATH ` to the desired path.")
 
@@ -175,9 +175,9 @@ if __name__ == "__main__":
     if incomplete_files:
         print("-" * 40)
         print("Downloading files...")
+
     for i, file in enumerate(incomplete_files):
         print(f"# File {i+1}/{len(incomplete_files)}: ", end="", flush=True)
-        
         file.download()
     
     statuses = {file.filename: file.status for file in files_to_be_downloaded}
@@ -203,6 +203,3 @@ if __name__ == "__main__":
         print(f"{total_files_count - (already_present_count + downloaded_count)}/{total_files_count} are missing or incomplete.")
     else:
         print("All files are present.")
-
-    
-
