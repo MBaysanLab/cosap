@@ -1,5 +1,5 @@
 major = 0
 minor = 1
-macro = 0
+patch = 0
 
-version = f"{major}.{minor}.{macro}"
+version = f"{major}.{minor}.{patch}"

@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
 from setuptools import find_packages, setup
+from cosap._version import version
 
 setup(
     name="cosap",
-    version="0.1.0",
+    version=version,
     description="COSAP python library for NGS data analysis",
     packages=find_packages(),
     package_data={"cosap": ["snakemake_workflows/*"]},

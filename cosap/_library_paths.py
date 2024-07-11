@@ -65,8 +65,12 @@ class _LibraryPaths:
 @dataclass
 class _LibraryPaths38(_LibraryPaths):
     REF_DIR: str = AppConfig.LIBRARY_PATH
-    REF_FASTA: str = _get_file_path_hg38("Homo_sapiens_assembly38.fasta")
-    REF_ELFASTA: str = _get_file_path_hg38("Homo_sapiens_assembly38.elfasta")
+    REF_FASTA: str = _get_file_path_hg38(
+        "Homo_sapiens_assembly38.fasta"
+    )
+    REF_ELFASTA: str = _get_file_path_hg38(
+        "Homo_sapiens_assembly38.elfasta"
+    )
     DBSNP: str = _get_file_path_hg38(
         "Homo_sapiens_assembly38.dbsnp138.vcf"
     )

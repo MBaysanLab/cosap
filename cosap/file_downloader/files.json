@@ -110,11 +110,6 @@
             "size": 760863372,
             "md5": "bbe6bf20fd791075916cc0f07600e01d"
         },
-        {   "filename": "hg38_intervals.bed",
-            "url": "https://drive.usercontent.google.com/download?id=10J7-bJF8Hoz4ErqnsmTCaKKEkt_XqCZM&confirm=t",
-            "size": 103717,
-            "md5": "1e263fbfb29b17de48f1829469e1befd"
-        },
         {   "filename": "Homo_sapiens_assembly38.dbsnp138.elsites",
             "url": "https://drive.usercontent.google.com/download?id=1qO7YU5uLP3twmJFnq-3YrccIyovb7Af9&confirm=t",
             "size": 1372365563,
@@ -127,4 +122,3 @@
         }
     ]
 }
-
