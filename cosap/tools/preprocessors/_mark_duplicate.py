@@ -142,7 +142,7 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
                     mdup_config=mdup_config,
                     memory_handler=memory_handler,
                 )
-                run(command)
+                run(command, cwd=mdup_config[MDUPKeys.OUTPUT_DIR])
 
         elif device == "gpu":
 

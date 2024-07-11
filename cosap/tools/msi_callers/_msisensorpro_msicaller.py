@@ -37,4 +37,4 @@ class MSISensorPro(_MSICaller):
         command = cls._create_msisensorpro_command(
             caller_config, library_paths, app_config
         )
-        run(command)
+        run(command, cwd=caller_config[MSICallingKeys.OUTPUT_DIR])

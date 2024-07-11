@@ -55,6 +55,7 @@ class PharmcatAnnotator(_Annotatable, _Annotator):
     @classmethod
     def annotate(cls, annotator_config: Dict):
         library_paths = LibraryPaths()
+        workdir = annotator_config[AnnotatorKeys.OUTPUT_DIR]
 
         os.makedirs(annotator_config[AnnotatorKeys.OUTPUT], exist_ok=True)
 
@@ -67,5 +68,5 @@ class PharmcatAnnotator(_Annotatable, _Annotator):
             annotator_config=annotator_config,
         )
 
-        run(create_preprocess_vcf_command)
-        run(pharmcat_command)
+        run(create_preprocess_vcf_command, cwd=workdir)
+        run(pharmcat_command, cwd=workdir)

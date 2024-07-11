@@ -75,6 +75,7 @@ class VarDictVariantCaller(_Callable, _VariantCaller):
     def call_variants(cls, caller_config: Dict, device: str = "cpu"):
         library_paths = LibraryPaths()
         app_config = AppConfig()
+        workdir = caller_config[VariantCallingKeys.OUTPUT_DIR]
 
         vardict_command = cls._create_vardict_command(
             caller_config=caller_config,
@@ -84,10 +85,10 @@ class VarDictVariantCaller(_Callable, _VariantCaller):
         testsomatic_command = cls._create_testsomatic_command()
         var2vcf_command = cls._create_var2vcf_command(caller_config=caller_config)
 
-        vardict = Popen(vardict_command, stdout=PIPE)
-        testsomatic = Popen(testsomatic_command, stdin=vardict.stdout, stdout=PIPE)
+        vardict = Popen(vardict_command, stdout=PIPE, cwd=workdir)
+        testsomatic = Popen(testsomatic_command, stdin=vardict.stdout, stdout=PIPE, cwd=workdir)
         vardict.stdout.close()
-        var2vcf = check_output(var2vcf_command, stdin=testsomatic.stdout)
+        var2vcf = check_output(var2vcf_command, stdin=testsomatic.stdout, cwd=workdir)
         vardict.wait()
 
         output_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]

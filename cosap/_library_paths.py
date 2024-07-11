@@ -13,7 +13,7 @@ class _LibraryMeta(type):
     _lock: Lock = Lock()
 
     def __call__(cls) -> _LibraryPaths:
-        
+
         version = AppConfig.REF_VERSION
         with cls._lock:
             if cls not in cls._instances:

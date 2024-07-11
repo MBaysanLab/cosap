@@ -18,6 +18,7 @@ class Mapper(_IPipelineStep, _PipelineStep):
     key: str = PipelineKeys.MAPPING
     next_step: _PipelineStep = None
     post_processing: bool = False
+    output_dir: str = None
 
     def __post_init__(self):
         self.key = PipelineKeys.MAPPING
@@ -31,6 +32,9 @@ class Mapper(_IPipelineStep, _PipelineStep):
                 )
 
         self.library = self.library.lower()
+
+        if self.output_dir is None:
+            self.output_dir = join_paths(OutputFolders.MAPPING, self.library)
 
         if isinstance(self.input_step, list):
             for step in self.input_step:
@@ -65,10 +69,8 @@ class Mapper(_IPipelineStep, _PipelineStep):
             self.name: {
                 MappingKeys.LIBRARY: self.library,
                 MappingKeys.INPUT: read_filenames,
-                MappingKeys.OUTPUT: join_paths(
-                    OutputFolders.MAPPING, self.library, output_filename
-                ),
-                MappingKeys.OUTPUT_DIR: join_paths(OutputFolders.MAPPING, self.library),
+                MappingKeys.OUTPUT: output_filename,
+                MappingKeys.OUTPUT_DIR: self.output_dir,
                 MappingKeys.PARAMS: self.params,
                 MappingKeys.POST_PROCESSING: self.post_processing,
             },
@@ -77,7 +79,7 @@ class Mapper(_IPipelineStep, _PipelineStep):
 
     def get_output(self) -> str:
         config = self.get_config()
-        return config[self.key][self.name][MappingKeys.OUTPUT]
+        return join_paths(self.output_dir, config[self.name][MappingKeys.OUTPUT])
 
     def get_config(self) -> Dict:
         mapping_config = self._create_config()

@@ -119,5 +119,6 @@ class VarNetVariantCaller(_Callable, _VariantCaller):
             app_config=app_config,
         )
 
-        run(varnet_filter_command)
-        run(varnet_predict_command)
+        workdir = caller_config[VariantCallingKeys.OUTPUT_DIR]
+        run(varnet_filter_command, cwd=workdir)
+        run(varnet_predict_command, cwd=workdir)

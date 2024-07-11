@@ -15,80 +15,85 @@ class Cosap:
         raise NotImplementedError()
 
 
-@click.command()
-@click.option(
+@click.group()
+def cli():
+    pass
+
+
+@cli.command()
+@cli.option(
     "--analysis_type",
     help="Type of the analysis, can be somatic or germline",
     required=True,
 )
-@click.option("--workdir", help="Directory that outputs will be saved", required=True)
-@click.option("--normal_sample", help="Path to normal sample", required=False)
-@click.option(
+@cli.option("--workdir", help="Directory that outputs will be saved", required=True)
+@cli.option("--normal_sample", help="Path to normal sample", required=False)
+@cli.option(
     "--tumor_sample",
     help="Path to tumor sample. This option can be used multiple times.",
     required=False,
     multiple=True,
 )
-@click.option("--bed_file", help="Path to BED file", required=False)
-@click.option(
+@cli.option("--bed_file", help="Path to BED file", required=False)
+@cli.option(
     "--mapper",
     help="Mapper algorithm to use while aligning reads. This option can be used multiple times. Options = ['bwa', 'bwa2', 'bowtie2']",
     required=False,
     multiple=True,
 )
-@click.option(
+@cli.option(
     "--variant_caller",
     help="Variant caller algorithm to use for variant detection. \
     This option can be used multiple times, Options = ['mutect2','varscan2','haplotypecaller','octopus','strelka','somaticsniper','vardict', 'deepvariant']",
     required=False,
     multiple=True,
 )
-@click.option(
+@cli.option(
     "--normal_sample_name",
     help="Sample name of germline to write in bam. Default is 'normal'",
     required=False,
 )
-@click.option(
+@cli.option(
     "--tumor_sample_name",
     help="Sample name of tumor to write in bam. Default is 'tumor'",
     required=False,
 )
-@click.option(
+@cli.option(
     "--bam_qc",
     help="Qaulity control algorithm for .bam quality check. Options = ['qualimap', 'mosdepth']",
     required=False,
 )
-@click.option(
+@cli.option(
     "--annotators",
     help="Annotation tool to annotate variants in vcf files.",
     required=False,
     multiple=True,
 )
-@click.option(
+@cli.option(
     "--gvcf",
     help="Generate gvcf files",
     type=bool,
     required=False,
 )
-@click.option(
+@cli.option(
     "--msi",
     help="Run microsatellite instability analysis",
     required=False,
     is_flag=True,
 )
-@click.option(
+@cli.option(
     "--gene_fusion",
     help="Run gene fusion analysis",
     required=False,
     is_flag=True,
 )
-@click.option(
+@cli.option(
     "--device",
     help="Device to run the pipeline on. Options = ['cpu', 'gpu']",
     required=False,
     default="cpu",
 )
-def cosap_cli(
+def pipeline(
     analysis_type,
     workdir,
     normal_sample,

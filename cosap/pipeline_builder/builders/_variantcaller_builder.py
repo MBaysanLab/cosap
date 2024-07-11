@@ -21,6 +21,7 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
     bed_file: str = None
     key: str = PipelineKeys.VARIANT_CALLING
     next_step: _PipelineStep = None
+    output_dir: str = None
 
     def __post_init__(self):
         if self.name is None:
@@ -47,18 +48,15 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
         if self.tumor:
             self.tumor.next_step = self
 
+        if self.output_dir is None:
+            self.output_dir = join_paths(OutputFolders.VARIANT_CALLING, self.library)
+
     def _get_sample_name_from_bam(self, bam) -> str:
         abs_bam_path = os.path.abspath(os.path.normpath(bam))
         cmd = f"samtools view -H {abs_bam_path} | grep '^@RG' | sed 's/.*SM:\([^\t]*\).*/\1/g' | uniq"
         ps = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT)
         sample_name = str(ps.communicate()[0])
         return str(sample_name)
-
-    def get_output(self):
-        config = self.get_config()
-        if self.gvcf:
-            return config[self.key][self.name][VariantCallingKeys.GVCF_OUTPUT]
-        return config[self.key][self.name][VariantCallingKeys.ALL_VARIANTS_OUTPUT]
 
     def get_config(self) -> Dict:
         unfiltered_variants_output_filename = FileFormats.GATK_UNFILTERED_OUTPUT.format(
@@ -80,33 +78,13 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
             self.name: {
                 VariantCallingKeys.LIBRARY: self.library,
                 VariantCallingKeys.PARAMS: self.params,
-                VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT: join_paths(
-                    OutputFolders.VARIANT_CALLING,
-                    self.library,
-                    unfiltered_variants_output_filename,
-                ),
-                VariantCallingKeys.ALL_VARIANTS_OUTPUT: join_paths(
-                    OutputFolders.VARIANT_CALLING,
-                    self.library,
-                    all_variants_output_filename,
-                ),
-                VariantCallingKeys.SNP_OUTPUT: join_paths(
-                    OutputFolders.VARIANT_CALLING, self.library, snp_output_filename
-                ),
-                VariantCallingKeys.INDEL_OUTPUT: join_paths(
-                    OutputFolders.VARIANT_CALLING, self.library, indel_output_filename
-                ),
-                VariantCallingKeys.GVCF_OUTPUT: join_paths(
-                    OutputFolders.VARIANT_CALLING, self.library, gvcf_output_filename
-                ),
-                VariantCallingKeys.OTHER_VARIANTS_OUTPUT: join_paths(
-                    OutputFolders.VARIANT_CALLING,
-                    self.library,
-                    other_variants_output_filename,
-                ),
-                VariantCallingKeys.OUTPUT_DIR: join_paths(
-                    OutputFolders.VARIANT_CALLING, self.library
-                ),
+                VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT: unfiltered_variants_output_filename,
+                VariantCallingKeys.ALL_VARIANTS_OUTPUT: all_variants_output_filename,
+                VariantCallingKeys.SNP_OUTPUT: snp_output_filename,
+                VariantCallingKeys.INDEL_OUTPUT: indel_output_filename,
+                VariantCallingKeys.GVCF_OUTPUT: gvcf_output_filename,
+                VariantCallingKeys.OTHER_VARIANTS_OUTPUT: other_variants_output_filename,
+                VariantCallingKeys.OUTPUT_DIR: self.output_dir,
                 VariantCallingKeys.OUTPUT_TYPE: "VCF" if not self.gvcf else "GVCF",
             },
         }
@@ -126,3 +104,15 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
 
         config = {self.key: vc_config}
         return config
+
+    def get_output(self):
+        config = self.get_config()
+        if self.gvcf:
+            return join_paths(
+                self.output_dir,
+                config[self.key][self.name][VariantCallingKeys.GVCF_OUTPUT],
+            )
+        return join_paths(
+            self.output_dir,
+            config[self.key][self.name][VariantCallingKeys.ALL_VARIANTS_OUTPUT],
+        )

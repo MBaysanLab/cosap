@@ -43,4 +43,4 @@ class Trimmer(_Preprocessor, _PreProcessable):
             app_config=app_config,
             trimmer_config=trimmer_config,
         )
-        run(command)
+        run(command, cwd=trimmer_config[TrimmingKeys.OUTPUT_DIR])

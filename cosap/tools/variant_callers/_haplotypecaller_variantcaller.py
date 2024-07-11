@@ -1,16 +1,16 @@
+import os
+from pathlib import Path
 from subprocess import run
 from typing import Dict, List
 
 from ..._config import AppConfig
+from ..._docker_images import DockerImages
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import VariantCallingKeys
 from ...memory_handler import MemoryHandler
+from ...pipeline_runner.runners import DockerRunner
 from ...scatter_gather import ScatterGather
 from ._variantcallers import _Callable, _VariantCaller
-from ...pipeline_runner.runners import DockerRunner
-from pathlib import Path
-from ..._docker_images import DockerImages
-import os
 
 
 class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
@@ -85,7 +85,7 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
         ]
         if caller_config[VariantCallingKeys.OUTPUT_TYPE] == "GVCF":
             command.append("--gvcf")
-            
+
         return command
 
     @classmethod
@@ -253,7 +253,7 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
             )
 
             ScatterGather.clean_temp_files(caller_config[VariantCallingKeys.OUTPUT_DIR])
-        
+
         elif device == "gpu":
             print("Running Mutect2 on GPU")
             command = cls._create_parabricks_haplotypecaller_command(
@@ -303,7 +303,9 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
                 workdir=str(Path(output_dir).parent.parent),
             )
 
-        run(filter_variants_command)
-        run(get_snp_command)
-        run(get_indel_command)
-        run(get_other_variants_command)
+        workdir = caller_config[VariantCallingKeys.OUTPUT_DIR]
+
+        run(filter_variants_command, cwd=workdir)
+        run(get_snp_command, cwd=workdir)
+        run(get_indel_command, cwd=workdir)
+        run(get_other_variants_command, cwd=workdir)

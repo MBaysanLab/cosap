@@ -15,6 +15,7 @@ class MDUP(_IPipelineStep, _PipelineStep):
     duplicate_handling_method: str = "delete"
     key: str = PipelineKeys.MDUP
     next_step: _PipelineStep = None
+    output_dir: str = None
 
     def __post_init__(self):
         self.key = PipelineKeys.MDUP
@@ -22,6 +23,9 @@ class MDUP(_IPipelineStep, _PipelineStep):
             self.name = self.input_step.name
 
         self.input_step.next_step = self
+
+        if self.output_dir is None:
+            self.output_dir = join_paths(OutputFolders.PREPROCESSOR, self.key)
 
     def _create_config(self) -> Dict:
         output_filename = FileFormats.MDUP_OUTPUT.format(
@@ -31,19 +35,17 @@ class MDUP(_IPipelineStep, _PipelineStep):
         config = {
             self.name: {
                 MDUPKeys.INPUT: self.input_step.get_output(),
-                MDUPKeys.OUTPUT: join_paths(
-                    OutputFolders.PREPROCESSOR, self.key, output_filename
-                ),
+                MDUPKeys.OUTPUT: output_filename,
                 MDUPKeys.SPARK: self.spark,
                 MDUPKeys.DUPLICATE_HANDLING_METHOD: self.duplicate_handling_method,
-                MDUPKeys.OUTPUT_DIR: join_paths(OutputFolders.PREPROCESSOR, self.key),
+                MDUPKeys.OUTPUT_DIR: self.output_dir,
             },
         }
         return config
 
     def get_output(self) -> str:
         config = self.get_config()
-        return config[self.key][self.name][MDUPKeys.OUTPUT]
+        return join_paths(self.output_dir, config[self.name][MDUPKeys.OUTPUT])
 
     def get_config(self) -> Dict:
         mdup_config = self._create_config()

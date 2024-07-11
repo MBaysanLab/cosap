@@ -91,8 +91,9 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
             caller_config=caller_config, library_paths=library_paths
         )
 
-        samtools = Popen(samtools_mpileup, stdout=PIPE)
-        varscan = check_output(varscan_somatic, stdin=samtools.stdout)
+        workdir = caller_config[VariantCallingKeys.OUTPUT_DIR]
+        samtools = Popen(samtools_mpileup, stdout=PIPE, cwd=workdir)
+        varscan = check_output(varscan_somatic, stdin=samtools.stdout, cwd=workdir)
         samtools.wait()
 
         unfiltered_vcfs = [
@@ -104,4 +105,4 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
             process_somatic_command = cls._create_process_somatic_command(
                 vcf=vcf_file,
             )
-            run(process_somatic_command)
+            run(process_somatic_command, cwd=workdir)

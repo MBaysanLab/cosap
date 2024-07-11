@@ -16,6 +16,7 @@ class CNVCaller(_IPipelineStep, _PipelineStep):
     bed_file: str = None
     key: str = PipelineKeys.CNV
     next_step: _PipelineStep = None
+    output_dir: str = None
 
     def __post_init__(self):
         if self.name is None:
@@ -33,21 +34,22 @@ class CNVCaller(_IPipelineStep, _PipelineStep):
         if self.tumor:
             self.tumor.next_step = self
 
+        if self.output_dir is None:
+            self.output_dir = join_paths(OutputFolders.CNV, self.library)
+
     def _create_config(self) -> Dict:
         tumor_input = self.tumor.get_output()
         normal_input = self.normal.get_output()
 
         output = FileFormats.CNV_OUTPUT.format(identification=self.name)
-        output_dir = join_paths(OutputFolders.CNV, self.library)
+        output_dir = self.output_dir
         config = {
             self.name: {
                 CNVCallingKeys.LIBRARY: self.library,
                 CNVCallingKeys.NORMAL_INPUT: normal_input,
                 CNVCallingKeys.TUMOR_INPUT: tumor_input,
                 CNVCallingKeys.OUTPUT_DIR: output_dir,
-                CNVCallingKeys.OUTPUT: join_paths(
-                    OutputFolders.CNV, self.library, output
-                ),
+                CNVCallingKeys.OUTPUT: output,
             }
         }
         if self.bed_file:
@@ -56,7 +58,7 @@ class CNVCaller(_IPipelineStep, _PipelineStep):
 
     def get_output(self) -> str:
         config = self.get_config()
-        return config[self.key][self.name][CNVCallingKeys.OUTPUT]
+        return join_paths(self.output_dir, config[self.name][CNVCallingKeys.OUTPUT])
 
     def get_config(self) -> Dict:
         cnv_caller_config = self._create_config()

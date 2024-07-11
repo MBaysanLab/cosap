@@ -60,7 +60,7 @@ class BWA2Mapper(_Mapper, _Mappable):
     def map(cls, mapper_config: Dict, *args, **kwargs):
         library_paths = LibraryPaths()
         app_config = AppConfig()
-
+        workdir = mapper_config[MappingKeys.OUTPUT_DIR]
         read_group = cls._create_read_group(mapper_config=mapper_config)
 
         bwa_command = cls._create_command(
@@ -75,9 +75,9 @@ class BWA2Mapper(_Mapper, _Mappable):
         index_command = cls._samtools_index_command(
             app_config=app_config, input_path=mapper_config[MappingKeys.OUTPUT]
         )
-        bwa = Popen(bwa_command, stdout=PIPE)
+        bwa = Popen(bwa_command, stdout=PIPE, cwd=workdir)
 
-        samtools = check_output(sort_command, stdin=bwa.stdout)
+        samtools = check_output(sort_command, stdin=bwa.stdout, cwd=workdir)
         bwa.wait()
         if bwa.returncode != 0:
             raise Exception("BWA2 failed")

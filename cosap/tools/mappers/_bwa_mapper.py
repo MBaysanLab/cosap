@@ -114,7 +114,6 @@ class BWAMapper(_Mapper, _Mappable):
                 ]
             )
 
-
         if read_group:
             command.extend([read_group])
         return command
@@ -123,6 +122,7 @@ class BWAMapper(_Mapper, _Mappable):
     def map(cls, mapper_config: Dict, device: str = "cpu") -> None:
         library_paths = LibraryPaths()
         app_config = AppConfig()
+        workdir = mapper_config[MappingKeys.OUTPUT_DIR]
         if device == "cpu":
             read_group = cls._create_read_group(mapper_config=mapper_config)
 
@@ -135,13 +135,12 @@ class BWAMapper(_Mapper, _Mappable):
             sort_command = cls._samtools_sort_command(
                 app_config=app_config, output_path=mapper_config[MappingKeys.OUTPUT]
             )
-            index_command = cls._samtools_index_command(
-                app_config=app_config, input_path=mapper_config[MappingKeys.OUTPUT]
-            )
+            # index_command = cls._samtools_index_command(
+            #     app_config=app_config, input_path=mapper_config[MappingKeys.OUTPUT]
+            # )
 
-            bwa = Popen(bwa_command, stdout=PIPE)
-
-            samtools = check_output(sort_command, stdin=bwa.stdout)
+            bwa = Popen(bwa_command, stdout=PIPE, cwd=workdir)
+            samtools = check_output(sort_command, stdin=bwa.stdout, cwd=workdir)
             bwa.wait()
             if bwa.returncode != 0:
                 raise Exception("BWA failed")

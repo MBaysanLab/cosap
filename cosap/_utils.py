@@ -158,7 +158,7 @@ def convert_vcf_to_json(
             vcf_df.at[i, "AF"] = af
             ad = calculate_strelka_ad(row)
             vcf_df.at[i, "AD"] = ad
-    
+
     elif caller_type == "haplotypecaller":
         vcf_df.rename(
             columns={
@@ -167,7 +167,7 @@ def convert_vcf_to_json(
             },
             inplace=True,
         )
-    
+
     elif caller_type == "varscan":
         vcf_df.rename(
             columns={
@@ -176,7 +176,7 @@ def convert_vcf_to_json(
             inplace=True,
         )
         vcf_df["AF"] = vcf_df["AF"].replace("%", "", regex=True).astype(float) / 100
-    
+
     elif caller_type in ["mutect", "somaticsniper", "vardict"]:
         vcf_df.rename(
             columns={

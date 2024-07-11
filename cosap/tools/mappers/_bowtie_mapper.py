@@ -80,8 +80,8 @@ class Bowtie2Mapper(_Mapper, _Mappable):
             app_config=app_config, input_path=mapper_config[MappingKeys.OUTPUT]
         )
 
-        bowtie = Popen(bowtie_command, stdout=PIPE)
-        samtools = check_output(sort_command, stdin=bowtie.stdout)
+        bowtie = Popen(bowtie_command, stdout=PIPE, cwd=mapper_config[MappingKeys.OUTPUT_DIR])
+        samtools = check_output(sort_command, stdin=bowtie.stdout, cwd=mapper_config[MappingKeys.OUTPUT_DIR])
         bowtie.wait()
 
         if bowtie.returncode != 0:

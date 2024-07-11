@@ -37,4 +37,4 @@ class SomaticSniperVariantCaller(_Callable, _VariantCaller):
         somatic_sniper_command = cls._create_somaticSniper_command(
             caller_config=caller_config, library_paths=library_paths
         )
-        run(somatic_sniper_command)
+        run(somatic_sniper_command, cwd=caller_config[VariantCallingKeys.OUTPUT_DIR])
