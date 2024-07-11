@@ -13,7 +13,7 @@ install:
 
 	mamba create --name cosap -c conda-forge -c bioconda --yes --file requirements.txt
 
-	# Set environment variables in conda environment
+	# Set environment variables in conda environment
 	conda env config vars set COSAP=$(PWD) -n cosap
 
 develop:
@@ -26,7 +26,18 @@ develop:
 	mamba create --name cosap -c conda-forge -c bioconda --yes --file requirements.txt
 	mamba run --no-capture-output -n cosap pip install -e . celery redis docker
 
-download_files:
-	@echo The files will be downloaded to $(COSAP_LIBRARY_PATH)\; continue? [Y/n]
-	@read line; if [ $$line = "n" ]; then echo aborting; exit 1 ; fi
-	wget -i ./required_files.txt -P $(COSAP_LIBRARY_PATH)
+download:
+	@if [ -n $(COSAP_LIBRARY_PATH) ] && [ "$(COSAP_LIBRARY_PATH)" != "" ] ; \
+		then echo Reading COSAP_LIBRARY_PATH: $$COSAP_LIBRARY_PATH; fi
+	@COSAP_DATA=$${COSAP_LIBRARY_PATH:-$(HOME)/cosap_data/}; \
+	\
+	echo The files will be downloaded to \` $$COSAP_DATA \`.; \
+	echo The directory will be created if it does not exist.; \
+	read -p "Continue? [Y/n]: " line; \
+	if [ -z $$line ] || [ $$line = "y" ] || [ $$line = "Y" ]; \
+	then \
+		mkdir -p $$HOME/cosap_data; \
+		wget -nc -i ./required_files_test.txt -P $$COSAP_DATA; \
+	else \
+		echo No files downloaded.; \
+	fi
