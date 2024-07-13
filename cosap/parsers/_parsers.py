@@ -129,7 +129,7 @@ def parse_qualimap_genome_results(path: str) -> dict:
     for k, r in regexes.items():
         r_search = re.search(r, file_content, re.MULTILINE)
         if r_search:
-            if "\d" in r:
+            if r"\d" in r:
                 try:
                     d[k] = float(r_search.group(1).replace(",", ""))
                 except ValueError:
@@ -194,9 +194,9 @@ def parse_msi_results(path):
         return None
 
     # The results are in the second line of the file
-    with open(path) as f:
-        next(f)
-        line = next(f)
+    with open(path) as file:
+        next(file)
+        line = next(file)
 
         msi_score = line.split()[2]
 

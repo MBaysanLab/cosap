@@ -295,3 +295,39 @@ def get_variants_within_bed_regions(variants_df, bed_df):
         & (variants_df["POS_variants"] <= variants_df["END"])
     ]
     return variants_df
+
+
+class MultipleFilesFoundError(Exception):
+    """Exception raised when multiple files are found when only one is expected."""
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)
+
+
+def get_bam_index_path(bam_path: str) -> str:
+    root_path, extension = os.path.splitext(bam_path)
+
+    if extension != ".bam":
+        raise ValueError(f"Extension of BAM file is '{extension}'.")
+
+    if not os.path.isfile(bam_path):
+        raise FileNotFoundError(f"BAM file not found: {bam_path}")
+
+    possible_index_files = [
+        root_path + "." + "bam" + "." + "bai",
+        root_path + "." + "bai",
+    ]
+
+    present_index_files = [
+        file for file in possible_index_files
+        if os.path.isfile(file)
+    ]
+
+    if len(present_index_files) == 0:
+        raise FileNotFoundError(f"No BAM index file found for: {bam_path}")
+    
+    if len(present_index_files) > 1:
+        raise MultipleFilesFoundError(f"Multiple possible BAM index files found for: {bam_path}")
+    
+    bai_path = present_index_files[0]
+
+    return bai_path

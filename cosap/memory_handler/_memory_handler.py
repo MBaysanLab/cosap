@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Literal
 
 from .._config import AppConfig
-from .._utils import join_paths
+from .._utils import join_paths, get_bam_index_path
 
 
 class MemoryHandler:
@@ -64,7 +64,7 @@ class MemoryHandler:
 
         bam_path = self.get_path(path)
         # get index path along with bam path. the index can be either in form of .bai or .bam.bai
-        bai_path = glob(os.path.splitext(path)[0] + "*.bai")[0]
+        bai_path = get_bam_index_path(path)
         _ = self.get_path(bai_path)
         return bam_path
 
