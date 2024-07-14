@@ -4,7 +4,9 @@ import pytest
 from cosap import Pipeline, PipelineRunner, FastqReader, Mapper, VariantCaller, MDUP
 from cosap.tests.pipeline_integration import create_test_fastqs_from_chr1_ref_with_1_snp
 
-@pytest.mark.integration
+
+@pytest.mark.pipeline
+@pytest.mark.takes_minutes
 def test_bowtie_somaticsniper_pipeline(tmp_path):
     workdir = str(tmp_path)
 

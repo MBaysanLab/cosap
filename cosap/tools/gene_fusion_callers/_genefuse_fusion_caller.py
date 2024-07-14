@@ -40,6 +40,9 @@ class GeneFuse(_GeneFusionCaller):
 
     @classmethod
     def call(cls, caller_config: Dict):
+        from ...file_downloader import FileDownloader
+        FileDownloader().download_files(steps={cls})
+        
         library_paths = LibraryPaths()
         app_config = AppConfig()
         command = cls._create_gene_fuse_command(

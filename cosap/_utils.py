@@ -3,7 +3,6 @@ import os
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
 from subprocess import run
-import pyranges as pr
 import gzip
 
 
@@ -101,6 +100,7 @@ def convert_vcf_to_tsv(path: str, caller_type: str = "mutect") -> str:
 
     return output_filename
 
+
 def calculate_strelka_af(row: pd.Series) -> float:
     """
     Calculates AF from AU, CU, GU, TU columns.
@@ -117,11 +117,13 @@ def calculate_strelka_af(row: pd.Series) -> float:
     af = float(tier1_altcounts) / (float(tier1_altcounts) + float(tier1_refcounts))
     return af
 
+
 def calculate_strelka_ad(row: pd.Series) -> float:
     """
     Calculates AD as sum of AU, CU, GU, TU columns.
     """
     return sum([int(i) for i in row[["TUMOR.AU", "TUMOR.CU", "TUMOR.GU", "TUMOR.TU"]].values[0].split(",")])
+
 
 def convert_vcf_to_json(
     path: str, caller_type: str = "mutect", sample_name: str = "TUMOR"
@@ -208,6 +210,7 @@ def convert_vcf_to_json(
 
     return vcf_df.to_dict("records")
 
+
 def is_valid_path(path: str) -> bool:
     """
     Returns True if path exists and is not empty.
@@ -240,8 +243,8 @@ def get_commonpath_from_config(config: dict) -> str:
 
 def convert_list_to_ensembl_vep_input(variants: list, workdir: str) -> str:
     """
-    Converts list of variants to default vep input format and writes to a temporary file.
-    The default vep input format is:
+    Converts list of variants to default VEP input format and writes to a temporary file.
+    The default VEP input format is:
         1   881907    881906    -/C   +
         2   946507    946507    G/C   +
     """
@@ -275,6 +278,7 @@ def convert_list_to_annovar_input(variants: list, workdir:str) -> str:
                 f"{chrom}\t{variant['POS']}\t{end}\t{variant['REF']}\t{variant['ALT']}\n"
             )
         return f.name
+
 
 def get_variants_within_bed_regions(variants_df, bed_df):
     """
@@ -331,3 +335,17 @@ def get_bam_index_path(bam_path: str) -> str:
     bai_path = present_index_files[0]
 
     return bai_path
+
+
+def swap_dict_keys_and_values(a_dict: dict) -> dict:
+    return {value: key for key, value in a_dict.items()}
+
+
+def prompt_continue(message: str = "Continue?"):
+    while True:
+        user_input = input(f"{message} [Y/n] ").strip().lower()
+        if user_input in {"y", "yes", ""}:
+            return True
+        if user_input in {"n", "no"}:
+            return False
+        print("Invalid input. Please enter 'yes' or 'no'.")

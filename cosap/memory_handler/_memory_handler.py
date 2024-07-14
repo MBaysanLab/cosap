@@ -59,7 +59,7 @@ class MemoryHandler:
 
     def get_bam_path(self, path: str):
         """
-        load bam file and its index into ramdisk and return the path
+        Load BAM file and its index into ramdisk and return the path.
         """
 
         bam_path = self.get_path(path)
