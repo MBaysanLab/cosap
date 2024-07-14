@@ -41,7 +41,7 @@ class GeneFuse(_GeneFusionCaller):
     @classmethod
     def call(cls, caller_config: Dict):
         from ...file_downloader import FileDownloader
-        FileDownloader().download_files(steps={cls})
+        FileDownloader().download_files(steps={cls}, confirm=False)
         
         library_paths = LibraryPaths()
         app_config = AppConfig()

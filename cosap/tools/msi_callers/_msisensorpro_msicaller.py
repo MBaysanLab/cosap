@@ -33,7 +33,7 @@ class MSISensorPro(_MSICaller):
     @classmethod
     def call(cls, caller_config: dict):
         from ...file_downloader import FileDownloader
-        FileDownloader().download_files(steps={cls})
+        FileDownloader().download_files(steps={cls}, confirm=False)
 
         library_paths = LibraryPaths()
         app_config = AppConfig()

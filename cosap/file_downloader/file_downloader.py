@@ -19,7 +19,7 @@ class FileDownloader:
         self.checked_files: dict = self.read_checked_files()
 
     
-    def download_files(self, steps: set = set()):
+    def download_files(self, steps: set = set(), confirm: bool = True):
         """
         Downloads files required for steps specified.
         Downloads all possible files if empty set is passed.
@@ -29,7 +29,7 @@ class FileDownloader:
         print(f"Files will be downloaded to ` {AppConfig.LIBRARY_PATH} `. The directory will be created if it does not exist.")
         print("To change the download location, set the environment variable ` COSAP_LIBRARY_PATH ` to the desired path.")
 
-        if 0 == len(self.checked_files):
+        if 0 == len(self.checked_files) and confirm:
             if not prompt_continue():
                 print("No files downloaded.")
                 return
