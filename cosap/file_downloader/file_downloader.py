@@ -14,9 +14,12 @@ from .files import downloadable_files
 class FileDownloader:
     def __init__(self) -> None:
         self.download_directory: str = AppConfig.LIBRARY_PATH
-        self.checked_hashes_yaml_path: str = join_paths(self.download_directory, "checked_hashes.yaml")
+        self.tracked_files_yaml_path: str = join_paths(self.download_directory, "tracked_files.yaml")
         
-        self.checked_files: dict = self.read_checked_files()
+        self.checked_files: dict = {}
+        self.ignored_files: list = []
+
+        self.read_checked_files()
 
     
     def download_files(self, steps: set = set(), confirm: bool = True):
@@ -26,8 +29,8 @@ class FileDownloader:
         """
 
         # TODO: Check available space
-        print(f"Files will be downloaded to ` {AppConfig.LIBRARY_PATH} `. The directory will be created if it does not exist.")
-        print("To change the download location, set the environment variable ` COSAP_LIBRARY_PATH ` to the desired path.")
+        print(f"Files will be downloaded to '{AppConfig.LIBRARY_PATH}'. The directory will be created if it does not exist.")
+        print("To change the download location, set the environment variable 'COSAP_LIBRARY_PATH' to the desired path.")
 
         if 0 == len(self.checked_files) and confirm:
             if not prompt_continue():
@@ -38,13 +41,13 @@ class FileDownloader:
 
         files_to_be_downloaded = []
         for i, downloadable_file in enumerate(downloadable_files):
+            if downloadable_file.filename in self.ignored_files:
+                downloadable_file.status = DownloadableFileStatus.IGNORED
 
-            if downloadable_file.filename in self.checked_files.keys():
+            elif downloadable_file.filename in self.checked_files.keys():
                 present_hash_value = self.checked_files[downloadable_file.filename]
 
-                if len(present_hash_value) < 16:  # User specified "ignore"
-                    downloadable_file.status = DownloadableFileStatus.IGNORED
-                elif downloadable_file.md5 == present_hash_value:  # TODO: Delete file if target hash is different
+                if downloadable_file.md5 == present_hash_value:  # TODO: Delete file if target hash is different
                     downloadable_file.status = DownloadableFileStatus.PRESENT_FULLY
 
             if (
@@ -85,7 +88,7 @@ class FileDownloader:
         statuses_list = list(statuses.values())
         already_present_count = len(previously_present_files)
         ignored_count = statuses_list.count(DownloadableFileStatus.IGNORED)
-        downloaded_count = statuses_list.count(DownloadableFileStatus.PRESENT_FULLY) - already_present_count + ignored_count
+        downloaded_count = statuses_list.count(DownloadableFileStatus.PRESENT_FULLY) - already_present_count
         download_blocked_count = statuses_list.count(DownloadableFileStatus.DOWNLOAD_FAILED)
 
         if already_present_count:
@@ -100,33 +103,49 @@ class FileDownloader:
 
         if ignored_count:
             print(f"{ignored_count}/{total_files_count} files were ignored.")
+            if ignored_count == total_files_count:
+                print(f"To unignore files, remove them from the 'ignore' list at {self.tracked_files_yaml_path}")
         
         missing_or_incomplete_count = total_files_count - (already_present_count + downloaded_count + ignored_count)
         if missing_or_incomplete_count:
             print(f"{missing_or_incomplete_count}/{total_files_count} are missing or incomplete.")
         else:
-            print("All files are present.")
+            if ignored_count not in (0, total_files_count):
+                    print("All unignored files are present.")
+            if ignored_count == 0:
+                print("All files are present.")
         
-        self.write_checked_files()
+        self.write_tracked_files_yaml()
 
+
+    # TODO: preview_download_files()
 
     
-    def read_checked_files(self) -> dict:
+    def read_checked_files(self) -> None:
         """
-        Read 'checked_hashes.yaml' present in the COSAP data directory.
+        Read 'tracked_files.yaml' present in the COSAP data directory.
         Returns a dictionary in the form {filename: hash}.
         """
 
-        checked_hashes = {}
-        if os.path.exists(self.checked_hashes_yaml_path):
-            with open(self.checked_hashes_yaml_path) as file:
-                checked_hashes = yaml.safe_load(file)
+        tracked_files_yaml = {}
+        ignored_files = []
+        if os.path.exists(self.tracked_files_yaml_path):
+            with open(self.tracked_files_yaml_path) as file:
+                tracked_files_yaml = yaml.safe_load(file)
 
-            if checked_hashes is None:
-                checked_hashes = {}
+            if tracked_files_yaml is None:
+                tracked_files_yaml = {}
+            elif "ignore" in tracked_files_yaml.keys():
+                ignored_files = tracked_files_yaml.pop("ignore")
+                if ignored_files is None:
+                    ignored_files = []
+        else:
+            previously_present_files = os.listdir(self.download_directory)
+            ignored_files = previously_present_files
         
         # It is more readable to have the hashes line up in the YAML file
-        checked_files = swap_dict_keys_and_values(checked_hashes)
+        # Hash: Filename -> Filename: Hash
+        checked_files = swap_dict_keys_and_values(tracked_files_yaml)
 
         existent_files = os.listdir(self.download_directory)
         for file in checked_files.copy().keys():
@@ -135,12 +154,14 @@ class FileDownloader:
 
         # TODO: If no files can be found out of many, ask if directory might be mixed up
 
-        return checked_files
+        self.checked_files = checked_files
+        self.ignored_files = ignored_files
         
 
-    def write_checked_files(self):
-        """Write to 'checked_hashes.yaml' present in the COSAP data directory."""
-        checked_hashes = swap_dict_keys_and_values(self.checked_files)
-        with open(self.checked_hashes_yaml_path, "w") as file:
-            yaml.safe_dump(checked_hashes, file)
+    def write_tracked_files_yaml(self):
+        """Write to 'tracked_files.yaml' present in the COSAP data directory."""
+        tracked_files_yaml = swap_dict_keys_and_values(self.checked_files)
+        tracked_files_yaml["ignore"] = self.ignored_files
+        with open(self.tracked_files_yaml_path, "w") as file:
+            yaml.safe_dump(tracked_files_yaml, file)
 
