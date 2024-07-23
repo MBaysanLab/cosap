@@ -19,14 +19,14 @@ class FileDownloader:
         self.checked_files: dict = {}
         self.ignored_files: list = []
 
-        self.read_checked_files()
-
     
     def download_files(self, steps: set = set(), confirm: bool = True):
         """
         Downloads files required for steps specified.
         Downloads all possible files if empty set is passed.
         """
+
+        self.read_checked_files()
 
         # TODO: Check available space
         print(f"Files will be downloaded to '{AppConfig.LIBRARY_PATH}'. The directory will be created if it does not exist.")
@@ -39,6 +39,7 @@ class FileDownloader:
         
         os.makedirs(AppConfig.LIBRARY_PATH, exist_ok=True)
 
+        # TODO: get_files_ready_for_download()
         files_to_be_downloaded = []
         for i, downloadable_file in enumerate(downloadable_files):
             if downloadable_file.filename in self.ignored_files:
@@ -47,7 +48,7 @@ class FileDownloader:
             elif downloadable_file.filename in self.checked_files.keys():
                 present_hash_value = self.checked_files[downloadable_file.filename]
 
-                if downloadable_file.md5 == present_hash_value:  # TODO: Delete file if target hash is different
+                if downloadable_file.md5 == present_hash_value:  # TODO: Delete present file if target hash is different
                     downloadable_file.status = DownloadableFileStatus.PRESENT_FULLY
 
             if (
@@ -85,6 +86,7 @@ class FileDownloader:
         
         print("-" * 40)
         
+        # TODO: print_downloadable_files_summary()
         statuses_list = list(statuses.values())
         already_present_count = len(previously_present_files)
         ignored_count = statuses_list.count(DownloadableFileStatus.IGNORED)

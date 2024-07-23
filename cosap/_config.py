@@ -41,12 +41,14 @@ class _AppConfigMeta(type):
 
 @dataclass
 class AppConfig(metaclass=_AppConfigMeta):
-    HOME_PATH = os.getenv("HOME")
+    HOME_PATH: str = os.getenv("HOME")
 
     LIBRARY_PATH: str = os.getenv(
         "COSAP_LIBRARY_PATH",
         os.path.join(HOME_PATH, "cosap_data")
     )
+    if not os.path.exists(LIBRARY_PATH):
+        os.mkdir(LIBRARY_PATH)
 
     SNAKEFILE_PATH: str = get_snakefile_path()
     
@@ -55,7 +57,8 @@ class AppConfig(metaclass=_AppConfigMeta):
     MAX_THREADS_PER_JOB: int = int(
         os.getenv("COSAP_THREADS_PER_JOB", multiprocessing.cpu_count())
     )
-    if MAX_THREADS_PER_JOB > multiprocessing.cpu_count():
+    if (MAX_THREADS_PER_JOB == 0 or
+        MAX_THREADS_PER_JOB > multiprocessing.cpu_count()):
         MAX_THREADS_PER_JOB = multiprocessing.cpu_count()
 
     # Max memory is (avaliable memory / number of parallel jobs) in bytes

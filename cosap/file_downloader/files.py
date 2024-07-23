@@ -47,7 +47,7 @@ from ..tools.variant_callers._varscan_variantcaller import VarScanVariantCaller
 
 from .downloadable_file import DownloadableFile
 
-# TODO: Is there a better way to define this?
+
 downloadable_files = [
     DownloadableFile(filename="Homo_sapiens_assembly38.dict",
                      url="https://storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.dict",
@@ -197,12 +197,12 @@ downloadable_files = [
                      url="https://raw.githubusercontent.com/OpenGene/GeneFuse/master/genes/cancer.hg38.csv",
                      size=120406,
                      md5="8bda272f629bda6a8e44e79c24e59b9f",
-                     requiring_steps={GeneFuse}
+                     requiring_steps={}
                      ),
     DownloadableFile(filename="msisensor_hg38.list",
                      url="https://raw.githubusercontent.com/xjtu-omics/msisensor-pro/master/data/GRCh38.baseline_TCGA.tsv",
                      size=872107,
                      md5="58d61c121081564f68b945dbfe7b1268",
-                     requiring_steps={MSISensorPro}
+                     requiring_steps={}
                      ),
 ]
