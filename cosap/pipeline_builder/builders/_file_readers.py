@@ -20,6 +20,9 @@ class FastqReader(_IPipelineStep, _PipelineStep):
 
         if self.name == None:
             self.name = self._get_name_from_path(self.filename)
+        
+        if not os.path.isfile(self.filename):
+            raise FileNotFoundError(f"The file {self.filename} does not exist.")
 
     def get_output(self) -> str:
         return self.filename
@@ -39,6 +42,9 @@ class BamReader(_IPipelineStep, _PipelineStep):
 
         if self.name == None:
             self.name = self._get_name_from_path(self.filename)
+        
+        if not os.path.isfile(self.filename):
+            raise FileNotFoundError(f"The file {self.filename} does not exist.")
 
     def get_output(self) -> str:
         return self.filename
@@ -58,6 +64,9 @@ class VCFReader(_IPipelineStep, _PipelineStep):
 
         if self.name == None:
             self.name = self._get_name_from_path(self.filename)
+        
+        if not os.path.isfile(self.filename):
+            raise FileNotFoundError(f"The file {self.filename} does not exist.")
 
     def get_output(self) -> str:
         return self.filename
