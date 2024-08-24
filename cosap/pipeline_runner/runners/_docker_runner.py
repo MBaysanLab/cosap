@@ -7,6 +7,8 @@ from typing import Union
 
 
 class DockerRunner:
+    container_label = "cosap_handled_container"
+
     def __init__(self, device: str = "cpu") -> None:
         self.device = device
         self.docker_client = docker.from_env()
@@ -35,12 +37,18 @@ class DockerRunner:
         for path in paths_to_bind:
             volumes_dict[path] = {"bind": path, "mode": "rw"}
 
-        volumes = (
-            volumes_dict
-            if not self._check_if_running_in_docker()
-            else None
-        )
-        volumes_from = [hostname] if self._check_if_running_in_docker() else None
+        volumes = None
+        volumes_from = None
+        device_requests = None
+
+        if not self._check_if_running_in_docker():
+            volumes = volumes_dict
+
+        if self._check_if_running_in_docker():
+            volumes_from = [hostname]
+
+        if self.device == "gpu":
+            device_requests = [docker.types.DeviceRequest(count=-1, capabilities=[["gpu"]])]
         
         # Run and return the log generator
         container = self.docker_client.containers.run(
@@ -51,16 +59,15 @@ class DockerRunner:
             volumes_from=volumes_from,
             remove=True,
             detach=True,
+            init=True,
             restart_policy={"Name": "no"},
-            device_requests=[
-                docker.types.DeviceRequest(count=-1, capabilities=[["gpu"]])
-            ]
-            if self.device == "gpu"
-            else None,
+            device_requests=device_requests,
+            labels=[DockerRunner.container_label]
         )
+
         logs = container.attach(stdout=True, stderr=True, stream=True, logs=True)
 
-        # Pring logs
+        # Print logs
         for log in logs:
             print(log.decode("utf-8"), end="")
 
@@ -85,3 +92,12 @@ class DockerRunner:
         Pulls the image.
         """
         self.docker_client.images.pull(image)
+    
+    @classmethod
+    def _stop_all_cosap_handled_containers(cls) -> None:
+        docker_client = docker.from_env()
+        containers = docker_client.containers
+        cosap_containers = containers.list(filters={"label": cls.container_label})
+
+        for container in cosap_containers:
+            container.stop()
