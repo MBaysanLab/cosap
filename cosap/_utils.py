@@ -1,4 +1,5 @@
 import os
+import psutil
 
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
@@ -349,3 +350,9 @@ def prompt_continue(message: str = "Continue?"):
         if user_input in {"n", "no"}:
             return False
         print("Invalid input. Please enter 'yes' or 'no'.")
+
+
+def current_available_system_memory():
+    current_system_memory_info = psutil.virtual_memory()
+    current_available_system_memory = current_system_memory_info.available
+    return current_available_system_memory

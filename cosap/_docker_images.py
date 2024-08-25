@@ -10,3 +10,4 @@ class DockerImages:
     PHARMCAT: str = "pgkb/pharmcat"
     STRELKA2: str = "iarcbioinfo/strelka2-nf"
     MANTA: str = "szarate/manta:v1.6.0"
+    VARNET: str = "kiranchari/varnet"

@@ -54,7 +54,6 @@ class _LibraryPaths:
         PHARMCAT_DIR, "preprocessor", "pharmcat_vcf_preprocessor.py"
     )
     PHARMCAT_JAR: str = os.path.join(PHARMCAT_DIR, "pharmcat-2.8.3-all.jar")
-    VARNET: str = _get_file_path_hg38("varnet")
     GENEFUSE_CANCER_GENE_LIST: str = _get_file_path_hg38("genefuse_cancer.hg38.csv")
     MSISENSOR_MICROSATELLITES: str = _get_file_path_hg38("msisensor_hg38.list")
     CNVKIT_ANNOTATION: str = _get_file_path_hg38("cnvkit_hg38_refFlat.txt")
