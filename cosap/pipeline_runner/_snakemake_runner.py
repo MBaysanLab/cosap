@@ -118,7 +118,7 @@ class SnakemakeRunner:
 
             snakemake_child_process_pids = [process.pid for process in snakemake_child_processes]
 
-            DockerRunner.stop_all_cosap_handled_containers(parent_pids=snakemake_child_process_pids)
+            DockerRunner.stop_all_cosap_handled_containers(pids=snakemake_child_process_pids)
 
             snakemake_process.wait()
         

@@ -12,9 +12,7 @@ class DockerRunner:
     def __init__(self, device: str = "cpu") -> None:
         self.device = device
         self.docker_client = docker.from_env()
-
-        parent_pid = os.getppid()
-        self.container_label = DockerRunner.container_label_prefix + str(parent_pid)
+        self.container_label = DockerRunner.container_label_prefix + str(os.getpid())
 
     def run(
         self,
@@ -97,24 +95,23 @@ class DockerRunner:
         self.docker_client.images.pull(image)
     
     @classmethod
-    def stop_all_cosap_handled_containers(cls, parent_pids: tuple) -> None:
+    def stop_all_cosap_handled_containers(cls, pids: tuple) -> None:
         """
-        parent_pids: PIDs of processes whose related Docker containers will be stopped
+        pids: PIDs of processes which created the Docker containers to be stopped
 
-        Stops all Docker containers that were started by a child process of the processes specified.
+        Stops all Docker containers that were started by the processes specified
 
-        Intended to be used in combination with the PID of a main process
-        or a listing of all child processes of a main process.
+        Intended to be used with a listing of all child processes of a parent process.
 
         Example usage:
         
-        `processes = psutil.Process(parent_process.pid).children()`
+        `processes = psutil.Process(parent_process.pid).children(recursive=True)`
 
         `process_pids = [process.pid for process in processes]`
 
-        `DockerRunner.stop_all_cosap_handled_containers(parent_pids=process_pids)`
+        `DockerRunner.stop_all_cosap_handled_containers(pids=process_pids)`
         """
-        for pid in parent_pids:
+        for pid in pids:
             container_label = cls.container_label_prefix + str(pid)
 
             docker_client = docker.from_env()
