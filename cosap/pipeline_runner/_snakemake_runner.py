@@ -106,19 +106,23 @@ class SnakemakeRunner:
 
         # Run and return sys output
         try:
-            process = Popen(snakemake, cwd=self.workdir, text=True, stderr=sys.stderr)
-            process.wait()
+            snakemake_process = Popen(snakemake, cwd=self.workdir, text=True, stderr=sys.stderr)
+            snakemake_process.wait()
         except KeyboardInterrupt:
-            process.terminate()
+            snakemake_process.terminate()
 
-            for child_process in psutil.Process(process.pid).children(recursive=True):
+            snakemake_child_processes = psutil.Process(snakemake_process.pid).children(recursive=True)
+
+            for child_process in snakemake_child_processes:
                 child_process.kill()  # Child processes do not respond to `terminate`
 
-            DockerRunner._stop_all_cosap_handled_containers()
+            snakemake_child_process_pids = [process.pid for process in snakemake_child_processes]
 
-            process.wait()
+            DockerRunner.stop_all_cosap_handled_containers(parent_pids=snakemake_child_process_pids)
+
+            snakemake_process.wait()
         
-        results = process
+        results = snakemake_process
 
         return {
             "stdout": results.stdout,

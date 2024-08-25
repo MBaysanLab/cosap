@@ -7,11 +7,14 @@ from typing import Union
 
 
 class DockerRunner:
-    container_label = "cosap_handled_container"
+    container_label_prefix = "cosap_handled_container_"
 
     def __init__(self, device: str = "cpu") -> None:
         self.device = device
         self.docker_client = docker.from_env()
+
+        parent_pid = os.getppid()
+        self.container_label = DockerRunner.container_label_prefix + str(parent_pid)
 
     def run(
         self,
@@ -62,7 +65,7 @@ class DockerRunner:
             init=True,
             restart_policy={"Name": "no"},
             device_requests=device_requests,
-            labels=[DockerRunner.container_label]
+            labels=[self.container_label]
         )
 
         logs = container.attach(stdout=True, stderr=True, stream=True, logs=True)
@@ -94,10 +97,29 @@ class DockerRunner:
         self.docker_client.images.pull(image)
     
     @classmethod
-    def _stop_all_cosap_handled_containers(cls) -> None:
-        docker_client = docker.from_env()
-        containers = docker_client.containers
-        cosap_containers = containers.list(filters={"label": cls.container_label})
+    def stop_all_cosap_handled_containers(cls, parent_pids: tuple) -> None:
+        """
+        parent_pids: PIDs of processes whose related Docker containers will be stopped
 
-        for container in cosap_containers:
-            container.stop()
+        Stops all Docker containers that were started by a child process of the processes specified.
+
+        Intended to be used in combination with the PID of a main process
+        or a listing of all child processes of a main process.
+
+        Example usage:
+        
+        `processes = psutil.Process(parent_process.pid).children()`
+
+        `process_pids = [process.pid for process in processes]`
+
+        `DockerRunner.stop_all_cosap_handled_containers(parent_pids=process_pids)`
+        """
+        for pid in parent_pids:
+            container_label = cls.container_label_prefix + str(pid)
+
+            docker_client = docker.from_env()
+            containers = docker_client.containers
+            cosap_containers = containers.list(filters={"label": container_label})
+
+            for container in cosap_containers:
+                container.stop()
