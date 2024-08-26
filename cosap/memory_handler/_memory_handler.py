@@ -3,26 +3,30 @@ import shutil
 import tempfile
 from glob import glob
 from pathlib import Path
+from typing import Literal
 
 from .._config import AppConfig
-from .._utils import join_paths
+from .._utils import join_paths, get_bam_index_path
 
 
 class MemoryHandler:
     def __init__(self):
-        self.in_memory_active = AppConfig.IN_MEMORY_MODE
-        self.opened_dirs = []
-        self.saving_paths = {}
-        self.temp_dir = self.get_temp_dir()
+        self.in_memory_active: Literal[0, 1] = AppConfig.IN_MEMORY_MODE
+        self.opened_dirs: list = []
+        self.saving_paths: dict = {}
+        self.temp_dir: str = self.get_temp_dir()
 
     def __enter__(self):
+        if not self.temp_dir:
+            self.temp_dir = self.get_temp_dir()
+
         return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         if exc_type:
             self.close_without_saving()
         else:
-            self.save_tempfiles_to_into_disk()
+            self.save_tempfiles_to_disk()
 
     def get_path(self, path: str) -> str:
         """
@@ -55,12 +59,12 @@ class MemoryHandler:
 
     def get_bam_path(self, path: str):
         """
-        load bam file and its index into ramdisk and return the path
+        Load BAM file and its index into ramdisk and return the path.
         """
 
         bam_path = self.get_path(path)
         # get index path along with bam path. the index can be either in form of .bai or .bam.bai
-        bai_path = glob(os.path.splitext(bam_path)[0] + "*.bai")[0]
+        bai_path = get_bam_index_path(path)
         _ = self.get_path(bai_path)
         return bam_path
 
@@ -80,13 +84,21 @@ class MemoryHandler:
 
         return os.path.normpath(tmp_dir.name)
 
-    def save_tempfiles_to_into_disk(self):
-        for tmp_path in self.saving_paths:
-            shutil.copy(tmp_path, self.saving_paths[tmp_path])
+    def save_tempfiles_to_disk(self):
+        for tmp_path in self.saving_paths.copy():
+            shutil.copy(tmp_path, self.saving_paths.pop(tmp_path))
 
-        for dir in self.opened_dirs:
+        for dir in self.opened_dirs.copy():
             dir.cleanup()
+            self.opened_dirs.remove(dir)
+
+        self.temp_dir = None
 
     def close_without_saving(self):
-        for dir in self.opened_dirs:
+        self.saving_paths = {}
+
+        for dir in self.opened_dirs.copy():
             dir.cleanup()
+            self.opened_dirs.remove(dir)
+        
+        self.temp_dir = None

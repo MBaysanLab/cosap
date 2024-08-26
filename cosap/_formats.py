@@ -26,7 +26,7 @@ class FileFormats:
     ANNOVAR_OUTPUT: str = r"annovar_{identification}.{sample}.avinput"
     QUALIMAP_OUTPUT: str = r"qualimap_{identification}"
     MOSDEPTH_OUTPUT: str = r"{identification}.mosdepth.summary.txt"
-    SPLITTED_BAM_FILENAME: str = "{name}_{split_no}.bam"
+    SPLITTED_BAM_FILENAME: str = r"{name}_{split_no}.bam"
     GENEFUSION_OUTPUT: str = r"gene_fusion_{identification}.json"
     MSI_OUTPUT: str = r"msi_{identification}.txt"
     CNV_OUTPUT: str = r"cnv_{identification}.txt"

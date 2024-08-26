@@ -12,7 +12,7 @@ class _Mapper(ABC):
             "samtools",
             "sort",
             "-@",
-            "6",
+            "6",  # TODO: Calculate using available memory (http://www.htslib.org/doc/samtools-sort.html)
             "-n",
             "-o",
             output_path,
