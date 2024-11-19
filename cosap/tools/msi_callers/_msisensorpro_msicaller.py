@@ -3,7 +3,7 @@ from subprocess import run
 from ..._config import AppConfig
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import MSICallingKeys
-from ..._utils import join_paths
+from ..._utils import convert_to_absolute_path, join_paths
 from ._msi_callers import _MSICaller
 
 
@@ -12,8 +12,12 @@ class MSISensorPro(_MSICaller):
     def _create_msisensorpro_command(
         cls, caller_config: dict, library_paths: LibraryPaths, app_config: AppConfig
     ) -> list:
-        normal_input = caller_config[MSICallingKeys.NORMAL_INPUT]
-        tumor_input = caller_config[MSICallingKeys.TUMOR_INPUT]
+        normal_input = convert_to_absolute_path(
+            caller_config[MSICallingKeys.NORMAL_INPUT]
+        )
+        tumor_input = convert_to_absolute_path(
+            caller_config[MSICallingKeys.TUMOR_INPUT]
+        )
         output = caller_config[MSICallingKeys.OUTPUT]
 
         command = [

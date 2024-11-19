@@ -14,8 +14,8 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
 
     library: str
     params: dict = field(default_factory=dict)
-    germline: str = None
-    tumor: _PipelineStep = None
+    normal_sample: str = None
+    tumor_sample: _PipelineStep = None
     name: _PipelineStep = None
     gvcf: bool = False
     bed_file: str = None
@@ -26,10 +26,10 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
     def __post_init__(self):
         if self.name is None:
             name_temp = []
-            if self.germline:
-                name_temp.append(self.germline.name)
-            if self.tumor:
-                name_temp.append(self.tumor.name)
+            if self.normal_sample:
+                name_temp.append(self.normal_sample.name)
+            if self.tumor_sample:
+                name_temp.append(self.tumor_sample.name)
             name_temp.append(self.library)
 
             self.name = "_".join(name_temp)
@@ -37,16 +37,22 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
         self.library = self.library.lower()
 
         # TODO: Read sample names from bam.
-        if VariantCallingKeys.GERMLINE_SAMPLE_NAME not in self.params and self.germline:
+        if (
+            VariantCallingKeys.GERMLINE_SAMPLE_NAME not in self.params
+            and self.normal_sample
+        ):
             self.params[VariantCallingKeys.GERMLINE_SAMPLE_NAME] = "normal"
 
-        if VariantCallingKeys.TUMOR_SAMPLE_NAME not in self.params and self.tumor:
+        if (
+            VariantCallingKeys.TUMOR_SAMPLE_NAME not in self.params
+            and self.tumor_sample
+        ):
             self.params[VariantCallingKeys.TUMOR_SAMPLE_NAME] = "tumor"
 
-        if self.germline:
-            self.germline.next_step = self
-        if self.tumor:
-            self.tumor.next_step = self
+        if self.normal_sample:
+            self.normal_sample.next_step = self
+        if self.tumor_sample:
+            self.tumor_sample.next_step = self
 
         if self.output_dir is None:
             self.output_dir = join_paths(OutputFolders.VARIANT_CALLING, self.library)
@@ -86,18 +92,19 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
                 VariantCallingKeys.OTHER_VARIANTS_OUTPUT: other_variants_output_filename,
                 VariantCallingKeys.OUTPUT_DIR: self.output_dir,
                 VariantCallingKeys.OUTPUT_TYPE: "VCF" if not self.gvcf else "GVCF",
+                VariantCallingKeys.LOG_FILE: self.log_file,
             },
         }
 
-        if self.tumor is not None:
+        if self.tumor_sample is not None:
             vc_config[self.name][
                 VariantCallingKeys.TUMOR_INPUT
-            ] = self.tumor.get_output()
+            ] = self.tumor_sample.get_output()
 
-        if self.germline is not None:
+        if self.normal_sample is not None:
             vc_config[self.name][
                 VariantCallingKeys.GERMLINE_INPUT
-            ] = self.germline.get_output()
+            ] = self.normal_sample.get_output()
 
         if self.bed_file is not None:
             vc_config[self.name][VariantCallingKeys.BED_FILE] = self.bed_file

@@ -7,8 +7,10 @@ from ..._config import AppConfig
 from ..._docker_images import DockerImages
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import VariantCallingKeys
+from ..._utils import convert_to_absolute_path, join_paths
 from ...memory_handler import MemoryHandler
-from ...pipeline_runner.runners import DockerRunner
+from ...runners.runners import DockerRunner
+from ...runners.runners.step_runner import run_command_parallel
 from ...scatter_gather import ScatterGather
 from ._variantcallers import _Callable, _VariantCaller
 
@@ -21,22 +23,25 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
         library_paths: LibraryPaths,
         memory_handler: MemoryHandler,
     ) -> List:
-        MAX_MEMORY_IN_GB = int(AppConfig.MAX_MEMORY_PER_JOBS // (1024.0**3))
+        MAX_MEMORY_IN_GB = int(AppConfig.MAX_MEMORY_PER_JOB // (1024.0**3))
 
-        germline_bam = memory_handler.get_bam_path(
-            caller_config[VariantCallingKeys.GERMLINE_INPUT]
+        germline_bam = convert_to_absolute_path(
+            memory_handler.get_bam_path(
+                caller_config[VariantCallingKeys.GERMLINE_INPUT]
+            )
         )
         output_file = (
-            caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
-            if caller_config[VariantCallingKeys.OUTPUT_TYPE] == "VCF"
-            else caller_config[VariantCallingKeys.GVCF_OUTPUT]
-        )
+                caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
+                if caller_config[VariantCallingKeys.OUTPUT_TYPE] == "VCF"
+                else caller_config[VariantCallingKeys.GVCF_OUTPUT]
+            )
+
         output_name = memory_handler.get_output_path(output_file)
 
         command = [
             "gatk",
             "--java-options",
-            f"-Xmx{MAX_MEMORY_IN_GB}G",
+            f"-Xmx20G",
             "HaplotypeCaller",
             "-R",
             library_paths.REF_FASTA,
@@ -71,13 +76,9 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
 
         command = [
             "pbrun",
-            "mutectcaller",
+            "haplotypecaller",
             "--ref",
             library_paths.REF_FASTA,
-            "--tumor-name",
-            caller_config[VariantCallingKeys.PARAMS][
-                VariantCallingKeys.TUMOR_SAMPLE_NAME
-            ],
             "--in-bam",
             germline_bam,
             "--out-variants",
@@ -123,8 +124,10 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
     def _create_filter_variants_command(
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> List:
-        input_name = cls._create_cnn_annotated_output_name(
-            caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
+        input_name = convert_to_absolute_path(
+            cls._create_cnn_annotated_output_name(
+                caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
+            )
         )
         output_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
 
@@ -151,7 +154,12 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
     def _create_get_snp_variants_command(
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> List:
-        input_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
+        input_name = convert_to_absolute_path(
+            join_paths(
+                caller_config[VariantCallingKeys.OUTPUT_DIR],
+                caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT],
+            )
+        )
         output_name = caller_config[VariantCallingKeys.SNP_OUTPUT]
 
         command = [
@@ -173,7 +181,12 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
     def _create_get_indel_variants_command(
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> List:
-        input_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
+        input_name = convert_to_absolute_path(
+            join_paths(
+                caller_config[VariantCallingKeys.OUTPUT_DIR],
+                caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT],
+            )
+        )
         output_name = caller_config[VariantCallingKeys.INDEL_OUTPUT]
 
         command = [
@@ -195,7 +208,12 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
     def _create_get_other_variants_command(
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> List:
-        input_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
+        input_name = convert_to_absolute_path(
+            join_paths(
+                caller_config[VariantCallingKeys.OUTPUT_DIR],
+                caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT],
+            )
+        )
         output_name = caller_config[VariantCallingKeys.OTHER_VARIANTS_OUTPUT]
 
         command = [
@@ -218,6 +236,7 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
     @classmethod
     def call_variants(cls, caller_config: Dict, device: str = "cpu"):
         library_paths = LibraryPaths()
+        workdir = caller_config[VariantCallingKeys.OUTPUT_DIR]
 
         bed_file = (
             caller_config[VariantCallingKeys.BED_FILE]
@@ -240,7 +259,14 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
                     )
                     for cfg in splitted_configs
                 ]
-                ScatterGather.run_parallel(run, scattered_commands)
+
+                results = run_command_parallel(scattered_commands, cwd=workdir)
+
+                # Check if any of the commands failed
+                # If respective region of bam file is empty, results will be None, ignore it
+                if any((result.returncode != 0 and result is not None) for result in results):
+                    raise Exception("HaplotypeCaller failed")
+                
 
             ScatterGather.gather_vcfs(
                 splitted_configs,
@@ -250,12 +276,12 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
                     else caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
                 ),
                 mode=caller_config[VariantCallingKeys.OUTPUT_TYPE],
+                cwd=workdir,
             )
 
             ScatterGather.clean_temp_files(caller_config[VariantCallingKeys.OUTPUT_DIR])
 
         elif device == "gpu":
-            print("Running Mutect2 on GPU")
             command = cls._create_parabricks_haplotypecaller_command(
                 caller_config=caller_config, library_paths=library_paths
             )
@@ -303,9 +329,7 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
                 workdir=str(Path(output_dir).parent.parent),
             )
 
-        workdir = caller_config[VariantCallingKeys.OUTPUT_DIR]
-
-        run(filter_variants_command, cwd=workdir)
-        run(get_snp_command, cwd=workdir)
-        run(get_indel_command, cwd=workdir)
-        run(get_other_variants_command, cwd=workdir)
+            run(filter_variants_command, cwd=workdir)
+            run(get_snp_command, cwd=workdir)
+            run(get_indel_command, cwd=workdir)
+            run(get_other_variants_command, cwd=workdir)

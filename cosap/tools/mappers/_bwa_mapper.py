@@ -1,13 +1,14 @@
 import os
 from pathlib import Path
-from subprocess import PIPE, Popen, check_output
+from subprocess import PIPE, run
 from typing import Dict, List
 
 from ..._config import AppConfig
 from ..._docker_images import DockerImages
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import MappingKeys
-from ...pipeline_runner.runners import DockerRunner
+from ..._utils import convert_to_absolute_path
+from ...runners.runners import DockerRunner
 from ._mappers import _Mappable, _Mapper
 
 
@@ -63,7 +64,10 @@ class BWAMapper(_Mapper, _Mappable):
         app_config: AppConfig,
         read_group: str = None,
     ) -> List:
-        fastq_inputs = [fastq for fastq in mapper_config[MappingKeys.INPUT].values()]
+        fastq_inputs = [
+            convert_to_absolute_path(fastq)
+            for fastq in mapper_config[MappingKeys.INPUT].values()
+        ]
 
         command = [
             "bwa",
@@ -86,7 +90,10 @@ class BWAMapper(_Mapper, _Mappable):
         read_group: str = None,
     ) -> List:
 
-        fastq_inputs = [fastq for fastq in mapper_config[MappingKeys.INPUT].values()]
+        fastq_inputs = [
+            convert_to_absolute_path(fastq)
+            for fastq in mapper_config[MappingKeys.INPUT].values()
+        ]
 
         command = [
             "pbrun",
@@ -139,13 +146,21 @@ class BWAMapper(_Mapper, _Mappable):
             #     app_config=app_config, input_path=mapper_config[MappingKeys.OUTPUT]
             # )
 
-            bwa = Popen(bwa_command, stdout=PIPE, cwd=workdir)
-            samtools = check_output(sort_command, stdin=bwa.stdout, cwd=workdir)
-            bwa.wait()
+            bwa = run(bwa_command, stdout=PIPE, cwd=workdir, check=False)
+            samtools = run(
+                sort_command,
+                input=bwa.stdout,
+                stdout=PIPE,
+                stderr=PIPE,
+                cwd=workdir,
+                check=True,
+            )
             if bwa.returncode != 0:
-                raise Exception("BWA failed")
+                raise Exception(
+                    f"BWA command {*bwa_command,} failed with error: {bwa.stderr.decode('utf-8')}"
+                )
             else:
-                print(samtools.decode("utf-8"))
+                print(samtools.stdout.decode("utf-8"))
             # run(index_command)
 
         elif device == "gpu":

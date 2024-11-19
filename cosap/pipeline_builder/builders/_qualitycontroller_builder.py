@@ -47,9 +47,11 @@ class QualityController(_IPipelineStep, _PipelineStep):
                     QualityControlKeys.LIBRARY: self.library,
                     QualityControlKeys.INPUT: input_filename,
                     QualityControlKeys.OUTPUT: output_filename,
-                    QualityControlKeys.OUTPUT_DIR: self.output_dir,
                 }
             }
+
+        config[self.name][QualityControlKeys.OUTPUT_DIR] = self.output_dir
+        config[self.name][QualityControlKeys.LOG_FILE] = self.log_file
 
         if self.bed_file is not None:
             config[self.name][QualityControlKeys.BED_FILE] = self.bed_file
@@ -57,7 +59,9 @@ class QualityController(_IPipelineStep, _PipelineStep):
 
     def get_output(self) -> str:
         config = self.get_config()
-        return join_paths(self.output_dir, config[self.name][QualityControlKeys.OUTPUT])
+        return join_paths(
+            self.output_dir, config[self.key][self.name][QualityControlKeys.OUTPUT]
+        )
 
     def get_config(self) -> Dict:
         quality_controller_config = self._create_config()

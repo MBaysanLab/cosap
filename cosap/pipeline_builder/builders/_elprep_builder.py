@@ -36,13 +36,16 @@ class Elprep(_IPipelineStep, _PipelineStep):
                 ElprepKeys.TABLE: table_filename,
                 ElprepKeys.OUTPUT: output_filename,
                 ElprepKeys.OUTPUT_DIR: self.output_dir,
+                ElprepKeys.LOG_FILE: self.log_file,
             },
         }
         return config
 
     def get_output(self) -> str:
         config = self.get_config()
-        return join_paths(self.output_dir, config[self.name][ElprepKeys.OUTPUT])
+        return join_paths(
+            self.output_dir, config[self.key][self.name][ElprepKeys.OUTPUT]
+        )
 
     def get_config(self) -> Dict:
         elprep_config = self._create_config()

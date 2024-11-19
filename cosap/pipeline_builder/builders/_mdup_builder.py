@@ -39,13 +39,14 @@ class MDUP(_IPipelineStep, _PipelineStep):
                 MDUPKeys.SPARK: self.spark,
                 MDUPKeys.DUPLICATE_HANDLING_METHOD: self.duplicate_handling_method,
                 MDUPKeys.OUTPUT_DIR: self.output_dir,
+                MDUPKeys.LOG_FILE: self.log_file,
             },
         }
         return config
 
     def get_output(self) -> str:
         config = self.get_config()
-        return join_paths(self.output_dir, config[self.name][MDUPKeys.OUTPUT])
+        return join_paths(self.output_dir, config[self.key][self.name][MDUPKeys.OUTPUT])
 
     def get_config(self) -> Dict:
         mdup_config = self._create_config()

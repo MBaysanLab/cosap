@@ -48,13 +48,16 @@ class MSICaller(_IPipelineStep, _PipelineStep):
                 MSICallingKeys.TUMOR_INPUT: tumor_input,
                 MSICallingKeys.OUTPUT: output,
                 MSICallingKeys.OUTPUT_DIR: self.output_dir,
+                MSICallingKeys.LOG_FILE: self.log_file,
             }
         }
         return config
 
     def get_output(self) -> str:
         config = self.get_config()
-        return join_paths(self.output_dir, config[self.name][MSICallingKeys.OUTPUT])
+        return join_paths(
+            self.output_dir, config[self.key][self.name][MSICallingKeys.OUTPUT]
+        )
 
     def get_config(self) -> Dict:
         msi_caller_config = self._create_config()

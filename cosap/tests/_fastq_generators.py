@@ -1,8 +1,11 @@
 import os
+
 from cosap._library_paths import LibraryPaths
 
 
-def create_test_fastqs_from_chr1_ref_with_1_snp(workdir):  # Returns SNP (CHROM, POS, REF, ALT)
+def create_test_fastqs_from_chr1_ref_with_1_snp(
+    workdir,
+):  # Returns SNP (CHROM, POS, REF, ALT)
     sample_name = "TEST_SAMPLE_"
 
     position_of_last_read_base = 0
@@ -12,10 +15,10 @@ def create_test_fastqs_from_chr1_ref_with_1_snp(workdir):  # Returns SNP (CHROM,
         ref.readline()  # Skip header line
 
         start_of_base_read_lines = ref.tell()
-        while 'N' in ref.readline():
+        while "N" in ref.readline():
             start_of_base_read_lines = ref.tell()
             position_of_last_read_base += line_length
-        
+
         ref.seek(start_of_base_read_lines)
         seq = ""
         for _ in range(10):
@@ -51,13 +54,17 @@ def create_test_fastqs_from_chr1_ref_with_1_snp(workdir):  # Returns SNP (CHROM,
         T_2.write(f"{complement(reverse(bad_seq))}\n")
         T_2.write(f"+\n")
         T_2.write(f"{quality_chr * len(bad_seq)}\n")
-    
-    return (N_1.name, N_2.name), (T_1.name, T_2.name), ("chr1", position_of_last_read_base, seq[-1], bad_seq[-1])
+
+    return (
+        (N_1.name, N_2.name),
+        (T_1.name, T_2.name),
+        ("chr1", position_of_last_read_base, seq[-1], bad_seq[-1]),
+    )
 
 
 def complement(seq: str) -> str:
-    return (seq
-        .replace("A", "1")
+    return (
+        seq.replace("A", "1")
         .replace("T", "2")
         .replace("G", "3")
         .replace("C", "4")

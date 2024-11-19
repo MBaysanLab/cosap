@@ -36,6 +36,7 @@ class Recalibrator(_IPipelineStep, _PipelineStep):
                 BaseRecalibratorKeys.TABLE: table_filename,
                 BaseRecalibratorKeys.OUTPUT: output_filename,
                 BaseRecalibratorKeys.OUTPUT_DIR: OutputFolders.CALIBRATION,
+                BaseRecalibratorKeys.LOG_FILE: self.log_file,
             },
         }
         if self.bed_file is not None:
@@ -45,7 +46,7 @@ class Recalibrator(_IPipelineStep, _PipelineStep):
     def get_output(self) -> str:
         config = self.get_config()
         return join_paths(
-            self.output_dir, config[self.name][BaseRecalibratorKeys.OUTPUT]
+            self.output_dir, config[self.key][self.name][BaseRecalibratorKeys.OUTPUT]
         )
 
     def get_config(self) -> Dict:

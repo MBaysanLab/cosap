@@ -7,8 +7,10 @@ from ..._config import AppConfig
 from ..._docker_images import DockerImages
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import VariantCallingKeys
+from ..._utils import convert_to_absolute_path, join_paths
 from ...memory_handler import MemoryHandler
-from ...pipeline_runner.runners import DockerRunner
+from ...runners.runners import DockerRunner
+from ...runners.runners.step_runner import run_command_parallel
 from ...scatter_gather import ScatterGather
 from ._variantcallers import _Callable, _VariantCaller
 
@@ -21,17 +23,22 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         library_paths: LibraryPaths,
         memory_handler: MemoryHandler,
     ) -> list:
-        MAX_MEMORY_IN_GB = int(AppConfig.MAX_MEMORY_PER_JOBS // (1024**3))
+        
+        MAX_MEMORY_IN_GB = int(AppConfig.MAX_MEMORY_PER_JOB // (1024**3)) 
 
         germline_bam = None
         if VariantCallingKeys.GERMLINE_INPUT in caller_config.keys():
             germline_input = caller_config[VariantCallingKeys.GERMLINE_INPUT]
-            germline_bam = memory_handler.get_bam_path(germline_input)
+            germline_bam = convert_to_absolute_path(
+                memory_handler.get_bam_path(germline_input)
+            )
 
         tumor_bam = None
         if VariantCallingKeys.TUMOR_INPUT in caller_config.keys():
             tumor_input = caller_config[VariantCallingKeys.TUMOR_INPUT]
-            tumor_bam = memory_handler.get_bam_path(tumor_input)
+            tumor_bam = convert_to_absolute_path(
+                memory_handler.get_bam_path(tumor_input)
+            )
 
         output_name = memory_handler.get_output_path(
             caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
@@ -42,7 +49,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         command = [
             "gatk",
             "--java-options",
-            f"-Xmx{MAX_MEMORY_IN_GB}G -XX:+UseParallelGC -XX:ParallelGCThreads=1",
+            f"-Xmx20G -XX:+UseParallelGC -XX:ParallelGCThreads=1",
             "Mutect2",
             "-R",
             ref_fasta,
@@ -68,7 +75,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             )
 
         bed_file = (
-            caller_config[VariantCallingKeys.BED_FILE]
+            convert_to_absolute_path(caller_config[VariantCallingKeys.BED_FILE])
             if VariantCallingKeys.BED_FILE in caller_config.keys()
             else None
         )
@@ -81,7 +88,12 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
     def _create_get_snp_variants_command(
         cls, caller_config: dict, library_paths: LibraryPaths
     ) -> list:
-        input_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
+        input_name = convert_to_absolute_path(
+            join_paths(
+                caller_config[VariantCallingKeys.OUTPUT_DIR],
+                caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT],
+            )
+        )
         output_name = caller_config[VariantCallingKeys.SNP_OUTPUT]
 
         command = [
@@ -104,7 +116,12 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
     def _create_get_indel_variants_command(
         cls, caller_config: dict, library_paths: LibraryPaths
     ) -> list:
-        input_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
+        input_name = convert_to_absolute_path(
+            join_paths(
+                caller_config[VariantCallingKeys.OUTPUT_DIR],
+                caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT],
+            )
+        )
         output_name = caller_config[VariantCallingKeys.INDEL_OUTPUT]
 
         command = [
@@ -127,7 +144,12 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
     def _create_get_other_variants_command(
         cls, caller_config: dict, library_paths: LibraryPaths
     ) -> list:
-        input_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
+        input_name = convert_to_absolute_path(
+            join_paths(
+                caller_config[VariantCallingKeys.OUTPUT_DIR],
+                caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT],
+            )
+        )
         output_name = caller_config[VariantCallingKeys.OTHER_VARIANTS_OUTPUT]
 
         command = [
@@ -150,11 +172,16 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
 
     @classmethod
     def _gather_mutect_stats_command(cls, configs: list, output) -> list:
+        workdir = configs[0][VariantCallingKeys.OUTPUT_DIR]
         stats_files = []
         for cfg in configs:
             stats_file = f"{cfg[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]}.stats"
-            if os.path.exists(stats_file):
-                stats_files.append(stats_file)
+            stats_files.append(stats_file)
+
+        if len(stats_files) == 0:
+            # Warn that no stats files were found and return an empty list
+            print("No stats files found")
+            return None
 
         command = ["gatk", "MergeMutectStats", "-O", output]
         command.extend(list(chain(*zip(repeat("--stats"), stats_files))))
@@ -226,6 +253,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
     @classmethod
     def call_variants(cls, caller_config: dict, device: str = "cpu"):
         library_paths = LibraryPaths()
+        workdir = caller_config[VariantCallingKeys.OUTPUT_DIR]
 
         if device == "cpu":
             bed_file = (
@@ -236,7 +264,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             splitted_configs = ScatterGather.split_variantcaller_configs(
                 caller_config, bed_file=bed_file
             )
-            print(f"Splitting {len(splitted_configs)} configs")
+
             with MemoryHandler() as memory_handler:
                 scattered_commands = [
                     cls._create_run_command(
@@ -247,20 +275,36 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
                     for cfg in splitted_configs
                 ]
 
-                ScatterGather.run_parallel(run, scattered_commands)
-
-                stats_output = f"{caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]}.stats"
-                gather_stats_command = cls._gather_mutect_stats_command(
-                    splitted_configs, stats_output
+                results = run_command_parallel(
+                    scattered_commands,
+                    cwd=workdir,
                 )
+
+                # Check if any of the commands failed
+                if any((result.returncode != 0 and result is not None) for result in results):
+                    non_zero_results = [
+                        result for result in results if result.returncode != 0
+                    ]
+                    raise Exception(
+                        f"Error running Mutect2: {non_zero_results[0].stderr}, {non_zero_results[0].stdout}, {non_zero_results[0].returncode}"
+                    )
+
             ScatterGather.gather_vcfs(
                 splitted_configs,
                 output_path=caller_config[
                     VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT
                 ],
+                cwd=workdir,
             )
 
-            run(gather_stats_command)
+            stats_output = (
+                f"{caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]}.stats"
+            )
+            gather_stats_command = cls._gather_mutect_stats_command(
+                splitted_configs, stats_output
+            )
+            if gather_stats_command is not None:
+                run(gather_stats_command, cwd=workdir)
 
             ScatterGather.clean_temp_files(caller_config[VariantCallingKeys.OUTPUT_DIR])
 
@@ -297,7 +341,6 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             caller_config=caller_config, library_paths=library_paths
         )
 
-        workdir = caller_config[VariantCallingKeys.OUTPUT_DIR]
         run(filter_command, cwd=workdir)
         run(get_snp_command, cwd=workdir)
         run(get_indel_command, cwd=workdir)

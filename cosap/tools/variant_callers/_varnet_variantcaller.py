@@ -5,7 +5,7 @@ from typing import Dict, List
 from ..._config import AppConfig
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import VariantCallingKeys
-from ..._utils import join_paths
+from ..._utils import convert_to_absolute_path, join_paths
 from ._variantcallers import _Callable, _VariantCaller
 
 
@@ -16,12 +16,12 @@ class VarNetVariantCaller(_Callable, _VariantCaller):
     ) -> List:
         varnet_filter = join_paths(library_paths.VARNET, "filter.py")
         germline_bam = (
-            caller_config[VariantCallingKeys.GERMLINE_INPUT]
+            convert_to_absolute_path(caller_config[VariantCallingKeys.GERMLINE_INPUT])
             if VariantCallingKeys.GERMLINE_INPUT in caller_config.keys()
             else None
         )
         tumor_bam = (
-            caller_config[VariantCallingKeys.TUMOR_INPUT]
+            convert_to_absolute_path(caller_config[VariantCallingKeys.TUMOR_INPUT])
             if VariantCallingKeys.TUMOR_INPUT in caller_config.keys()
             else None
         )
@@ -33,7 +33,7 @@ class VarNetVariantCaller(_Callable, _VariantCaller):
         output_dir, _ = os.path.split(output_file)
 
         bed_file = (
-            caller_config[VariantCallingKeys.BED_FILE]
+            convert_to_absolute_path(caller_config[VariantCallingKeys.BED_FILE])
             if VariantCallingKeys.BED_FILE in caller_config.keys()
             else None
         )
@@ -66,12 +66,12 @@ class VarNetVariantCaller(_Callable, _VariantCaller):
         varnet_predict = join_paths(library_paths.VARNET, "predict.py")
 
         germline_bam = (
-            caller_config[VariantCallingKeys.GERMLINE_INPUT]
+            convert_to_absolute_path(caller_config[VariantCallingKeys.GERMLINE_INPUT])
             if VariantCallingKeys.GERMLINE_INPUT in caller_config.keys()
             else None
         )
         tumor_bam = (
-            caller_config[VariantCallingKeys.TUMOR_INPUT]
+            convert_to_absolute_path(caller_config[VariantCallingKeys.TUMOR_INPUT])
             if VariantCallingKeys.TUMOR_INPUT in caller_config.keys()
             else None
         )

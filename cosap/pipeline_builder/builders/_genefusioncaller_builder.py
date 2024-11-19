@@ -43,6 +43,7 @@ class GeneFusionCaller(_IPipelineStep, _PipelineStep):
                 GeneFusionCallingKeys.INPUT: read_filenames,
                 GeneFusionCallingKeys.OUTPUT: json_output,
                 GeneFusionCallingKeys.OUTPUT_DIR: self.output_dir,
+                GeneFusionCallingKeys.LOG_FILE: self.log_file,
             }
         }
         return config
@@ -50,7 +51,7 @@ class GeneFusionCaller(_IPipelineStep, _PipelineStep):
     def get_output(self) -> str:
         config = self.get_config()
         return join_paths(
-            self.output_dir, config[self.name][GeneFusionCallingKeys.OUTPUT]
+            self.output_dir, config[self.key][self.name][GeneFusionCallingKeys.OUTPUT]
         )
 
     def get_config(self) -> Dict:

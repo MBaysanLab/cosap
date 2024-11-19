@@ -4,17 +4,18 @@ from typing import Dict, List
 from ..._config import AppConfig
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import QualityControlKeys
+from ..._utils import convert_to_absolute_path
 from ._quality_controllers import _QualityControllable, _QualityController
 
 
 class Qualimap(_QualityController, _QualityControllable):
     @classmethod
     def _create_qualimap_command(cls, qc_config=Dict, app_config=AppConfig) -> List:
-        MAX_MEMORY_IN_GB = int(AppConfig.MAX_MEMORY_PER_JOBS // (1024.0**3))
+        MAX_MEMORY_IN_GB = int(AppConfig.MAX_MEMORY_PER_JOB // (1024.0**3))
 
-        input_bam = qc_config[QualityControlKeys.INPUT]
+        input_bam = convert_to_absolute_path(qc_config[QualityControlKeys.INPUT])
         bed_file = (
-            qc_config[QualityControlKeys.BED_FILE]
+            convert_to_absolute_path(qc_config[QualityControlKeys.BED_FILE])
             if QualityControlKeys.BED_FILE in qc_config.keys()
             else None
         )
@@ -44,4 +45,4 @@ class Qualimap(_QualityController, _QualityControllable):
             qc_config=qc_config, app_config=app_config
         )
 
-        run(qualimap_command)
+        run(qualimap_command, cwd=qc_config[QualityControlKeys.OUTPUT_DIR])

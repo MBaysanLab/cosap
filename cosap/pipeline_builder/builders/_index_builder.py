@@ -26,15 +26,16 @@ class Indexer(_IPipelineStep, _PipelineStep):
             self.name: {
                 IndexingKeys.INPUT: filename,
                 IndexingKeys.OUTPUT: output_filename,
+                IndexingKeys.LOG_FILE: self.log_file,
             }
         }
         return config
 
     def get_output(self) -> str:
         config = self.get_config()
-        return config[PipelineKeys.INDEX][self.name][IndexingKeys.OUTPUT]
+        return config[self.key][self.name][IndexingKeys.OUTPUT]
 
     def get_config(self) -> Dict:
         indexer_config = self._create_config()
-        config = {PipelineKeys.INDEX: indexer_config}
+        config = {self.key: indexer_config}
         return config

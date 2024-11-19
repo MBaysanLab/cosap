@@ -5,6 +5,7 @@ from typing import Pattern
 @dataclass
 class PipelineKeys:
     WORKDIR: str = "workdir"
+    LOG_FILE: str = "log_file"
     LIBRARY_PATH: str = "library_path"
     CREATION_DATE: str = "creation-date"
     VERSION: str = "cosap_version"
@@ -35,6 +36,7 @@ class PipelineBaseKeys:
     SNAKEMAKE_OUTPUT: str = "snakemake_output"
     OUTPUT_DIR: str = "output_dir"
     BED_FILE: str = "bed"
+    LOG_FILE: str = "log_file"
 
 
 @dataclass

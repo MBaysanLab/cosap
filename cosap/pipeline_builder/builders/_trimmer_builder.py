@@ -49,15 +49,19 @@ class Trimmer(_IPipelineStep, _PipelineStep):
                 TrimmingKeys.OUTPUT: output_filenames,
                 TrimmingKeys.REPORT_OUTPUT: report_filename,
                 TrimmingKeys.OUTPUT_DIR: self.output_dir,
+                TrimmingKeys.LOG_FILE: self.log_file,
             },
         }
         return config
 
     def get_output(self) -> str:
         config = self.get_config()
-        return join_paths(
-            self.output_dir, config[self.key][self.name][TrimmingKeys.OUTPUT]
-        )
+        return {
+            i: join_paths(
+                self.output_dir, config[self.key][self.name][TrimmingKeys.OUTPUT][i]
+            )
+            for i in config[self.key][self.name][TrimmingKeys.OUTPUT]
+        }
 
     def get_config(self) -> Dict:
         trim_config = self._create_config()

@@ -1,9 +1,10 @@
-from subprocess import PIPE, Popen, check_output
+from subprocess import PIPE, run
 from typing import Dict, List
 
 from ..._config import AppConfig
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import MappingKeys
+from ..._utils import convert_to_absolute_path
 from ._mappers import _Mappable, _Mapper
 
 
@@ -41,7 +42,10 @@ class BWA2Mapper(_Mapper, _Mappable):
         library_paths: LibraryPaths,
         app_config: AppConfig,
     ) -> List:
-        fastq_inputs = [fastq for fastq in mapper_config[MappingKeys.INPUT].values()]
+        fastq_inputs = [
+            convert_to_absolute_path(fastq)
+            for fastq in mapper_config[MappingKeys.INPUT].values()
+        ]
 
         command = [
             "bwa-mem2",
@@ -75,12 +79,18 @@ class BWA2Mapper(_Mapper, _Mappable):
         index_command = cls._samtools_index_command(
             app_config=app_config, input_path=mapper_config[MappingKeys.OUTPUT]
         )
-        bwa = Popen(bwa_command, stdout=PIPE, cwd=workdir)
+        bwa = run(bwa_command, stdout=PIPE, cwd=workdir)
+        samtools = run(
+            sort_command,
+            input=bwa.stdout,
+            stdout=PIPE,
+            stderr=PIPE,
+            cwd=workdir,
+            check=True,
+        )
 
-        samtools = check_output(sort_command, stdin=bwa.stdout, cwd=workdir)
-        bwa.wait()
         if bwa.returncode != 0:
-            raise Exception("BWA2 failed")
-        else:
-            print(samtools.decode("utf-8"))
+            raise Exception(
+                f"BWA2 command {*bwa_command,} failed."
+            )
         # run(index_command)

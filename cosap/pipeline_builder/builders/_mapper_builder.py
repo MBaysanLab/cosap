@@ -73,13 +73,16 @@ class Mapper(_IPipelineStep, _PipelineStep):
                 MappingKeys.OUTPUT_DIR: self.output_dir,
                 MappingKeys.PARAMS: self.params,
                 MappingKeys.POST_PROCESSING: self.post_processing,
+                MappingKeys.LOG_FILE: self.log_file,
             },
         }
         return config
 
     def get_output(self) -> str:
         config = self.get_config()
-        return join_paths(self.output_dir, config[self.name][MappingKeys.OUTPUT])
+        return join_paths(
+            self.output_dir, config[self.key][self.name][MappingKeys.OUTPUT]
+        )
 
     def get_config(self) -> Dict:
         mapping_config = self._create_config()

@@ -36,14 +36,15 @@ class Merger(_IPipelineStep, _PipelineStep):
             MergingKeys.INPUT: files,
             MergingKeys.OUTPUT: output_filename,
             MergingKeys.OUTPUT_DIR: self.output_dir,
+            MergingKeys.LOG_FILE: self.log_file,
         }
         return config
 
     def get_output(self) -> str:
         config = self.get_config()
-        return join_paths(self.output_dir, config[MergingKeys.OUTPUT])
+        return join_paths(self.output_dir, config[self.key][MergingKeys.OUTPUT])
 
     def get_config(self) -> Dict:
         merger_config = self._create_config()
-        config = {PipelineKeys.MERGE: merger_config}
+        config = {self.key: merger_config}
         return config

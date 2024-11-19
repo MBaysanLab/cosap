@@ -76,6 +76,7 @@ class Annotator(_IPipelineStep, _PipelineStep):
                 AnnotatorKeys.OUTPUT: output_filename,
                 AnnotatorKeys.OUTPUT_DIR: OutputFolders.ANNOTATION,
                 AnnotatorKeys.INPUT_TYPE: self.input_type,
+                AnnotatorKeys.LOG_FILE: self.log_file,
             }
         }
         if self.library.lower() == "annovar":
@@ -91,5 +92,5 @@ class Annotator(_IPipelineStep, _PipelineStep):
 
     def get_config(self) -> Dict:
         annotation_config = self._create_config()
-        config = {PipelineKeys.ANNOTATION: annotation_config}
+        config = {self.key: annotation_config}
         return config

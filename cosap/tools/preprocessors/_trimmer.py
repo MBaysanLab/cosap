@@ -5,6 +5,7 @@ from typing import Dict, List
 from ..._config import AppConfig
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import TrimmingKeys
+from ..._utils import convert_to_absolute_path
 from ._preprocessors import _PreProcessable, _Preprocessor
 
 
@@ -13,7 +14,10 @@ class Trimmer(_Preprocessor, _PreProcessable):
     def _create_command(
         cls, library_paths: LibraryPaths, app_config: AppConfig, trimmer_config: Dict
     ) -> List:
-        fastq_inputs = [fastq for fastq in trimmer_config[TrimmingKeys.INPUT].values()]
+        fastq_inputs = [
+            convert_to_absolute_path(fastq)
+            for fastq in trimmer_config[TrimmingKeys.INPUT].values()
+        ]
         command = [
             "fastp",
             "-w",

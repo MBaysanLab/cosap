@@ -1,9 +1,10 @@
-from subprocess import PIPE, Popen, check_output
+from subprocess import PIPE, run
 from typing import Dict, List
 
 from ..._config import AppConfig
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import MappingKeys
+from ..._utils import convert_to_absolute_path
 from ._mappers import _Mappable, _Mapper
 
 
@@ -12,7 +13,12 @@ class Bowtie2Mapper(_Mapper, _Mappable):
     def _create_fastq_reads_command(cls, mapper_config: Dict) -> List:
         command = []
         for i, read in enumerate(mapper_config[MappingKeys.INPUT], 1):
-            command.extend([f"-{i}", mapper_config[MappingKeys.INPUT][read]])
+            command.extend(
+                [
+                    f"-{i}",
+                    convert_to_absolute_path(mapper_config[MappingKeys.INPUT][read]),
+                ]
+            )
         return command
 
     @classmethod
@@ -43,6 +49,8 @@ class Bowtie2Mapper(_Mapper, _Mappable):
         library_paths: LibraryPaths,
         app_config: AppConfig,
     ) -> List:
+
+        fastq_reads = [fastq for fastq in fastq_reads]
         command = [
             "bowtie2",
             "-p",
@@ -63,6 +71,7 @@ class Bowtie2Mapper(_Mapper, _Mappable):
         read_group = cls._create_read_group(mapper_config=mapper_config)
 
         fastq_reads = cls._create_fastq_reads_command(mapper_config=mapper_config)
+        workdir = mapper_config[MappingKeys.OUTPUT_DIR]
 
         bowtie_command = cls._create_command(
             mapper_config=mapper_config,
@@ -80,12 +89,19 @@ class Bowtie2Mapper(_Mapper, _Mappable):
             app_config=app_config, input_path=mapper_config[MappingKeys.OUTPUT]
         )
 
-        bowtie = Popen(bowtie_command, stdout=PIPE, cwd=mapper_config[MappingKeys.OUTPUT_DIR])
-        samtools = check_output(sort_command, stdin=bowtie.stdout, cwd=mapper_config[MappingKeys.OUTPUT_DIR])
-        bowtie.wait()
-
+        bowtie = run(bowtie_command, stdout=PIPE, cwd=workdir, check=False)
+        samtools = run(
+            sort_command,
+            input=bowtie.stdout,
+            stdout=PIPE,
+            stderr=PIPE,
+            cwd=workdir,
+            check=True,
+        )
         if bowtie.returncode != 0:
-            raise Exception("Bowtie2 mapper failed.")
+            raise Exception(
+                f"Bowtie2 command {*bowtie_command,} failed with error: {bowtie.stderr.decode('utf-8')}"
+            )
         else:
-            print(samtools.decode("utf-8"))
+            print(samtools.stdout.decode("utf-8"))
         # run(index_command)

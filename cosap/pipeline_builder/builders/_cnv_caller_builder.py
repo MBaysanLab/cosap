@@ -50,6 +50,7 @@ class CNVCaller(_IPipelineStep, _PipelineStep):
                 CNVCallingKeys.TUMOR_INPUT: tumor_input,
                 CNVCallingKeys.OUTPUT_DIR: output_dir,
                 CNVCallingKeys.OUTPUT: output,
+                CNVCallingKeys.LOG_FILE: self.log_file,
             }
         }
         if self.bed_file:
@@ -58,7 +59,9 @@ class CNVCaller(_IPipelineStep, _PipelineStep):
 
     def get_output(self) -> str:
         config = self.get_config()
-        return join_paths(self.output_dir, config[self.name][CNVCallingKeys.OUTPUT])
+        return join_paths(
+            self.output_dir, config[self.key][self.name][CNVCallingKeys.OUTPUT]
+        )
 
     def get_config(self) -> Dict:
         cnv_caller_config = self._create_config()

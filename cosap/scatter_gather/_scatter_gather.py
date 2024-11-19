@@ -1,9 +1,13 @@
 import glob
 import os
+import signal
 from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor
+from functools import partial
 from itertools import chain, repeat
 from subprocess import run
+from contextlib import contextmanager
+import subprocess
 
 import shortuuid
 
@@ -50,7 +54,9 @@ class ScatterGather:
             bam_pairs = list(zip(splitted_germline_bams, splitted_tumor_bams))
 
         interval_files = get_region_file_list(
-            file_type="interval_list", bed_file=bed_file
+            file_type="interval_list",
+            bed_file=bed_file,
+            workdir=config[PipelineBaseKeys.OUTPUT_DIR],
         )
         splitted_configs = []
 
@@ -62,6 +68,7 @@ class ScatterGather:
                 bed_file=interval_files[i],
                 params=config[PipelineBaseKeys.PARAMS],
                 gvcf=config[VariantCallingKeys.OUTPUT_TYPE] == "GVCF",
+                output_dir=config[PipelineBaseKeys.OUTPUT_DIR],
             )
             cfg = variant_caller.get_config()[PipelineKeys.VARIANT_CALLING][tmp_name]
 
@@ -79,7 +86,16 @@ class ScatterGather:
         return splitted_configs
 
     @staticmethod
-    def gather_vcfs(configs: list, output_path, mode="vcf"):
+    @contextmanager
+    def cleanup_on_exit(filepath):
+        try:
+            yield
+        finally:
+            if os.path.exists(filepath):
+                os.remove(filepath)
+
+    @staticmethod
+    def gather_vcfs(configs: list, output_path, mode="vcf", cwd=None):
         GVCF_MODE = "gvcf"
         VCF_MODE = "vcf"
 
@@ -95,7 +111,15 @@ class ScatterGather:
             raise ValueError(f"Mode {mode} not supported")
 
         command.extend(list(chain(*zip(repeat("-I"), vcfs))))
-        run(command)
+
+        with ScatterGather.cleanup_on_exit(output_path):
+            try:
+                run(command, cwd=cwd, check=True)
+            except subprocess.CalledProcessError as e:
+                print(e)
+                raise RuntimeError("Failed to gather VCFs") from e
+
+        # If we reach here, the command was successful, so we exit the context manager without removing the file
 
     @staticmethod
     def clean_temp_files(path):
@@ -115,10 +139,3 @@ class ScatterGather:
             splitted_configs.append(cnf)
 
         return splitted_configs
-
-    @staticmethod
-    def run_parallel(run_function: Callable, func_params: list):
-        max_threads_per_job = AppConfig().MAX_THREADS_PER_JOB
-        print(f"Running {len(func_params)} jobs on {max_threads_per_job} threads")
-        with ProcessPoolExecutor(max_workers=max_threads_per_job) as executor:
-            executor.map(run_function, func_params)

@@ -1,16 +1,16 @@
 from __future__ import annotations
 
+import atexit
 import multiprocessing
 import os
+from contextlib import ExitStack
 from dataclasses import dataclass
 from distutils.util import strtobool
 from threading import Lock
 
 import importlib_resources
-from contextlib import ExitStack
-import atexit
-
 import psutil
+from dotenv import load_dotenv
 
 
 def get_snakefile_path() -> str:
@@ -26,7 +26,20 @@ def get_snakefile_path() -> str:
     except ModuleNotFoundError:
         # TODO: Handle this more gracefully
         return None
+    
+def get_cosap_dotenv():
+    """
+    Create and return a .env file in ~/.cosap directory if it does not exist.
+    """
 
+    dotenv_path = os.path.join(os.path.expanduser("~"), ".cosap", ".env")
+    os.makedirs(os.path.dirname(dotenv_path), exist_ok=True)
+
+    if not os.path.exists(dotenv_path):
+        with open(dotenv_path, "w") as f:
+            f.write("")
+
+    return dotenv_path
 
 class _AppConfigMeta(type):
     _instances = {}
@@ -41,8 +54,13 @@ class _AppConfigMeta(type):
 
 @dataclass
 class AppConfig(metaclass=_AppConfigMeta):
-    HOME_PATH = os.getenv("HOME")
 
+    # Load the .env file
+    load_dotenv(
+        dotenv_path=get_cosap_dotenv()
+    )
+
+    HOME_PATH = os.getenv("HOME")
     LIBRARY_PATH: str = os.getenv(
         "COSAP_LIBRARY_PATH",
         os.path.join(HOME_PATH, "cosap_data")
@@ -60,14 +78,14 @@ class AppConfig(metaclass=_AppConfigMeta):
         MAX_THREADS_PER_JOB = multiprocessing.cpu_count()
 
     # Max memory is (avaliable memory / number of parallel jobs) in bytes
-    MAX_MEMORY_PER_JOBS: int = psutil.virtual_memory().total / (
+    MAX_MEMORY_PER_JOB: int = psutil.virtual_memory().total / (
         multiprocessing.cpu_count() // MAX_THREADS_PER_JOB
-    )
+    ) * 0.8
 
     WORKDIR: str = os.getcwd()
 
     # Set this to True if you are running COSAP on a Slurm cluster.
-    SLURM_CLUSTER = strtobool(os.getenv("COSAP_SLURM_CLUSTER_MODE", "False"))
+    # SLURM_CLUSTER = strtobool(os.getenv("COSAP_SLURM_CLUSTER_MODE", "False"))
 
     IN_MEMORY_MODE = strtobool(os.getenv("COSAP_IN_MEMORY_MODE", "False"))
 

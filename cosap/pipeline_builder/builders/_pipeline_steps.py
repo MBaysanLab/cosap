@@ -4,6 +4,8 @@ from typing import Dict
 
 
 class _IPipelineStep(ABC):
+    log_file: str = None
+
     @abstractmethod
     def get_output(self) -> str:
         pass

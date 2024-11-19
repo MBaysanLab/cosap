@@ -11,13 +11,15 @@ setup(
     packages=find_namespace_packages(),
     package_dir={"cosap": "cosap"},
     package_data={
-        "cosap": ["snakemake_workflows/*"],
-        "cosap.snakemake_workflows": ["rules/*"],
+        "cosap": ["snakemake_workflows/*",
+                  "snakemake_workflows/rules/*",
+                  "snakemake_workflows/*/*",
+                  ],
     },
     license="MIT license",
     entry_points={
         "console_scripts": [
-            "cosap = cosap._cosap:cosap_cli",
+            "cosap = cosap._cosap:cli",
         ],
     },
 )

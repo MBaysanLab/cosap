@@ -7,9 +7,9 @@ from ..._config import AppConfig
 from ..._docker_images import DockerImages
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import MDUPKeys
-from ..._utils import join_paths
+from ..._utils import convert_to_absolute_path, join_paths
 from ...memory_handler import MemoryHandler
-from ...pipeline_runner.runners import DockerRunner
+from ...runners.runners import DockerRunner
 from ._preprocessors import _PreProcessable, _Preprocessor
 
 
@@ -22,8 +22,10 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
         mdup_config: Dict,
         memory_handler: MemoryHandler,
     ) -> List:
-        input_bam = memory_handler.get_path(mdup_config[MDUPKeys.INPUT])
-        tmp_dir = memory_handler.get_temp_dir(dir=os.path.dirname(MDUPKeys.OUTPUT))
+        input_bam = convert_to_absolute_path(
+            memory_handler.get_path(mdup_config[MDUPKeys.INPUT])
+        )
+        tmp_dir = memory_handler.get_temp_dir(dir=os.path.dirname(MDUPKeys.OUTPUT_DIR))
 
         command = [
             "gatk",
@@ -37,8 +39,8 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
             "--create-output-bam-index",
             "--spark-master",
             f"local[{app_config.MAX_THREADS_PER_JOB}]",
-            "--tmp-dir",
-            tmp_dir,
+            # "--tmp-dir",
+            # tmp_dir,
             "--verbosity",
             "WARNING",
         ]
@@ -55,8 +57,10 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
         mdup_config: Dict,
         memory_handler: MemoryHandler,
     ) -> List:
-        input_bam = memory_handler.get_path(mdup_config[MDUPKeys.INPUT])
-        tmp_dir = memory_handler.get_temp_dir(dir=os.path.dirname(MDUPKeys.OUTPUT))
+        input_bam = convert_to_absolute_path(
+            memory_handler.get_path(mdup_config[MDUPKeys.INPUT])
+        )
+        tmp_dir = memory_handler.get_temp_dir(dir=os.path.dirname(MDUPKeys.OUTPUT_DIR))
 
         command = [
             "picard",

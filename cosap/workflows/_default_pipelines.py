@@ -3,7 +3,7 @@ from itertools import groupby, product
 from typing import List, Tuple
 
 from ..pipeline_builder import *
-from ..pipeline_runner import PipelineRunner
+from ..runners import PipelineRunner
 
 STRUCTURAL_VARIANT_CALLERS = ["manta"]
 SV_ANNOTATORS = ["annotsv"]
@@ -196,8 +196,8 @@ class DNAPipeline:
                 for variant_caller in variant_callers:
                     vc = VariantCaller(
                         library=variant_caller,
-                        germline=bqsr_normal if self.input.NORMAL_SAMPLE else None,
-                        tumor=bqsr_tumor,
+                        normal_sample=bqsr_normal if self.input.NORMAL_SAMPLE else None,
+                        tumor_sample=bqsr_tumor,
                         bed_file=self.input.BED_FILE,
                         params={
                             "germline_sample_name": self.input.NORMAL_SAMPLE_NAME,
@@ -243,7 +243,7 @@ class DNAPipeline:
                         "ID": "0",
                         "SM": self.input.NORMAL_SAMPLE_NAME,
                         "PU": "0",
-                        "PL": "il",
+                        "PL": "ILLUMINA",
                         "LB": "0",
                     }
                 },
@@ -266,8 +266,8 @@ class DNAPipeline:
             for variant_caller in variant_callers:
                 vc = VariantCaller(
                     library=variant_caller,
-                    germline=bqsr_normal if self.input.NORMAL_SAMPLE else None,
-                    tumor=None,
+                    normal_sample=bqsr_normal if self.input.NORMAL_SAMPLE else None,
+                    tumor_sample=None,
                     bed_file=self.input.BED_FILE,
                     gvcf=self.input.GVCF,
                 )

@@ -25,19 +25,3 @@ develop:
 	fi;
 	mamba create --name cosap -c conda-forge -c bioconda --yes --file requirements.txt
 	mamba run --no-capture-output -n cosap pip install -e . celery redis docker
-
-download:
-	@if [ -n $(COSAP_LIBRARY_PATH) ] && [ "$(COSAP_LIBRARY_PATH)" != "" ] ; \
-		then echo Reading COSAP_LIBRARY_PATH: $$COSAP_LIBRARY_PATH; fi
-	@COSAP_DATA=$${COSAP_LIBRARY_PATH:-$(HOME)/cosap_data/}; \
-	\
-	echo The files will be downloaded to \` $$COSAP_DATA \`.; \
-	echo The directory will be created if it does not exist.; \
-	read -p "Continue? [Y/n]: " line; \
-	if [ -z $$line ] || [ $$line = "y" ] || [ $$line = "Y" ]; \
-	then \
-		mkdir -p $$HOME/cosap_data; \
-		wget -nc -i ./required_files_test.txt -P $$COSAP_DATA; \
-	else \
-		echo No files downloaded.; \
-	fi
