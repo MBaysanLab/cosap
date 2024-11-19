@@ -23,7 +23,7 @@ include-package-data = true
 ]
 
 [project.scripts]
-cosap = "cosap._cosap:cli"
+cosap = "cosap._cli:cli"
 
 [tool.setuptools.dynamic]
 version = {attr = "cosap._version.version"}
