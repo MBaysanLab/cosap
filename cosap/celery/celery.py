@@ -1,16 +1,17 @@
 import glob
+import json
 import os
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 
 import yaml
+
 from celery import Celery, shared_task
 
 from .._config import AppConfig
 from ..parsers import ProjectResultsParser
 from ..workflows import DNAPipeline, DNAPipelineInput
 from ..workflows._variant_annotation import VariantMultipleAnnotator
-import json
-from tempfile import NamedTemporaryFile
 
 celery_app = Celery("cosap")
 celery_app.config_from_object("cosap.celery.celeryconfig")
@@ -62,16 +63,15 @@ def parse_project_data(path):
 
     if latest_config is None:
         raise FileNotFoundError
-    
+
     config_dict = yaml.load(Path(latest_config).read_text(), Loader=yaml.Loader)
 
     try:
         parser = ProjectResultsParser(pipeline_config=config_dict)
     except Exception as e:
         raise e
-        
 
-    # Write variants to file
+    # Write variants to file
     with NamedTemporaryFile(mode="w", dir=path) as f:
         json.dump(parser.variants, f)
         variants_file_path = f.name

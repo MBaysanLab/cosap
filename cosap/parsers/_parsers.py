@@ -92,9 +92,9 @@ class ProjectResultsParser:
             ]
         else:
             raise ValueError("No VCF found in pipeline config.")
-        
-        vcf_dir=variant_caller_config[VariantCallingKeys.OUTPUT_DIR]
-        vcf_path = join_paths(self.pipeline_workdir,vcf_dir,vcf)
+
+        vcf_dir = variant_caller_config[VariantCallingKeys.OUTPUT_DIR]
+        vcf_path = join_paths(self.pipeline_workdir, vcf_dir, vcf)
 
         return self._parse_vcf(
             vcf_path, caller_type=variant_caller, sample_name=sample_name

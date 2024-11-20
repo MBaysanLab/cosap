@@ -69,9 +69,9 @@ class _Mapper(ABC):
             )
 
             readgroup[MappingKeys.RG_ID] = f"{instrument_id}.{flowcell_id}.{lane}"
-            readgroup[
-                MappingKeys.RG_PU
-            ] = f"{instrument_id}.{flowcell_id}.{lane}.{tile}"
+            readgroup[MappingKeys.RG_PU] = (
+                f"{instrument_id}.{flowcell_id}.{lane}.{tile}"
+            )
             readgroup[MappingKeys.RG_PL] = "ILLUMINA"
 
         return readgroup

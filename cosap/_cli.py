@@ -1,21 +1,15 @@
 import os
+
 import click
 from dotenv import load_dotenv, set_key
+
 from ._config import get_cosap_dotenv
 from ._formats import FileFormats
 from ._utils import join_paths
 from .file_downloader.download_files import call_download_files
-from .pipeline_builder.builders import (
-    MDUP,
-    BamReader,
-    FastqReader,
-    Mapper,
-    Merger,
-    Recalibrator,
-    Sorter,
-    Trimmer,
-    VariantCaller,
-)
+from .pipeline_builder.builders import (MDUP, BamReader, FastqReader, Mapper,
+                                        Merger, Recalibrator, Sorter, Trimmer,
+                                        VariantCaller)
 from .tools import MapperFactory, PreprocessorFactory, VariantCallerFactory
 from .workflows import DNAPipeline, DNAPipelineInput
 
@@ -371,6 +365,7 @@ def bam_preprocessor(
         output_dir = os.getcwd()
 
     input_file = BamReader(input_file)
+
     # Create preprocessor object with builder pattern
     def get_preprocessor(preprocessor):
         if preprocessor == "mark_duplicate":

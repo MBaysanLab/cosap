@@ -3,21 +3,10 @@ import os
 import pandas as pd
 import pytest
 
-from cosap import (
-    MDUP,
-    AnnotatorFactory,
-    BamReader,
-    CNVCallerFactory,
-    FastqReader,
-    Mapper,
-    MapperFactory,
-    MSICallerFactory,
-    Pipeline,
-    PipelineRunner,
-    PreprocessorFactory,
-    VariantCaller,
-    VariantCallerFactory,
-)
+from cosap import (MDUP, AnnotatorFactory, BamReader, CNVCallerFactory,
+                   FastqReader, Mapper, MapperFactory, MSICallerFactory,
+                   Pipeline, PipelineRunner, PreprocessorFactory,
+                   VariantCaller, VariantCallerFactory)
 from cosap._pipeline_config import MappingKeys, VariantCallingKeys
 from cosap._utils import join_paths
 from cosap.tests import create_test_fastqs_from_chr1_ref_with_1_snp
@@ -276,7 +265,7 @@ def test_tumor_normal_variantcaller(variant_caller, library, tmp_path):
 @pytest.mark.parametrize(
     "library",
     [
-        #"haplotypecaller",
+        # "haplotypecaller",
         "deepvariant",
     ],
 )
@@ -287,7 +276,11 @@ def test_germline_variantcaller_gvcf(variant_caller, library, tmp_path):
     bam = BamReader(join_paths(TEST_DATA_DIR, "normal_test_small.bam"), name="normal")
 
     variant_caller_builder = VariantCaller(
-        library=library, normal_sample=bam, output_dir=str(tmp_path), gvcf=True, bed_file="chr1:100000-200000"
+        library=library,
+        normal_sample=bam,
+        output_dir=str(tmp_path),
+        gvcf=True,
+        bed_file="chr1:100000-200000",
     )
     variant_caller_config = variant_caller_builder.get_config()
     variant_caller.call_variants(

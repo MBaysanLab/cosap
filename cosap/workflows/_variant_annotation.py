@@ -4,11 +4,8 @@ import os
 import pandas as pd
 
 from .._pipeline_config import PipelineKeys
-from .._utils import (
-    convert_list_to_annovar_input,
-    convert_list_to_ensembl_vep_input,
-    join_paths,
-)
+from .._utils import (convert_list_to_annovar_input,
+                      convert_list_to_ensembl_vep_input, join_paths)
 from ..pipeline_builder.builders import Annotator, VCFReader
 from ..tools.annotators import AnnotatorFactory
 

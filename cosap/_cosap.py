@@ -1,7 +1,7 @@
 from typing import Dict
 
-
 from .runners import PipelineRunner
+
 
 class Cosap:
     def run_pipeline(self, pipeline_config: Dict, snakemake: str):
@@ -10,4 +10,3 @@ class Cosap:
     def mock_run_pipeline(self, pipeline_config: Dict):
         # TODO: should this be here?
         raise NotImplementedError()
-

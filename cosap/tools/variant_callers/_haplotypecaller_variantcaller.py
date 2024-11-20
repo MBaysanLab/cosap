@@ -31,10 +31,10 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
             )
         )
         output_file = (
-                caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
-                if caller_config[VariantCallingKeys.OUTPUT_TYPE] == "VCF"
-                else caller_config[VariantCallingKeys.GVCF_OUTPUT]
-            )
+            caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
+            if caller_config[VariantCallingKeys.OUTPUT_TYPE] == "VCF"
+            else caller_config[VariantCallingKeys.GVCF_OUTPUT]
+        )
 
         output_name = memory_handler.get_output_path(output_file)
 
@@ -54,10 +54,13 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
             command.append("--emit-ref-confidence")
             command.append("GVCF")
 
-        # If bed file is provided, add it to the command
-        if VariantCallingKeys.BED_FILE in caller_config.keys():
-            command.append("-L")
-            command.append(caller_config[VariantCallingKeys.BED_FILE])
+        bed_file = (
+            convert_to_absolute_path(caller_config[VariantCallingKeys.BED_FILE])
+            if VariantCallingKeys.BED_FILE in caller_config.keys()
+            else None
+        )
+        if bed_file is not None:
+            command.extend(["--intervals", bed_file])
 
         return command
 
@@ -97,15 +100,21 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
     def _create_cnnscorevariants_command(
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> List:
-        input_name = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
-        output_name = cls._create_cnn_annotated_output_name(
-            caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
+        input_name = join_paths(
+            caller_config[VariantCallingKeys.OUTPUT_DIR],
+            caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT],
+        )
+        output_name = join_paths(
+            caller_config[VariantCallingKeys.OUTPUT_DIR],
+            cls._create_cnn_annotated_output_name(
+                caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
+            ),
         )
         input_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
 
         command = [
             "gatk",
-            "CNNScoreVariants",
+            "NVScoreVariants",
             "-I",
             input_bam,
             "-V",
@@ -125,8 +134,11 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> List:
         input_name = convert_to_absolute_path(
-            cls._create_cnn_annotated_output_name(
-                caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
+            join_paths(
+                caller_config[VariantCallingKeys.OUTPUT_DIR],
+                cls._create_cnn_annotated_output_name(
+                    caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
+                ),
             )
         )
         output_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
@@ -263,10 +275,12 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
                 results = run_command_parallel(scattered_commands, cwd=workdir)
 
                 # Check if any of the commands failed
-                # If respective region of bam file is empty, results will be None, ignore it
-                if any((result.returncode != 0 and result is not None) for result in results):
+                # If respective region of bam file is empty, results will be None, ignore it
+                if any(
+                    (result.returncode != 0 and result is not None)
+                    for result in results
+                ):
                     raise Exception("HaplotypeCaller failed")
-                
 
             ScatterGather.gather_vcfs(
                 splitted_configs,
@@ -301,9 +315,7 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
 
         if caller_config[VariantCallingKeys.OUTPUT_TYPE] == "VCF":
 
-            output_dir = os.path.abspath(
-                os.path.dirname(caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT])
-            )
+            output_dir = Path(workdir).absolute()
 
             cnnscorevariants_command = cls._create_cnnscorevariants_command(
                 caller_config=caller_config, library_paths=library_paths
@@ -326,7 +338,7 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
             docker_runner.run(
                 DockerImages.GATK,
                 " ".join(cnnscorevariants_command),
-                workdir=str(Path(output_dir).parent.parent),
+                workdir=str(output_dir.parent.parent),
             )
 
             run(filter_variants_command, cwd=workdir)

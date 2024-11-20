@@ -1,6 +1,7 @@
-
 import tempfile
+
 import pandas as pd
+
 
 class VariantUtils:
     @staticmethod

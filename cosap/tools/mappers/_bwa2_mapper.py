@@ -90,7 +90,5 @@ class BWA2Mapper(_Mapper, _Mappable):
         )
 
         if bwa.returncode != 0:
-            raise Exception(
-                f"BWA2 command {*bwa_command,} failed."
-            )
+            raise Exception(f"BWA2 command {*bwa_command,} failed.")
         # run(index_command)

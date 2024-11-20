@@ -1,10 +1,11 @@
+import logging
 import os
-from typing import Union, List
+from typing import List, Union
 
 import docker
-import logging
 
 from ..._config import AppConfig
+
 
 class DockerRunner:
     def __init__(self, device: str = "cpu") -> None:
@@ -24,12 +25,12 @@ class DockerRunner:
 
         try:
             # Check if the image exists
-            if not self._check_if_image_exists(image):
+            if not self._image_exists(image):
                 logging.info(f"Pulling image {image}")
                 self._pull_image(image)
 
             library_path = AppConfig.LIBRARY_PATH
-            running_in_docker = self._check_if_running_in_docker()
+            running_in_docker = self._running_in_docker()
             hostname = os.getenv("HOSTNAME") if running_in_docker else None
 
             # Set volumes
@@ -53,11 +54,11 @@ class DockerRunner:
                 remove=remove,
                 detach=True,
                 restart_policy={"Name": "no"},
-                device_requests=[
-                    docker.types.DeviceRequest(count=-1, capabilities=[["gpu"]])
-                ]
-                if self.device == "gpu"
-                else None,
+                device_requests=(
+                    [docker.types.DeviceRequest(count=-1, capabilities=[["gpu"]])]
+                    if self.device == "gpu"
+                    else None
+                ),
             )
             logs = container.attach(stdout=True, stderr=True, stream=True, logs=True)
 
@@ -70,13 +71,13 @@ class DockerRunner:
         except Exception as e:
             logging.error(f"Unexpected error: {e}")
 
-    def _check_if_running_in_docker(self) -> bool:
+    def _running_in_docker(self) -> bool:
         """
         Returns True if running in docker container.
         """
         return os.path.exists("/.dockerenv")
 
-    def _check_if_image_exists(self, image: str) -> bool:
+    def _image_exists(self, image: str) -> bool:
         """
         Returns True if image exists.
         """

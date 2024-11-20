@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import atexit
+import importlib.resources as importlib_resources
 import multiprocessing
 import os
 from contextlib import ExitStack
@@ -8,7 +9,6 @@ from dataclasses import dataclass
 from distutils.util import strtobool
 from threading import Lock
 
-import importlib.resources as importlib_resources
 import psutil
 from dotenv import load_dotenv
 

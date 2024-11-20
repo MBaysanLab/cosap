@@ -56,7 +56,7 @@ class MemoryHandler:
         bam_path = self.get_path(path)
         if not os.path.exists(bam_path):
             raise FileNotFoundError(f"BAM file {bam_path} not found")
-        
+
         # get index path along with bam path. the index can be either in form of .bai or .bam.bai
 
         if os.path.exists(bam_path + ".bai"):

@@ -1,14 +1,6 @@
 from .._pipeline_config import PipelineKeys
-from ..pipeline_builder import (
-    MDUP,
-    Annotator,
-    BamReader,
-    FastqReader,
-    Mapper,
-    Recalibrator,
-    Trimmer,
-    VariantCaller,
-)
+from ..pipeline_builder import (MDUP, Annotator, BamReader, FastqReader,
+                                Mapper, Recalibrator, Trimmer, VariantCaller)
 from ..tools.annotators import AnnotatorFactory
 from ..tools.mappers import MapperFactory
 from ..tools.preprocessors import PreprocessorFactory

@@ -6,9 +6,9 @@ from ..._config import AppConfig
 from ..._docker_images import DockerImages
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import VariantCallingKeys
+from ..._utils import convert_to_absolute_path
 from ...runners.runners import DockerRunner
 from ._variantcallers import _Callable, _VariantCaller
-from ..._utils import convert_to_absolute_path
 
 
 class DeepVariantVariantCaller(_Callable, _VariantCaller):
@@ -49,5 +49,5 @@ class DeepVariantVariantCaller(_Callable, _VariantCaller):
             DockerImages.DEEPVARIANT,
             " ".join(deepvariant_command),
             workdir=str(workdir),
-            paths_to_bind=[input_dir] #Bind the input dir
+            paths_to_bind=[input_dir],  # Bind the input dir
         )

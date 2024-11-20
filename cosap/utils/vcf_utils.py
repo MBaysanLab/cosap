@@ -1,6 +1,7 @@
 import gzip
 import os
 from subprocess import run
+
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
 
@@ -36,28 +37,23 @@ class VCFUtils:
         df.reset_index(inplace=True)
         df.rename(columns={"index": "id"}, inplace=True)
         return df
-    
+
     @staticmethod
     def remove_same_ref_alt_alleles(path: str):
-        
+
         new_path = path + ".removed_same_ref_alt.vcf"
         if path.endswith(".gz"):
-            awk_command = (
-                rf"zcat {path} | awk -F '\t' '/^#/ || $4 != $5' > {new_path}"
-                )
+            awk_command = rf"zcat {path} | awk -F '\t' '/^#/ || $4 != $5' > {new_path}"
         else:
-            awk_command = (
-                rf"awk -F '\t' '/^#/ || $4 != $5' {path} > "
-            )
+            awk_command = rf"awk -F '\t' '/^#/ || $4 != $5' {path} > "
 
         run(["bash", "-c", awk_command], check=True)
         return new_path
 
-
     @staticmethod
     def convert_vcf_to_tsv(path: str, caller_type: str = "mutect") -> str:
         # Gatk VariantsToTable gives error when ref and alt alleles are same, so remove those lines
-        
+
         path = VCFUtils.remove_same_ref_alt_alleles(path)
         output_filename = path.replace(".vcf", ".tsv")
 
@@ -145,14 +141,14 @@ class VCFUtils:
     @staticmethod
     def get_column_mappings(vcf_df, sample_name, caller_type):
         caller_type = caller_type.lower()
-        
+
         if caller_type == "strelka":
             for i, row in vcf_df.iterrows():
                 af = VCFUtils.calculate_strelka_af(row)
                 vcf_df.at[i, "strelka_AF"] = af
                 ad = VCFUtils.calculate_strelka_ad(row)
                 vcf_df.at[i, "strelka_AD"] = ad
-            
+
             return {
                 "AF": "strelka_AF",
                 "AD": "strelka_AD",
@@ -163,7 +159,9 @@ class VCFUtils:
                 "DP": f"{sample_name}.DP",
             }
         elif caller_type == "varscan":
-            vcf_df["varscan_AF"] = vcf_df[f"{sample_name}.FREQ"].str.replace("%", "").astype(float) / 100
+            vcf_df["varscan_AF"] = (
+                vcf_df[f"{sample_name}.FREQ"].str.replace("%", "").astype(float) / 100
+            )
 
             return {
                 "AF": "varscan_AF",
@@ -184,7 +182,9 @@ class VCFUtils:
             raise ValueError(f"Unknown tool type: {caller_type}")
 
     @staticmethod
-    def convert_vcf_to_json(path: str, caller_type: str = "mutect2", sample_name: str = "TUMOR") -> list:
+    def convert_vcf_to_json(
+        path: str, caller_type: str = "mutect2", sample_name: str = "TUMOR"
+    ) -> list:
         """
         Returns list of variants as json objects.
         """
@@ -218,11 +218,14 @@ class VCFUtils:
         except KeyError as e:
             raise KeyError(f"Column not found in VCF file: {e}")
 
-        # Reverse the name mappings
-        final_df.rename(columns={v: k for k, v in columns_to_keep.items()}, inplace=True)
-        
-        if not is_numeric_dtype(final_df["AD"]):
-            final_df["AD"] = final_df["AD"].apply(lambda x: x.split(",")[-1] if "," in x else x)
+        # Reverse the name mappings
+        final_df.rename(
+            columns={v: k for k, v in columns_to_keep.items()}, inplace=True
+        )
 
-    
+        if not is_numeric_dtype(final_df["AD"]):
+            final_df["AD"] = final_df["AD"].apply(
+                lambda x: x.split(",")[-1] if "," in x else x
+            )
+
         return final_df.to_dict("records")

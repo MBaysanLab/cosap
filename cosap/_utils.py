@@ -1,7 +1,3 @@
-from cosap.utils.path_utils import PathUtils
-from cosap.utils.vcf_utils import VCFUtils
-from cosap.utils.variant_utils import VariantUtils
-
 import gzip
 import os
 from subprocess import run
@@ -9,6 +5,10 @@ from subprocess import run
 import pandas as pd
 import pyranges as pr
 from pandas.api.types import is_numeric_dtype
+
+from cosap.utils.path_utils import PathUtils
+from cosap.utils.variant_utils import VariantUtils
+from cosap.utils.vcf_utils import VCFUtils
 
 
 def join_paths(path: str, *paths) -> str:
@@ -57,7 +57,9 @@ def rename_columns_varnet(vcf_df, sample_name):
     return VCFUtils.get_column_mappings_varnet(vcf_df, sample_name)
 
 
-def convert_vcf_to_json(path: str, caller_type: str = "mutect", sample_name: str = "TUMOR") -> list:
+def convert_vcf_to_json(
+    path: str, caller_type: str = "mutect", sample_name: str = "TUMOR"
+) -> list:
     return VCFUtils.convert_vcf_to_json(path, caller_type, sample_name)
 
 
