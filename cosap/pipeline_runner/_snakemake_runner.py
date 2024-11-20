@@ -1,8 +1,10 @@
 import multiprocessing
 import sys
 from subprocess import PIPE, Popen, check_output, run
+import psutil
 
 from .._config import AppConfig
+from ..pipeline_runner.runners._docker_runner import DockerRunner
 
 
 class SnakemakeRunner:
@@ -103,7 +105,25 @@ class SnakemakeRunner:
         run(dry_run, cwd=self.workdir)
 
         # Run and return sys output
-        results = run(snakemake, cwd=self.workdir, text=True, stderr=sys.stderr)
+        try:
+            snakemake_process = Popen(snakemake, cwd=self.workdir, text=True, stderr=sys.stderr)
+            snakemake_process.wait()
+        except KeyboardInterrupt:
+            snakemake_process.terminate()
+
+            snakemake_child_processes = psutil.Process(snakemake_process.pid).children(recursive=True)
+
+            for child_process in snakemake_child_processes:
+                child_process.kill()  # Child processes do not respond to `terminate`
+
+            snakemake_child_process_pids = [process.pid for process in snakemake_child_processes]
+
+            DockerRunner.stop_all_cosap_handled_containers(pids=snakemake_child_process_pids)
+
+            snakemake_process.wait()
+        
+        results = snakemake_process
+
         return {
             "stdout": results.stdout,
             "stderr": results.stderr,

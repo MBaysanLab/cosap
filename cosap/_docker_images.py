@@ -11,3 +11,4 @@ class DockerImages:
     STRELKA2: str = "iarcbioinfo/strelka2-nf"
     MANTA: str = "szarate/manta:v1.6.0"
     GATK: str = "broadinstitute/gatk"
+    VARNET: str = "kiranchari/varnet"

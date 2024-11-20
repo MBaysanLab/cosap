@@ -1,10 +1,11 @@
 import gzip
 import os
-from subprocess import run
+import psutil
 
 import pandas as pd
-import pyranges as pr
 from pandas.api.types import is_numeric_dtype
+from subprocess import run
+import gzip
 
 
 def join_paths(path: str, *paths) -> str:
@@ -135,6 +136,7 @@ def calculate_strelka_ad(row: pd.Series) -> float:
     )
 
 
+
 def convert_vcf_to_json(
     path: str, caller_type: str = "mutect", sample_name: str = "TUMOR"
 ) -> list:
@@ -250,8 +252,8 @@ def get_commonpath_from_config(config: dict) -> str:
 
 def convert_list_to_ensembl_vep_input(variants: list, workdir: str) -> str:
     """
-    Converts list of variants to default vep input format and writes to a temporary file.
-    The default vep input format is:
+    Converts list of variants to default VEP input format and writes to a temporary file.
+    The default VEP input format is:
         1   881907    881906    -/C   +
         2   946507    946507    G/C   +
     """
@@ -310,3 +312,59 @@ def get_variants_within_bed_regions(variants_df, bed_df):
         & (variants_df["POS_variants"] <= variants_df["END"])
     ]
     return variants_df
+
+
+class MultipleFilesFoundError(Exception):
+    """Exception raised when multiple files are found when only one is expected."""
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)
+
+
+def get_bam_index_path(bam_path: str) -> str:
+    root_path, extension = os.path.splitext(bam_path)
+
+    if extension != ".bam":
+        raise ValueError(f"Extension of BAM file is '{extension}'.")
+
+    if not os.path.isfile(bam_path):
+        raise FileNotFoundError(f"BAM file not found: {bam_path}")
+
+    possible_index_files = [
+        root_path + "." + "bam" + "." + "bai",
+        root_path + "." + "bai",
+    ]
+
+    present_index_files = [
+        file for file in possible_index_files
+        if os.path.isfile(file)
+    ]
+
+    if len(present_index_files) == 0:
+        raise FileNotFoundError(f"No BAM index file found for: {bam_path}")
+    
+    if len(present_index_files) > 1:
+        raise MultipleFilesFoundError(f"Multiple possible BAM index files found for: {bam_path}")
+    
+    bai_path = present_index_files[0]
+
+    return bai_path
+
+
+def swap_dict_keys_and_values(a_dict: dict) -> dict:
+    return {value: key for key, value in a_dict.items()}
+
+
+def prompt_continue(message: str = "Continue?"):
+    while True:
+        user_input = input(f"{message} [Y/n] ").strip().lower()
+        if user_input in {"y", "yes", ""}:
+            return True
+        if user_input in {"n", "no"}:
+            return False
+        print("Invalid input. Please enter 'yes' or 'no'.")
+
+
+def current_available_system_memory():
+    current_system_memory_info = psutil.virtual_memory()
+    current_available_system_memory = current_system_memory_info.available
+    return current_available_system_memory

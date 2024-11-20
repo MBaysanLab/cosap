@@ -8,7 +8,7 @@ Tumor: https://www.ebi.ac.uk/ena/browser/view/SRR7890850
 
 Normal: https://www.ebi.ac.uk/ena/browser/view/SRR7890851
 
-Once you downloaded the data.
+Once you have downloaded the data, place it in a directory named `data/` in the same folder as `example_run.py`.
 
 Activate the conda environment
 ```bash
