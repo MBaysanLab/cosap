@@ -7,8 +7,9 @@ from ..._config import AppConfig
 from ..._docker_images import DockerImages
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import VariantCallingKeys
+from ..._utils import join_paths
 from ...memory_handler import MemoryHandler
-from ...pipeline_runner.runners import DockerRunner
+from ...runners.runners import DockerRunner
 from ._variantcallers import _Callable, _VariantCaller
 
 
@@ -20,9 +21,7 @@ class MantaVariantCaller(_Callable, _VariantCaller):
         library_paths: LibraryPaths,
     ) -> tuple[str, list]:
         tumor_bam = caller_config[VariantCallingKeys.TUMOR_INPUT]
-        run_dir = str(
-            Path(caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]).parent
-        )
+        run_dir = caller_config[VariantCallingKeys.OUTPUT_DIR]
 
         command = [
             "configManta.py",
@@ -59,7 +58,10 @@ class MantaVariantCaller(_Callable, _VariantCaller):
     ) -> list:
         tumor_sv = f"{rundir}/results/variants/tumorSV.vcf.gz"
 
-        sv_output_filename = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
+        sv_output_filename = join_paths(
+            caller_config[VariantCallingKeys.OUTPUT_DIR],
+            caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT],
+        )
 
         with gzip.open(tumor_sv, "rb") as snv_in:
             with open(sv_output_filename, "wb") as snv_out:
@@ -69,9 +71,7 @@ class MantaVariantCaller(_Callable, _VariantCaller):
     def call_variants(cls, caller_config: dict, device: str = "cpu"):
         library_paths = LibraryPaths()
 
-        output_dir = os.path.abspath(
-            os.path.dirname(caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT])
-        )
+        workdir = os.getcwd()
 
         rundir, manta_command = cls._create_manta_command(
             caller_config=caller_config, library_paths=library_paths
@@ -84,12 +84,12 @@ class MantaVariantCaller(_Callable, _VariantCaller):
         docker_runner.run(
             DockerImages.MANTA,
             " ".join(manta_command),
-            workdir=str(Path(output_dir).parent.parent),
+            workdir=workdir,
         )
         docker_runner.run(
             DockerImages.MANTA,
             " ".join(manta_run_wf_command),
-            workdir=str(Path(output_dir).parent.parent),
+            workdir=workdir,
         )
         cls._move_manta_vcfs(
             caller_config=caller_config,

@@ -3,6 +3,7 @@ from typing import Dict, List
 
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import VariantCallingKeys
+from ..._utils import convert_to_absolute_path
 from ._variantcallers import _Callable, _VariantCaller
 
 
@@ -11,8 +12,12 @@ class SomaticSniperVariantCaller(_Callable, _VariantCaller):
     def _create_somaticSniper_command(
         cls, caller_config=Dict, library_paths=LibraryPaths
     ) -> List:
-        germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
-        tumor_bam = caller_config[VariantCallingKeys.TUMOR_INPUT]
+        germline_bam = convert_to_absolute_path(
+            caller_config[VariantCallingKeys.GERMLINE_INPUT]
+        )
+        tumor_bam = convert_to_absolute_path(
+            caller_config[VariantCallingKeys.TUMOR_INPUT]
+        )
 
         output_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
         command = [
@@ -37,4 +42,4 @@ class SomaticSniperVariantCaller(_Callable, _VariantCaller):
         somatic_sniper_command = cls._create_somaticSniper_command(
             caller_config=caller_config, library_paths=library_paths
         )
-        run(somatic_sniper_command)
+        run(somatic_sniper_command, cwd=caller_config[VariantCallingKeys.OUTPUT_DIR])

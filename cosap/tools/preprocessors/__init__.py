@@ -5,3 +5,4 @@ from ._mark_duplicate import MarkDuplicate
 from ._preprocessor_factory import PreprocessorFactory
 from ._sorter import SamtoolsSorter
 from ._split_bam_by_chr import SplitbyCHR
+from ._trimmer import Trimmer

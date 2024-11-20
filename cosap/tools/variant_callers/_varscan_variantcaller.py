@@ -4,6 +4,7 @@ from typing import Dict, List, Union
 
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import VariantCallingKeys
+from ..._utils import convert_to_absolute_path
 from ._variantcallers import _Callable, _VariantCaller
 
 
@@ -12,10 +13,14 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
     def _create_samtools_command(
         cls, caller_config=Dict, library_paths=LibraryPaths
     ) -> List:
-        germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
-        tumor_bam = caller_config[VariantCallingKeys.TUMOR_INPUT]
+        germline_bam = convert_to_absolute_path(
+            caller_config[VariantCallingKeys.GERMLINE_INPUT]
+        )
+        tumor_bam = convert_to_absolute_path(
+            caller_config[VariantCallingKeys.TUMOR_INPUT]
+        )
         bed_file = (
-            caller_config[VariantCallingKeys.BED_FILE]
+            convert_to_absolute_path(caller_config[VariantCallingKeys.BED_FILE])
             if VariantCallingKeys.BED_FILE in caller_config.keys()
             else None
         )
@@ -91,8 +96,9 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
             caller_config=caller_config, library_paths=library_paths
         )
 
-        samtools = Popen(samtools_mpileup, stdout=PIPE)
-        varscan = check_output(varscan_somatic, stdin=samtools.stdout)
+        workdir = caller_config[VariantCallingKeys.OUTPUT_DIR]
+        samtools = Popen(samtools_mpileup, stdout=PIPE, cwd=workdir)
+        varscan = check_output(varscan_somatic, stdin=samtools.stdout, cwd=workdir)
         samtools.wait()
 
         unfiltered_vcfs = [
@@ -104,4 +110,4 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
             process_somatic_command = cls._create_process_somatic_command(
                 vcf=vcf_file,
             )
-            run(process_somatic_command)
+            run(process_somatic_command, cwd=workdir)

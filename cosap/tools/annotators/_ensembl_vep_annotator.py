@@ -1,4 +1,5 @@
 from pathlib import Path
+from subprocess import run
 from typing import Dict, List
 
 from ..._config import AppConfig
@@ -6,9 +7,8 @@ from ..._docker_images import DockerImages
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import AnnotatorKeys
 from ..._utils import join_paths
-from ...pipeline_runner.runners import DockerRunner
+from ...runners.runners import DockerRunner
 from ._annotators import _Annotatable, _Annotator
-from subprocess import run
 
 
 class VepAnnotator(_Annotatable, _Annotator):
@@ -50,18 +50,19 @@ class VepAnnotator(_Annotatable, _Annotator):
         return command
 
     @classmethod
-    def annotate(cls, annotator_config: Dict, workdir: str = None):
+    def annotate(cls, annotator_config: Dict):
         library_paths = LibraryPaths()
         app_config = AppConfig()
+        workdir = annotator_config[AnnotatorKeys.OUTPUT_DIR]
 
         output_dir = cls.create_output_dir(annotator_config, workdir=workdir)
 
-        # Change the read/write permissions of the output directory
+        # Change the read/write permissions of the output directory
         run(["chmod", "-R", "a+rwx", output_dir], cwd=workdir)
 
-        # Change the read/write permissions of the input file
+        # Change the read/write permissions of the input file
         run(["chmod", "a+rwx", annotator_config[AnnotatorKeys.INPUT]], cwd=workdir)
-        
+
         runner = DockerRunner()
         runner.run(
             DockerImages.ENSEMBL_VEP,

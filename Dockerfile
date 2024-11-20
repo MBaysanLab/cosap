@@ -28,13 +28,13 @@ WORKDIR /app
 RUN mamba run --no-capture-output -n cosap pip install .
 
 # Set environment variables
-ENV COSAP /app
-ENV COSAP_LIBRARY_PATH /cosap_data
+ENV COSAP=/app
+ENV COSAP_LIBRARY_PATH=/cosap_data
 
 # Activate conda environment
 RUN conda init
 RUN echo "conda activate cosap" >> ~/.bashrc
-ENV PATH /opt/conda/envs/cosap/bin:$PATH
+ENV PATH=/opt/conda/envs/cosap/bin:$PATH
 
 # Create working directory
 RUN mkdir /workdir

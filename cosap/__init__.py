@@ -7,7 +7,7 @@ from ._version import version
 from .memory_handler import *
 from .parsers import *
 from .pipeline_builder import *
-from .pipeline_runner import *
+from .runners import *
 from .scatter_gather import *
 from .tools.annotators import *
 from .tools.cnv_callers import *

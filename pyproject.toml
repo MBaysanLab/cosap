@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cosap"
+description = "COSAP library for NGS data analysis"
+readme = "README.md"
+license = { text = "MIT license" }
+dynamic = ["version"]
+
+[tool.setuptools]
+packages = ["cosap"]
+package-dir = { "" = "." }
+include-package-data = true
+
+
+[tool.setuptools.package-data]
+"cosap" = [
+    "snakemake_workflows/*",
+    "snakemake_workflows/rules/*",
+    "snakemake_workflows/*/*",
+]
+
+[project.scripts]
+cosap = "cosap._cli:cli"
+
+[tool.setuptools.dynamic]
+version = {attr = "cosap._version.version"}

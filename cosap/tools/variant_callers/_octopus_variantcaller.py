@@ -4,6 +4,7 @@ from typing import Dict
 from ..._config import AppConfig
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import VariantCallingKeys
+from ..._utils import convert_to_absolute_path
 from ._variantcallers import _Callable, _VariantCaller
 
 
@@ -15,8 +16,12 @@ class OctopusVariantCaller(_Callable, _VariantCaller):
         library_paths: LibraryPaths,
         app_config: AppConfig,
     ) -> list:
-        germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
-        tumor_bam = caller_config[VariantCallingKeys.TUMOR_INPUT]
+        germline_bam = convert_to_absolute_path(
+            caller_config[VariantCallingKeys.GERMLINE_INPUT]
+        )
+        tumor_bam = convert_to_absolute_path(
+            caller_config[VariantCallingKeys.TUMOR_INPUT]
+        )
 
         germline_sample_name = caller_config[VariantCallingKeys.PARAMS][
             VariantCallingKeys.GERMLINE_SAMPLE_NAME
@@ -51,4 +56,4 @@ class OctopusVariantCaller(_Callable, _VariantCaller):
             app_config=app_config,
         )
 
-        run(octopus_command)
+        run(octopus_command, cwd=caller_config[VariantCallingKeys.OUTPUT_DIR])

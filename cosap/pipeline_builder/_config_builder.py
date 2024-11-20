@@ -19,6 +19,7 @@ class Pipeline:
         config = {
             PipelineKeys.LIBRARY_PATH: AppConfig.LIBRARY_PATH,
             PipelineKeys.CREATION_DATE: datetime.now().strftime(r"%Y-%m-%d--%H-%M-%S"),
+            PipelineKeys.LOG_FILE: f"{datetime.now().strftime(r'%Y-%m-%d--%H-%M-%S')}.log",
             PipelineKeys.VERSION: version,
             PipelineKeys.TRIM: dict(),
             PipelineKeys.MAPPING: dict(),

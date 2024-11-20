@@ -32,6 +32,7 @@ class Sorter(_IPipelineStep, _PipelineStep):
                 SortingKeys.SORTING_METHOD: self.sorting_method,
                 SortingKeys.OUTPUT: output_filename,
                 SortingKeys.PARAMS: self.params,
+                SortingKeys.LOG_FILE: self.log_file,
             }
         }
         return config

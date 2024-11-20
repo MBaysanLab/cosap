@@ -70,8 +70,8 @@ class ProjectResultsParser:
         )
 
     def _get_variants(self):
-        
-        # If there is variant caller in the pipeline config, parse the VCF
+
+        # If there is variant caller in the pipeline config, parse the VCF
         if PipelineKeys.VARIANT_CALLING in self.pipeline_config:
             variant_caller_config = self.pipeline_config[PipelineKeys.VARIANT_CALLING][
                 list(self.pipeline_config[PipelineKeys.VARIANT_CALLING].keys())[0]
@@ -80,16 +80,21 @@ class ProjectResultsParser:
             vcf = variant_caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
         else:
             raise ValueError("No variant caller found in pipeline config.")
-        
-        # If tumor sample is present, parse it, otherwise parse the normal sample
+
+        # If tumor sample is present, parse it, otherwise parse the normal sample
         if VariantCallingKeys.TUMOR_INPUT in variant_caller_config:
-            sample_name = variant_caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.TUMOR_SAMPLE_NAME]
+            sample_name = variant_caller_config[VariantCallingKeys.PARAMS][
+                VariantCallingKeys.TUMOR_SAMPLE_NAME
+            ]
         elif VariantCallingKeys.GERMLINE_INPUT in variant_caller_config:
-            sample_name = variant_caller_config[VariantCallingKeys.PARAMS][VariantCallingKeys.GERMLINE_SAMPLE_NAME]
+            sample_name = variant_caller_config[VariantCallingKeys.PARAMS][
+                VariantCallingKeys.GERMLINE_SAMPLE_NAME
+            ]
         else:
             raise ValueError("No VCF found in pipeline config.")
 
-        vcf_path = join_paths(self.pipeline_workdir, vcf)
+        vcf_dir = variant_caller_config[VariantCallingKeys.OUTPUT_DIR]
+        vcf_path = join_paths(self.pipeline_workdir, vcf_dir, vcf)
 
         return self._parse_vcf(
             vcf_path, caller_type=variant_caller, sample_name=sample_name

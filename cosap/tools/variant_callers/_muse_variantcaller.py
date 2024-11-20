@@ -4,6 +4,7 @@ from typing import Dict, List
 from ..._config import AppConfig
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import VariantCallingKeys
+from ..._utils import convert_to_absolute_path
 from ._variantcallers import _Callable, _VariantCaller
 
 
@@ -16,8 +17,12 @@ class MuseVariantCaller(_Callable, _VariantCaller):
     def _create_muse_call_command(
         cls, caller_config: Dict, library_paths: LibraryPaths, app_config: AppConfig
     ) -> List:
-        germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
-        tumor_bam = caller_config[VariantCallingKeys.TUMOR_INPUT]
+        germline_bam = convert_to_absolute_path(
+            caller_config[VariantCallingKeys.GERMLINE_INPUT]
+        )
+        tumor_bam = convert_to_absolute_path(
+            caller_config[VariantCallingKeys.TUMOR_INPUT]
+        )
         output_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
         output_prefix = cls._create_muse_output_prefix(output_name)
 

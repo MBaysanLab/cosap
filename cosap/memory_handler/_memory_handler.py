@@ -1,7 +1,6 @@
 import os
 import shutil
 import tempfile
-from glob import glob
 from pathlib import Path
 from typing import Literal
 
@@ -57,14 +56,20 @@ class MemoryHandler:
 
         return tmp_path
 
-    def get_bam_path(self, path: str):
-        """
-        Load BAM file and its index into ramdisk and return the path.
-        """
-
+    def get_bam_path(self, path: str) -> str:
         bam_path = self.get_path(path)
+        if not os.path.exists(bam_path):
+            raise FileNotFoundError(f"BAM file {bam_path} not found")
+
         # get index path along with bam path. the index can be either in form of .bai or .bam.bai
-        bai_path = get_bam_index_path(path)
+
+        if os.path.exists(bam_path + ".bai"):
+            bai_path = bam_path + ".bai"
+        elif os.path.exists(os.path.splitext(bam_path)[0] + ".bai"):
+            bai_path = os.path.splitext(bam_path)[0] + ".bai"
+        else:
+            raise FileNotFoundError(f"Index file for {bam_path} not found")
+
         _ = self.get_path(bai_path)
         return bam_path
 

@@ -9,6 +9,7 @@ from .._utils import (convert_list_to_annovar_input,
 from ..pipeline_builder.builders import Annotator, VCFReader
 from ..tools.annotators import AnnotatorFactory
 
+
 class VariantMultipleAnnotator:
     def __init__(self, variants: list, workdir: str):
         self.variants = variants
@@ -32,7 +33,8 @@ class VariantMultipleAnnotator:
             input_step=vep_input,
             sample_name="multiple_anotator",
             name="multiple_anotator",
-            input_type="ensembl"
+            input_type="ensembl",
+            output_dir=self.workdir,
         )
         intervar_config = Annotator(
             library="intervar",
@@ -40,6 +42,7 @@ class VariantMultipleAnnotator:
             sample_name="multiple_anotator",
             input_type="AVinput",
             name="multiple_anotator",
+            output_dir=self.workdir,
         )
         cancervar_config = Annotator(
             library="cancervar",
@@ -47,6 +50,7 @@ class VariantMultipleAnnotator:
             sample_name="multiple_anotator",
             input_type="AVinput",
             name="multiple_anotator",
+            output_dir=self.workdir,
         )
 
         vep_annotator = AnnotatorFactory.create("vep")
@@ -199,7 +203,7 @@ class VariantMultipleAnnotator:
         df.reset_index(inplace=True)
 
         return df
-    
+
     def _read_ensembl_vcf_to_dataframe(self, path: str) -> pd.DataFrame:
         """
         Reads the output of ensembl vep and returns a dataframe.
@@ -213,15 +217,27 @@ class VariantMultipleAnnotator:
                 sep="\t",
             )
 
-            # Get vep fields from vcf header and add them to the dataframe
-            vep_info_field  = [l for l in header_lines if l.startswith("##INFO=<ID=CSQ")][0]
+            # Get vep fields from vcf header and add them to the dataframe
+            vep_info_field = [
+                l for l in header_lines if l.startswith("##INFO=<ID=CSQ")
+            ][0]
             vep_fields = vep_info_field.split("Format: ")[1].split("|")
 
-            # The vep data is the last value of the INFO field
-            df_vep = df["INFO"].str.split("CSQ=", expand=True)[1].str.split("|", expand=True)
+            # The vep data is the last value of the INFO field
+            df_vep = (
+                df["INFO"].str.split("CSQ=", expand=True)[1].str.split("|", expand=True)
+            )
             df_vep.columns = vep_fields
-            
-            df_vep["variant_id"] = df["#CHROM"] + "_" + df["POS"].astype(str) + "_" + df["REF"] + "_" + df["ALT"]
+
+            df_vep["variant_id"] = (
+                df["#CHROM"]
+                + "_"
+                + df["POS"].astype(str)
+                + "_"
+                + df["REF"]
+                + "_"
+                + df["ALT"]
+            )
             df_vep["ref"] = df["REF"]
             df_vep["alt"] = df["ALT"]
 

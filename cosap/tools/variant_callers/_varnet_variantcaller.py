@@ -51,12 +51,12 @@ class VarNetVariantCaller(_Callable, _VariantCaller):
         cls, caller_config: dict, library_paths: LibraryPaths, app_config: AppConfig, variant_type: str
     ) -> list:
         germline_bam = (
-            caller_config[VariantCallingKeys.GERMLINE_INPUT]
+            convert_to_absolute_path(caller_config[VariantCallingKeys.GERMLINE_INPUT])
             if VariantCallingKeys.GERMLINE_INPUT in caller_config.keys()
             else None
         )
         tumor_bam = (
-            caller_config[VariantCallingKeys.TUMOR_INPUT]
+            convert_to_absolute_path(caller_config[VariantCallingKeys.TUMOR_INPUT])
             if VariantCallingKeys.TUMOR_INPUT in caller_config.keys()
             else None
         )
@@ -87,7 +87,7 @@ class VarNetVariantCaller(_Callable, _VariantCaller):
         varnet_filter_script = "/VarNet/filter.py"  # Location within Docker container
 
         bed_file = (
-            caller_config[VariantCallingKeys.BED_FILE]
+            convert_to_absolute_path(caller_config[VariantCallingKeys.BED_FILE])
             if VariantCallingKeys.BED_FILE in caller_config.keys()
             else None
         )

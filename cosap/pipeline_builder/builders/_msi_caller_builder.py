@@ -15,6 +15,7 @@ class MSICaller(_IPipelineStep, _PipelineStep):
     name: str = None
     key: str = PipelineKeys.MSI
     next_step: _PipelineStep = None
+    output_dir: str = None
 
     def __post_init__(self):
         if self.name is None:
@@ -32,6 +33,9 @@ class MSICaller(_IPipelineStep, _PipelineStep):
         if self.tumor:
             self.tumor.next_step = self
 
+        if self.output_dir is None:
+            self.output_dir = join_paths(OutputFolders.MSI, self.library)
+
     def _create_config(self) -> Dict:
         tumor_input = self.tumor.get_output()
         normal_input = self.normal.get_output()
@@ -42,16 +46,18 @@ class MSICaller(_IPipelineStep, _PipelineStep):
                 MSICallingKeys.LIBRARY: self.library,
                 MSICallingKeys.NORMAL_INPUT: normal_input,
                 MSICallingKeys.TUMOR_INPUT: tumor_input,
-                MSICallingKeys.OUTPUT: join_paths(
-                    OutputFolders.MSI, self.library, output
-                ),
+                MSICallingKeys.OUTPUT: output,
+                MSICallingKeys.OUTPUT_DIR: self.output_dir,
+                MSICallingKeys.LOG_FILE: self.log_file,
             }
         }
         return config
 
     def get_output(self) -> str:
         config = self.get_config()
-        return config[self.key][self.name][MSICallingKeys.OUTPUT]
+        return join_paths(
+            self.output_dir, config[self.key][self.name][MSICallingKeys.OUTPUT]
+        )
 
     def get_config(self) -> Dict:
         msi_caller_config = self._create_config()

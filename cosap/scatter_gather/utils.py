@@ -47,17 +47,22 @@ def create_gatk_intervals(
     ]
     if bed_file:
         command.extend(["-L", bed_file])
+
     run(command)
 
     for interval_file in os.listdir(output_dir):
         convert_region_file_to_bed(join_paths(output_dir, interval_file))
 
 
-def get_region_file_list(file_type="bed", bed_file=None) -> list:
+def get_region_file_list(file_type="bed", bed_file=None, workdir=None) -> list:
     library_paths = LibraryPaths()
     app_config = AppConfig()
 
-    region_files_dir = FolderedOutputs.REGIONS_FILE_OUTPUT
+    region_files_dir = (
+        join_paths(workdir, FolderedOutputs.REGIONS_FILE_OUTPUT)
+        if workdir
+        else FolderedOutputs.REGIONS_FILE_OUTPUT
+    )
     if not os.path.exists(region_files_dir):
         os.makedirs(region_files_dir, exist_ok=True)
         create_gatk_intervals(

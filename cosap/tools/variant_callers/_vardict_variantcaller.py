@@ -4,6 +4,7 @@ from typing import Dict, List
 from ..._config import AppConfig
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import VariantCallingKeys
+from ..._utils import convert_to_absolute_path, join_paths
 from ._variantcallers import _Callable, _VariantCaller
 
 
@@ -15,12 +16,16 @@ class VarDictVariantCaller(_Callable, _VariantCaller):
         library_paths: LibraryPaths,
         app_config: AppConfig,
     ) -> List:
-        germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
-        tumor_bam = caller_config[VariantCallingKeys.TUMOR_INPUT]
+        germline_bam = convert_to_absolute_path(
+            caller_config[VariantCallingKeys.GERMLINE_INPUT]
+        )
+        tumor_bam = convert_to_absolute_path(
+            caller_config[VariantCallingKeys.TUMOR_INPUT]
+        )
         tumor_sample_name = caller_config[VariantCallingKeys.PARAMS][
             VariantCallingKeys.TUMOR_SAMPLE_NAME
         ]
-        bed_file = caller_config[VariantCallingKeys.BED_FILE]
+        bed_file = convert_to_absolute_path(caller_config[VariantCallingKeys.BED_FILE])
 
         command = [
             "vardict-java",
@@ -60,7 +65,6 @@ class VarDictVariantCaller(_Callable, _VariantCaller):
         germline_sample_name = caller_config[VariantCallingKeys.PARAMS][
             VariantCallingKeys.GERMLINE_SAMPLE_NAME
         ]
-        caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
 
         command = [
             "var2vcf_paired.pl",
@@ -75,6 +79,7 @@ class VarDictVariantCaller(_Callable, _VariantCaller):
     def call_variants(cls, caller_config: Dict, device: str = "cpu"):
         library_paths = LibraryPaths()
         app_config = AppConfig()
+        workdir = caller_config[VariantCallingKeys.OUTPUT_DIR]
 
         vardict_command = cls._create_vardict_command(
             caller_config=caller_config,
@@ -84,12 +89,17 @@ class VarDictVariantCaller(_Callable, _VariantCaller):
         testsomatic_command = cls._create_testsomatic_command()
         var2vcf_command = cls._create_var2vcf_command(caller_config=caller_config)
 
-        vardict = Popen(vardict_command, stdout=PIPE)
-        testsomatic = Popen(testsomatic_command, stdin=vardict.stdout, stdout=PIPE)
+        vardict = Popen(vardict_command, stdout=PIPE, cwd=workdir)
+        testsomatic = Popen(
+            testsomatic_command, stdin=vardict.stdout, stdout=PIPE, cwd=workdir
+        )
         vardict.stdout.close()
-        var2vcf = check_output(var2vcf_command, stdin=testsomatic.stdout)
+        var2vcf = check_output(var2vcf_command, stdin=testsomatic.stdout, cwd=workdir)
         vardict.wait()
 
-        output_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
+        output_name = join_paths(
+            caller_config[VariantCallingKeys.OUTPUT_DIR],
+            caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT],
+        )
         with open(output_name, "wb") as vcf_file:
             vcf_file.write(var2vcf)

@@ -54,7 +54,7 @@ basecal_normal = Recalibrator(input_step=mdup_normal)
 basecal_tumor = Recalibrator(input_step=mdup_tumor)
 
 # Creating variant callers
-mutect = VariantCaller(library="mutect", germline=basecal_normal, tumor=basecal_tumor)
+mutect = VariantCaller(library="mutect", normal_sample=basecal_normal, tumor_sample=basecal_tumor)
 
 # Creating gene fusion caller and microsatellite instability caller
 genefusioncaller = GeneFusionCaller(input_step=tumor_fastqs, library="genefuse")

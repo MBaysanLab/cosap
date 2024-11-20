@@ -67,4 +67,4 @@ class CNVKit(_CNVCaller):
         genemetrics_command = cls._create_cnvkit_genemetrics_command(
             caller_config, library_paths, app_config
         )
-        run(genemetrics_command)
+        run(genemetrics_command, cwd=caller_config[CNVCallingKeys.OUTPUT_DIR])

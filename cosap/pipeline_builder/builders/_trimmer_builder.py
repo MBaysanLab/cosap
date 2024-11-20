@@ -14,6 +14,7 @@ class Trimmer(_IPipelineStep, _PipelineStep):
     name: str = None
     key: str = PipelineKeys.TRIM
     next_step: _PipelineStep = None
+    output_dir = OutputFolders.TRIMMING
 
     def __post_init__(self):
         self.key = PipelineKeys.TRIM
@@ -37,9 +38,7 @@ class Trimmer(_IPipelineStep, _PipelineStep):
             output_filename = FileFormats.TRIMMING_OUTPUT.format(
                 identification=self.name, pair=reader.read
             )
-            output_filenames[reader.read] = join_paths(
-                OutputFolders.TRIMMING, output_filename
-            )
+            output_filenames[reader.read] = output_filename
 
         report_filename = FileFormats.TRIMMING_REPORT_OUTPUT.format(
             identification=self.input_step[0].name
@@ -48,17 +47,21 @@ class Trimmer(_IPipelineStep, _PipelineStep):
             self.name: {
                 TrimmingKeys.INPUT: read_filenames,
                 TrimmingKeys.OUTPUT: output_filenames,
-                TrimmingKeys.REPORT_OUTPUT: join_paths(
-                    OutputFolders.TRIMMING, report_filename
-                ),
-                TrimmingKeys.OUTPUT_DIR: OutputFolders.TRIMMING,
+                TrimmingKeys.REPORT_OUTPUT: report_filename,
+                TrimmingKeys.OUTPUT_DIR: self.output_dir,
+                TrimmingKeys.LOG_FILE: self.log_file,
             },
         }
         return config
 
     def get_output(self) -> str:
         config = self.get_config()
-        return config[self.key][self.name][TrimmingKeys.OUTPUT]
+        return {
+            i: join_paths(
+                self.output_dir, config[self.key][self.name][TrimmingKeys.OUTPUT][i]
+            )
+            for i in config[self.key][self.name][TrimmingKeys.OUTPUT]
+        }
 
     def get_config(self) -> Dict:
         trim_config = self._create_config()

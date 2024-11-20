@@ -13,7 +13,7 @@ class _LibraryMeta(type):
     _lock: Lock = Lock()
 
     def __call__(cls) -> _LibraryPaths:
-        
+
         version = AppConfig.REF_VERSION
         with cls._lock:
             if cls not in cls._instances:
@@ -26,22 +26,18 @@ class _LibraryMeta(type):
 
 
 def _get_file_path_hg38(*filename):
-    return (
-        os.path.join(
-            AppConfig.LIBRARY_PATH,
-            *filename,
-        )
+    return os.path.join(
+        AppConfig.LIBRARY_PATH,
+        *filename,
     )
 
 
 def _get_file_path_hg19(*filename):
-    return (
-        os.path.join(
-            AppConfig.LIBRARY_PATH,
-            "ref_genome_indexes",
-            "hg19_bundle",
-            *filename,
-        )
+    return os.path.join(
+        AppConfig.LIBRARY_PATH,
+        "ref_genome_indexes",
+        "hg19_bundle",
+        *filename,
     )
 
 
@@ -67,27 +63,17 @@ class _LibraryPaths:
 @dataclass
 class _LibraryPaths38(_LibraryPaths):
     REF_DIR: str = AppConfig.LIBRARY_PATH
-    REF_FASTA: str = _get_file_path_hg38(
-        "Homo_sapiens_assembly38.fasta"
-    )
-    REF_ELFASTA: str = _get_file_path_hg38(
-        "Homo_sapiens_assembly38.elfasta"
-    )
-    DBSNP: str = _get_file_path_hg38(
-        "Homo_sapiens_assembly38.dbsnp138.vcf"
-    )
-    DBSNP_ELSITES: str = _get_file_path_hg38(
-        "Homo_sapiens_assembly38.dbsnp138.elsites"
-    )
+    REF_FASTA: str = _get_file_path_hg38("Homo_sapiens_assembly38.fasta")
+    REF_ELFASTA: str = _get_file_path_hg38("Homo_sapiens_assembly38.elfasta")
+    DBSNP: str = _get_file_path_hg38("Homo_sapiens_assembly38.dbsnp138.vcf")
+    DBSNP_ELSITES: str = _get_file_path_hg38("Homo_sapiens_assembly38.dbsnp138.elsites")
     MILLS_INDEL: str = _get_file_path_hg38(
         "Mills_and_1000G_gold_standard.indels.hg38.vcf.gz"
     )
     MILLS_INDEL_ELSITES: str = _get_file_path_hg38(
         "Mills_and_1000G_gold_standard.indels.hg38.elsites"
     )
-    COSMIC: str = _get_file_path_hg38(
-        "cosmic_hg19_lifted_over.vcf"
-    )
+    COSMIC: str = _get_file_path_hg38("cosmic_hg19_lifted_over.vcf")
     ONE_THOUSAND_G: str = _get_file_path_hg38(
         "1000G_phase1.snps.high_confidence.hg38.vcf.gz"
     )

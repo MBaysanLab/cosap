@@ -17,6 +17,7 @@ class Annotator(_IPipelineStep, _PipelineStep):
     key: str = PipelineKeys.ANNOTATION
     next_step: _PipelineStep = None
     input_type: str = "vcf"
+    output_dir = None
 
     def __post_init__(self):
         if self.name is None:
@@ -41,6 +42,9 @@ class Annotator(_IPipelineStep, _PipelineStep):
                 )
 
         self.input_step.next_step = self
+
+        if self.output_dir is None:
+            self.output_dir = join_paths(OutputFolders.ANNOTATION, self.library)
 
     def _create_output_filename(self) -> str:
         if self.library.lower() in ["annovar", "intervar", "cancervar"]:
@@ -69,11 +73,10 @@ class Annotator(_IPipelineStep, _PipelineStep):
             self.name: {
                 AnnotatorKeys.LIBRARY: self.library,
                 AnnotatorKeys.INPUT: self.input_step.get_output(),
-                AnnotatorKeys.OUTPUT: join_paths(
-                    OutputFolders.ANNOTATION, self.library, output_filename
-                ),
+                AnnotatorKeys.OUTPUT: output_filename,
                 AnnotatorKeys.OUTPUT_DIR: OutputFolders.ANNOTATION,
                 AnnotatorKeys.INPUT_TYPE: self.input_type,
+                AnnotatorKeys.LOG_FILE: self.log_file,
             }
         }
         if self.library.lower() == "annovar":
@@ -83,9 +86,11 @@ class Annotator(_IPipelineStep, _PipelineStep):
 
     def get_output(self) -> str:
         config = self.get_config()
-        return config[PipelineKeys.ANNOTATION][self.name][AnnotatorKeys.OUTPUT]
+        return join_paths(
+            self.output_dir, config[self.key][self.name][AnnotatorKeys.OUTPUT]
+        )
 
     def get_config(self) -> Dict:
         annotation_config = self._create_config()
-        config = {PipelineKeys.ANNOTATION: annotation_config}
+        config = {self.key: annotation_config}
         return config

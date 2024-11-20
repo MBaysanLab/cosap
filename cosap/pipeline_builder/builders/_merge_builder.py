@@ -13,6 +13,7 @@ class Merger(_IPipelineStep, _PipelineStep):
     name: str = None
     key: str = PipelineKeys.MERGE
     next_step: _PipelineStep = None
+    output_dir: str = None
 
     def __post_init__(self):
         if self.name is None:
@@ -20,6 +21,9 @@ class Merger(_IPipelineStep, _PipelineStep):
 
         for inp in self.input_step:
             inp.next_step = self
+
+        if self.output_dir is None:
+            self.output_dir = join_paths(OutputFolders.PREPROCESSOR, self.key)
 
     def _create_config(self) -> Dict:
         files = []
@@ -30,18 +34,17 @@ class Merger(_IPipelineStep, _PipelineStep):
 
         config = {
             MergingKeys.INPUT: files,
-            MergingKeys.OUTPUT: join_paths(
-                OutputFolders.PREPROCESSOR, self.key, output_filename
-            ),
-            MergingKeys.OUTPUT_DIR: join_paths(OutputFolders.PREPROCESSOR, self.key),
+            MergingKeys.OUTPUT: output_filename,
+            MergingKeys.OUTPUT_DIR: self.output_dir,
+            MergingKeys.LOG_FILE: self.log_file,
         }
         return config
 
     def get_output(self) -> str:
         config = self.get_config()
-        return config[PipelineKeys.MERGE][MergingKeys.OUTPUT]
+        return join_paths(self.output_dir, config[self.key][MergingKeys.OUTPUT])
 
     def get_config(self) -> Dict:
         merger_config = self._create_config()
-        config = {PipelineKeys.MERGE: merger_config}
+        config = {self.key: merger_config}
         return config

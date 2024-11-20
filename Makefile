@@ -25,8 +25,3 @@ develop:
 	fi;
 	mamba create --name cosap -c conda-forge -c bioconda --yes --file requirements.txt
 	mamba run --no-capture-output -n cosap pip install -e . celery redis docker
-
-download_files:
-	@echo The files will be downloaded to $(COSAP_LIBRARY_PATH)\; continue? [Y/n]
-	@read line; if [ $$line = "n" ]; then echo aborting; exit 1 ; fi
-	wget -i ./required_files.txt -P $(COSAP_LIBRARY_PATH)

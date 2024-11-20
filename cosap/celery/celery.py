@@ -1,8 +1,11 @@
 import glob
+import json
 import os
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 
 import yaml
+
 from celery import Celery, shared_task
 
 from .._config import AppConfig
@@ -57,19 +60,33 @@ def dna_pipeline_task(
 def parse_project_data(path):
     configs = glob.glob(f"{path}/*_config.yaml")
     latest_config = max(configs, key=os.path.getctime, default=None)
+
     if latest_config is None:
         raise FileNotFoundError
+
     config_dict = yaml.load(Path(latest_config).read_text(), Loader=yaml.Loader)
-    parser = ProjectResultsParser(pipeline_config=config_dict)
+
+    try:
+        parser = ProjectResultsParser(pipeline_config=config_dict)
+    except Exception as e:
+        raise e
+
+    # Write variants to file
+    with NamedTemporaryFile(mode="w", dir=path) as f:
+        json.dump(parser.variants, f)
+        variants_file_path = f.name
+
     return {
         # "qc_coverage_histogram": parser.qc_coverage_histogram,
-        "variants": parser.variants,
+        "variants": variants_file_path,
         "qc_results": parser.qc_genome_results,
         "msi_score": parser.msi_score,
     }
 
 
 @shared_task(name="annotation_task")
-def annotate_variants(variants: list, workdir: str) -> list:
+def annotate_variants(variants_file_path: list, workdir: str) -> list:
+    with open(variants_file_path[0]) as f:
+        variants = json.load(f)
     variant_annotator = VariantMultipleAnnotator(variants, workdir)
     return variant_annotator.annotate()

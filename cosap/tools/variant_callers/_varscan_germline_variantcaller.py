@@ -3,6 +3,7 @@ from typing import Dict, List
 
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import VariantCallingKeys
+from ..._utils import convert_to_absolute_path
 from ._variantcallers import _Callable, _VariantCaller
 
 
@@ -11,7 +12,9 @@ class VarScanGermlineVariantCaller(_Callable, _VariantCaller):
     def _create_samtools_command(
         cls, caller_config=Dict, library_paths=LibraryPaths
     ) -> List:
-        germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
+        germline_bam = convert_to_absolute_path(
+            caller_config[VariantCallingKeys.GERMLINE_INPUT]
+        )
 
         command = [
             "samtools",
@@ -39,8 +42,9 @@ class VarScanGermlineVariantCaller(_Callable, _VariantCaller):
         )
         varscan_germline = cls._create_varscan_command()
 
-        samtools = Popen(samtools_mpileup, stdout=PIPE)
-        varscan = check_output(varscan_germline, stdin=samtools.stdout)
+        workdir = caller_config[VariantCallingKeys.OUTPUT_DIR]
+        samtools = Popen(samtools_mpileup, stdout=PIPE, cwd=workdir)
+        varscan = check_output(varscan_germline, stdin=samtools.stdout, cwd=workdir)
         samtools.wait()
 
         with open(

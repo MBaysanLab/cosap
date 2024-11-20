@@ -6,7 +6,8 @@ from typing import Dict
 from ..._docker_images import DockerImages
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import BaseRecalibratorKeys
-from ...pipeline_runner.runners import DockerRunner
+from ..._utils import convert_to_absolute_path
+from ...runners.runners import DockerRunner
 from ._preprocessors import _PreProcessable, _Preprocessor
 
 
@@ -21,7 +22,7 @@ class BaseRecalibrator(_Preprocessor, _PreProcessable):
             "-R",
             library_paths.REF_FASTA,
             "-I",
-            calibration_config[BaseRecalibratorKeys.INPUT],
+            convert_to_absolute_path(calibration_config[BaseRecalibratorKeys.INPUT]),
             "--known-sites",
             library_paths.MILLS_INDEL,
             "--known-sites",
@@ -32,7 +33,7 @@ class BaseRecalibrator(_Preprocessor, _PreProcessable):
             calibration_config[BaseRecalibratorKeys.TABLE],
         ]
         bed_file = (
-            calibration_config[BaseRecalibratorKeys.BED_FILE]
+            convert_to_absolute_path(calibration_config[BaseRecalibratorKeys.BED_FILE])
             if BaseRecalibratorKeys.BED_FILE in calibration_config.keys()
             else None
         )
@@ -50,14 +51,14 @@ class BaseRecalibrator(_Preprocessor, _PreProcessable):
             "-R",
             library_paths.REF_FASTA,
             "-I",
-            calibration_config[BaseRecalibratorKeys.INPUT],
+            convert_to_absolute_path(calibration_config[BaseRecalibratorKeys.INPUT]),
             "--bqsr-recal-file",
             calibration_config[BaseRecalibratorKeys.TABLE],
             "-O",
             calibration_config[BaseRecalibratorKeys.OUTPUT],
         ]
         bed_file = (
-            calibration_config[BaseRecalibratorKeys.BED_FILE]
+            convert_to_absolute_path(calibration_config[BaseRecalibratorKeys.BED_FILE])
             if BaseRecalibratorKeys.BED_FILE in calibration_config.keys()
             else None
         )
@@ -70,14 +71,14 @@ class BaseRecalibrator(_Preprocessor, _PreProcessable):
         command = cls._create_table_command(
             calibration_config=calibration_config, library_paths=library_paths
         )
-        run(command)
+        run(command, cwd=calibration_config[BaseRecalibratorKeys.OUTPUT_DIR])
 
     @classmethod
     def _apply_calibration(cls, calibration_config: Dict, library_paths: LibraryPaths):
         command = cls._create_calibration_command(
             calibration_config=calibration_config, library_paths=library_paths
         )
-        run(command)
+        run(command, cwd=calibration_config[BaseRecalibratorKeys.OUTPUT_DIR])
 
     @classmethod
     def _create_parabricks_bqsr_command(
