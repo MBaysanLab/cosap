@@ -8,7 +8,7 @@ from ..._docker_images import DockerImages
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import MappingKeys
 from ..._utils import convert_to_absolute_path
-from ...runners.runners import DockerRunner
+from ...runners.docker_runner import DockerRunner
 from ._mappers import _Mappable, _Mapper
 
 

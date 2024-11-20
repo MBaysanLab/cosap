@@ -22,7 +22,6 @@ from ..tools.preprocessors._base_recalibrator import BaseRecalibrator
 from ..tools.preprocessors._elprep_preprocess import ElprepPreprocess
 from ..tools.preprocessors._indexer import BamIndexer
 from ..tools.preprocessors._mark_duplicate import MarkDuplicate
-from ..tools.preprocessors._merger import BamMerger
 from ..tools.preprocessors._sorter import SamtoolsSorter
 from ..tools.preprocessors._split_bam_by_chr import SplitbyCHR
 from ..tools.preprocessors._trimmer import Trimmer

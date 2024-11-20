@@ -25,7 +25,6 @@ class DockerRunner:
 
         # Check if the image exists
         if not self._check_if_image_exists(image):
-            print(f"Pulling image {image}")
             self._pull_image(image)
 
         library_path = AppConfig.LIBRARY_PATH
@@ -33,15 +32,26 @@ class DockerRunner:
 
         # Set volumes
         volumes_dict = {
-            library_path: {"bind": library_path, "mode": "ro"},
-            workdir: {"bind": workdir, "mode": "rw"},
-        }
+                library_path: {"bind": library_path, "mode": "ro"},
+                workdir: {"bind": workdir, "mode": "rw"},
+
+            }
         for path in paths_to_bind:
             volumes_dict[path] = {"bind": path, "mode": "rw"}
 
-        volumes = volumes_dict if not self._check_if_running_in_docker() else None
-        volumes_from = [hostname] if self._check_if_running_in_docker() else None
+        volumes = None
+        volumes_from = None
+        device_requests = None
 
+        if not self._check_if_running_in_docker():
+            volumes = volumes_dict
+
+        if self._check_if_running_in_docker():
+            volumes_from = [hostname]
+
+        if self.device == "gpu":
+            device_requests = [docker.types.DeviceRequest(count=-1, capabilities=[["gpu"]])]
+        
         # Run and return the log generator
         container = self.docker_client.containers.run(
             image=image,
@@ -49,7 +59,7 @@ class DockerRunner:
             working_dir=workdir,
             volumes=volumes,
             volumes_from=volumes_from,
-            remove=remove,
+            remove=True,
             detach=True,
             init=True,
             restart_policy={"Name": "no"},

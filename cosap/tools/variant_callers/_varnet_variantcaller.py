@@ -7,7 +7,7 @@ from ..._docker_images import DockerImages
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import VariantCallingKeys
 from ..._utils import current_available_system_memory
-from ...pipeline_runner.runners import DockerRunner
+from ...runners.docker_runner import DockerRunner
 from ._variantcallers import _Callable, _VariantCaller
 
 
@@ -51,12 +51,12 @@ class VarNetVariantCaller(_Callable, _VariantCaller):
         cls, caller_config: dict, library_paths: LibraryPaths, app_config: AppConfig, variant_type: str
     ) -> list:
         germline_bam = (
-            convert_to_absolute_path(caller_config[VariantCallingKeys.GERMLINE_INPUT])
+            caller_config[VariantCallingKeys.GERMLINE_INPUT]
             if VariantCallingKeys.GERMLINE_INPUT in caller_config.keys()
             else None
         )
         tumor_bam = (
-            convert_to_absolute_path(caller_config[VariantCallingKeys.TUMOR_INPUT])
+            caller_config[VariantCallingKeys.TUMOR_INPUT]
             if VariantCallingKeys.TUMOR_INPUT in caller_config.keys()
             else None
         )
@@ -87,7 +87,7 @@ class VarNetVariantCaller(_Callable, _VariantCaller):
         varnet_filter_script = "/VarNet/filter.py"  # Location within Docker container
 
         bed_file = (
-            convert_to_absolute_path(caller_config[VariantCallingKeys.BED_FILE])
+            caller_config[VariantCallingKeys.BED_FILE]
             if VariantCallingKeys.BED_FILE in caller_config.keys()
             else None
         )

@@ -9,8 +9,8 @@ from ..._library_paths import LibraryPaths
 from ..._pipeline_config import VariantCallingKeys
 from ..._utils import convert_to_absolute_path, join_paths
 from ...memory_handler import MemoryHandler
-from ...runners.runners import DockerRunner
-from ...runners.runners.step_runner import run_command_parallel
+from ...runners.docker_runner import DockerRunner
+from ...runners.docker_runner.step_runner import run_command_parallel
 from ...scatter_gather import ScatterGather
 from ._variantcallers import _Callable, _VariantCaller
 

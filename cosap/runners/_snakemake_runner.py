@@ -4,7 +4,7 @@ from subprocess import PIPE, Popen, check_output, run
 import psutil
 
 from .._config import AppConfig
-from ..pipeline_runner.runners._docker_runner import DockerRunner
+from .docker_runner import DockerRunner
 
 
 class SnakemakeRunner:

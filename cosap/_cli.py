@@ -6,7 +6,7 @@ from dotenv import load_dotenv, set_key
 from ._config import get_cosap_dotenv
 from ._formats import FileFormats
 from ._utils import join_paths
-from .file_downloader.download_files import call_download_files
+from .file_downloader import FileDownloader
 from .pipeline_builder.builders import (MDUP, BamReader, FastqReader, Mapper,
                                         Merger, Recalibrator, Sorter, Trimmer,
                                         VariantCaller)
@@ -160,7 +160,8 @@ def download_data():
         exit()
 
     # Download the data
-    call_download_files()
+    file_downloader = FileDownloader()
+    file_downloader.download_files()
 
 
 @cli.command()

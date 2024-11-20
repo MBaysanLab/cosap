@@ -9,7 +9,7 @@ from ..._library_paths import LibraryPaths
 from ..._pipeline_config import MDUPKeys
 from ..._utils import convert_to_absolute_path, join_paths
 from ...memory_handler import MemoryHandler
-from ...runners.runners import DockerRunner
+from ...runners.docker_runner import DockerRunner
 from ._preprocessors import _PreProcessable, _Preprocessor
 
 
