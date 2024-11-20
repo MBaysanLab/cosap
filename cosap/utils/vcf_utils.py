@@ -229,3 +229,16 @@ class VCFUtils:
             )
 
         return final_df.to_dict("records")
+
+    @staticmethod
+    def create_vcf_index(vcf_path: str) -> None:
+        """
+        Create index for vcf file using tabix.
+        """
+        if not os.path.exists(vcf_path):
+            raise FileNotFoundError(f"File not found: {vcf_path}")
+
+        if not os.path.exists(f"{vcf_path}.tbi"):
+            run(["tabix", "-p", "vcf", vcf_path], check=True)
+        else:
+            print("Index already exists.")

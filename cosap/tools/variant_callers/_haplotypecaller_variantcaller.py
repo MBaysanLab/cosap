@@ -128,6 +128,26 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
         ]
 
         return command
+    
+    @classmethod
+    def _create_vcf_index_command(
+        cls, caller_config: Dict, library_paths: LibraryPaths
+    ) -> List:
+        input_name = convert_to_absolute_path(join_paths(
+            caller_config[VariantCallingKeys.OUTPUT_DIR],
+            cls._create_cnn_annotated_output_name(
+                caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
+            ),
+        ))
+
+        command = [
+            "gatk",
+            "IndexFeatureFile",
+            "-I",
+            input_name,
+        ]
+
+        return command
 
     @classmethod
     def _create_filter_variants_command(
@@ -320,6 +340,9 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
             cnnscorevariants_command = cls._create_cnnscorevariants_command(
                 caller_config=caller_config, library_paths=library_paths
             )
+            create_vcfs_index_command = cls._create_vcf_index_command(
+                caller_config=caller_config, library_paths=library_paths
+            )
             filter_variants_command = cls._create_filter_variants_command(
                 caller_config=caller_config, library_paths=library_paths
             )
@@ -339,8 +362,9 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
                 DockerImages.GATK,
                 " ".join(cnnscorevariants_command),
                 workdir=str(output_dir.parent.parent),
-            )
+            )                
 
+            run(create_vcfs_index_command, cwd=workdir)
             run(filter_variants_command, cwd=workdir)
             run(get_snp_command, cwd=workdir)
             run(get_indel_command, cwd=workdir)
