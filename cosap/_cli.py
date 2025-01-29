@@ -171,10 +171,7 @@ def download_data():
     required=True,
 )
 def set_ref_dir(path):
-    # Load the .env file
-    load_dotenv(dotenv_path=get_cosap_dotenv())
 
-    # Check if it already exists, ask for confirmation
     if existing_path := os.environ.get("COSAP_LIBRARY_PATH"):
         if input(
             f"This environment variable is already set to {existing_path}. Continue? [Y/n]: "

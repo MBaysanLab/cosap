@@ -45,7 +45,7 @@ class VCFUtils:
         if path.endswith(".gz"):
             awk_command = rf"zcat {path} | awk -F '\t' '/^#/ || $4 != $5' > {new_path}"
         else:
-            awk_command = rf"awk -F '\t' '/^#/ || $4 != $5' {path} > "
+            awk_command = rf"awk -F '\t' '/^#/ || $4 != $5' {path} > {new_path}"
 
         run(["bash", "-c", awk_command], check=True)
         return new_path
@@ -102,6 +102,9 @@ class VCFUtils:
 
         if caller_type.lower() == "varnet":
             command.extend(["-GF", "AO"])
+        
+        if caller_type.lower() == "somaticsniper":
+            command.extend(["-GF", "DP4"])
 
         _ = run(command, check=True, capture_output=True, text=True)
 
@@ -137,6 +140,19 @@ class VCFUtils:
                 .split(",")
             ]
         )
+    
+    @staticmethod
+    def calculate_somaticsniper_af_ad(row: pd.Series) -> float:
+        """
+        Calculates AF from DP and DP4 columns.
+        """
+        dp = row["TUMOR.DP"]
+        dp4 = row["TUMOR.DP4"]
+        dp4 = dp4.split(",")
+        ref_counts = sum([int(i) for i in dp4[:2]])
+        alt_counts = sum([int(i) for i in dp4[2:]])
+        af = alt_counts / (alt_counts + ref_counts)
+        return af, alt_counts
 
     @staticmethod
     def get_column_mappings(vcf_df, sample_name, caller_type):
@@ -165,13 +181,27 @@ class VCFUtils:
 
             return {
                 "AF": "varscan_AF",
+                "AD": f"{sample_name}.AD",
+                "DP": f"{sample_name}.DP",
             }
-        elif caller_type == "mutect2":
+        elif caller_type in ["mutect2", "vardict"]:
             return {
                 "AF": f"{sample_name}.AF",
                 "AD": f"{sample_name}.AD",
                 "DP": f"{sample_name}.DP",
             }
+        elif caller_type == "somaticsniper":
+            for i, row in vcf_df.iterrows():
+                af,ad = VCFUtils.calculate_somaticsniper_af_ad(row)
+                vcf_df.at[i, "somaticsniper_AF"] = af
+                vcf_df.at[i, "somaticsniper_AD"] = ad
+
+            return {
+                "AF": "somaticsniper_AF",
+                "AD": "somaticsniper_AD",
+                "DP": f"{sample_name}.DP",
+            }
+
         elif caller_type == "varnet":
             return {
                 "AF": "SAMPLE.AF",
@@ -183,7 +213,7 @@ class VCFUtils:
 
     @staticmethod
     def convert_vcf_to_json(
-        path: str, caller_type: str = "mutect2", sample_name: str = "TUMOR"
+        path: str, caller_type: str = "mutect2", sample_name: str = "TUMOR", filter: str = "PASS"
     ) -> list:
         """
         Returns list of variants as json objects.
@@ -193,6 +223,8 @@ class VCFUtils:
 
         variants_table = VCFUtils.convert_vcf_to_tsv(path, caller_type)
         vcf_df = pd.read_csv(variants_table, sep="\t")
+
+        vcf_df = vcf_df[vcf_df["FILTER"] == filter]
 
         vcf_df.columns = vcf_df.columns.str.upper()
         sample_name = sample_name.upper()

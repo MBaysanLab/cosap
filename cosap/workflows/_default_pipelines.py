@@ -3,7 +3,7 @@ from itertools import groupby, product
 from typing import List, Tuple
 
 from ..pipeline_builder import *
-from ..runners import PipelineRunner
+from ..runners.pipeline_runner import PipelineRunner
 
 STRUCTURAL_VARIANT_CALLERS = ["manta"]
 SV_ANNOTATORS = ["annotsv"]

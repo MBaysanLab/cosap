@@ -1,6 +1,6 @@
 from typing import Dict
 
-from .runners import PipelineRunner
+from .runners.pipeline_runner import PipelineRunner
 
 
 class Cosap:

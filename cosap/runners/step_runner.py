@@ -2,7 +2,7 @@ from concurrent.futures import ProcessPoolExecutor
 from functools import partial
 from subprocess import run
 
-from ..._config import AppConfig
+from .._config import AppConfig
 
 
 def run_command_parallel(commands: list, cwd: str = None):

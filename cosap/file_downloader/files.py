@@ -199,9 +199,9 @@ downloadable_files = [
                      requiring_steps={}
                      ),
     DownloadableFile(filename="msisensor_hg38.list",
-                     url="https://raw.githubusercontent.com/xjtu-omics/msisensor-pro/master/data/GRCh38.baseline_TCGA.tsv",
-                     size=872107,
-                     md5="58d61c121081564f68b945dbfe7b1268",
+                     url="https://raw.githubusercontent.com/xjtu-omics/msisensor-pro/3f8fa770f1cb329a49549750ac171f824c8dcadd/data/GRCh38.baseline_TCGA-v1.3.tsv",
+                     size=889492,
+                     md5="40d4e2f78b1fad4aa4e46fe4277473bc",
                      requiring_steps={}
                      ),
 ]

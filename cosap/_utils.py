@@ -60,9 +60,9 @@ def rename_columns_varnet(vcf_df, sample_name):
 
 
 def convert_vcf_to_json(
-    path: str, caller_type: str = "mutect", sample_name: str = "TUMOR"
+    path: str, caller_type: str = "mutect", sample_name: str = "TUMOR", filter: str = "PASS"
 ) -> list:
-    return VCFUtils.convert_vcf_to_json(path, caller_type, sample_name)
+    return VCFUtils.convert_vcf_to_json(path, caller_type, sample_name, filter)
 
 
 def is_valid_path(path: str) -> bool:

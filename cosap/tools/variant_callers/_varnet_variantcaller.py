@@ -63,8 +63,7 @@ class VarNetVariantCaller(_Callable, _VariantCaller):
 
         tumor_sample_name = cls._get_tumor_sample_name(caller_config)
 
-        output_file = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
-        output_dir, _ = os.path.split(output_file)
+        output_dir = caller_config[VariantCallingKeys.OUTPUT_DIR]
 
         if variant_type not in cls.valid_variant_types:
             raise ValueError(f"Unexpected variant_type: Expected one of {cls.valid_variant_types}, got {variant_type}.")
@@ -158,10 +157,9 @@ class VarNetVariantCaller(_Callable, _VariantCaller):
         library_paths = LibraryPaths()
         app_config = AppConfig()
 
-        output_dir = os.path.abspath(
-            os.path.dirname(caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT])
-        )
-        workdir = Path(output_dir).parent.parent
+        output_dir = Path(
+            caller_config[VariantCallingKeys.OUTPUT_DIR]
+        ).absolute()
 
         for variant_type in cls.valid_variant_types:
             varnet_filter_command = cls._create_filter_command(
@@ -183,19 +181,22 @@ class VarNetVariantCaller(_Callable, _VariantCaller):
             docker_runner.run(
                 DockerImages.VARNET,
                 " ".join(varnet_filter_command),
-                workdir=str(workdir)
+                workdir=str(output_dir.parent.parent),
+                paths_to_bind=["/mnt/hdd2tb/ll_data/"]
             )
 
             docker_runner.run(
                 DockerImages.VARNET,
                 " ".join(varnet_predict_command),
-                workdir=str(workdir)
+                workdir=str(output_dir.parent.parent),
+                paths_to_bind=["/mnt/hdd2tb/ll_data/"]
             )
 
             docker_runner.run(
                 DockerImages.VARNET,
                 " ".join(varnet_output_rename_command),
-                workdir=str(workdir)
+                workdir=str(output_dir.parent.parent),
+                paths_to_bind=["/mnt/hdd2tb/ll_data/"]
             )
 
             cls._move_vcf(

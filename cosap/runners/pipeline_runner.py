@@ -9,7 +9,7 @@ from ..tools.mappers import MapperFactory
 from ..tools.preprocessors import (BamIndexer, BaseRecalibrator, MarkDuplicate,
                                    SamtoolsSorter)
 from ..tools.variant_callers import VariantCallerFactory
-from ._snakemake_runner import SnakemakeRunner
+from .snakemake_runner import SnakemakeRunner
 
 
 class PipelineRunner:

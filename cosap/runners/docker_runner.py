@@ -3,7 +3,7 @@ from typing import Union
 
 import docker
 
-from ..._config import AppConfig
+from .._config import AppConfig
 
 
 class DockerRunner:
@@ -59,7 +59,6 @@ class DockerRunner:
             working_dir=workdir,
             volumes=volumes,
             volumes_from=volumes_from,
-            remove=True,
             detach=True,
             init=True,
             restart_policy={"Name": "no"},
