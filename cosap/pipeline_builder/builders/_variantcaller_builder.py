@@ -64,7 +64,7 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
         sample_name = str(ps.communicate()[0])
         return str(sample_name)
 
-    def get_config(self) -> Dict:
+    def get_config(self, core_only: bool = False) -> Dict:
         unfiltered_variants_output_filename = FileFormats.GATK_UNFILTERED_OUTPUT.format(
             identification=self.name
         )
@@ -109,6 +109,8 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
         if self.bed_file is not None:
             vc_config[self.name][VariantCallingKeys.BED_FILE] = self.bed_file
 
+        if core_only:
+            return vc_config[self.name]
         config = {self.key: vc_config}
         return config
 

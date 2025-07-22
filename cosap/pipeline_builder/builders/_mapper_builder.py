@@ -84,8 +84,10 @@ class Mapper(_IPipelineStep, _PipelineStep):
             self.output_dir, config[self.key][self.name][MappingKeys.OUTPUT]
         )
 
-    def get_config(self) -> Dict:
+    def get_config(self, core_only: bool = False) -> Dict:
         mapping_config = self._create_config()
+        if core_only:
+            return mapping_config[self.name]
         config = {
             self.key: mapping_config,
         }

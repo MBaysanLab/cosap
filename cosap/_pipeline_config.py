@@ -17,6 +17,7 @@ class PipelineKeys:
     TRIM: str = "trim"
     CALIBRATE: str = "calibrate"
     ELPREP_PROCESS: str = "elprep"
+    LIFTOVER: str = "liftover"
     VARIANT_CALLING: str = "variant-calling"
     ANNOTATION: str = "annotation"
     QUALITY_CONTROL: str = "quality_control"
@@ -137,6 +138,11 @@ class AnnotatorKeys(PipelineBaseKeys):
 @dataclass
 class ElprepKeys(MDUPKeys, BaseRecalibratorKeys):
     pass
+
+
+@dataclass
+class LiftoverKeys(PipelineBaseKeys):
+    REJECT_OUTPUT: str = "reject_output"
 
 
 @dataclass

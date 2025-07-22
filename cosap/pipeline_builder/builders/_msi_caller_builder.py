@@ -59,7 +59,9 @@ class MSICaller(_IPipelineStep, _PipelineStep):
             self.output_dir, config[self.key][self.name][MSICallingKeys.OUTPUT]
         )
 
-    def get_config(self) -> Dict:
+    def get_config(self, core_only: bool = False) -> Dict:
         msi_caller_config = self._create_config()
+        if core_only:
+            return msi_caller_config[self.name]
         config = {self.key: msi_caller_config}
         return config

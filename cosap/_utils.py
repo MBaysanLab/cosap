@@ -58,12 +58,15 @@ def rename_columns_varnet(vcf_df, sample_name):
     return VCFUtils.get_column_mappings_varnet(vcf_df, sample_name)
 
 
+def convert_vcf_to_dict(
+    path: str, caller_type: str = None, sample_name: str = None, filter: str = "PASS"
+) -> list:
+    return VCFUtils.convert_vcf_to_dict(path, caller_type, sample_name, filter)
 
 def convert_vcf_to_json(
-    path: str, caller_type: str = "mutect", sample_name: str = "TUMOR", filter: str = "PASS"
+    path: str, caller_type: str = None, sample_name: str = None, filter: str = "PASS"
 ) -> list:
     return VCFUtils.convert_vcf_to_json(path, caller_type, sample_name, filter)
-
 
 def is_valid_path(path: str) -> bool:
     """
@@ -81,6 +84,10 @@ def get_commonpath_from_config(config: dict) -> str:
 
 def convert_list_to_ensembl_vep_input(variants: list, workdir: str) -> str:
     return VariantUtils.convert_list_to_ensembl_vep_input(variants, workdir)
+
+
+def convert_list_to_vcf_input(variants: list, workdir: str) -> str:
+    return VariantUtils.convert_list_to_vcf_input(variants, workdir)
 
 
 def convert_list_to_annovar_input(variants: list, workdir: str) -> str:

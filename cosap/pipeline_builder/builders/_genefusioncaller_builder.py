@@ -54,7 +54,9 @@ class GeneFusionCaller(_IPipelineStep, _PipelineStep):
             self.output_dir, config[self.key][self.name][GeneFusionCallingKeys.OUTPUT]
         )
 
-    def get_config(self) -> Dict:
+    def get_config(self, core_only: bool = False) -> Dict:
         genefusion_caller_config = self._create_config()
+        if core_only:
+            return genefusion_caller_config[self.name]
         config = {self.key: genefusion_caller_config}
         return config

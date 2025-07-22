@@ -25,7 +25,7 @@ RUN mkdir /app
 COPY . /app/.
 
 WORKDIR /app
-RUN mamba run --no-capture-output -n cosap pip install .
+RUN mamba run --no-capture-output -n cosap pip install --no-cache-dir .
 
 # Set environment variables
 ENV COSAP=/app

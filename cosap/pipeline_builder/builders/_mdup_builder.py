@@ -48,7 +48,9 @@ class MDUP(_IPipelineStep, _PipelineStep):
         config = self.get_config()
         return join_paths(self.output_dir, config[self.key][self.name][MDUPKeys.OUTPUT])
 
-    def get_config(self) -> Dict:
+    def get_config(self, core_only: bool = False) -> Dict:
         mdup_config = self._create_config()
+        if core_only:
+            return mdup_config[self.name]
         config = {self.key: mdup_config}
         return config

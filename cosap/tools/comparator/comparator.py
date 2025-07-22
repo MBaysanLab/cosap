@@ -5,7 +5,7 @@ import upsetplot
 from matplotlib_venn import venn2, venn3
 from sklearn.metrics import pairwise_distances
 
-from ..._utils import convert_vcf_to_json, read_vcf_into_df
+from ..._utils import convert_vcf_to_dict, read_vcf_into_df
 
 
 class VariantComparator:
@@ -30,7 +30,7 @@ class VariantComparator:
         variants_df = pd.DataFrame()
         for variant_file in self.variant_files:
             # Convert vcf to tsv
-            variants_json = convert_vcf_to_json(
+            variants_json = convert_vcf_to_dict(
                 variant_file["path"], variant_file["caller"]
             )
             df = pd.json_normalize(variants_json)

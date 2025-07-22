@@ -10,16 +10,15 @@ license = { text = "MIT license" }
 dynamic = ["version"]
 
 [tool.setuptools]
-packages = ["cosap"]
-package-dir = { "" = "." }
 include-package-data = true
 
+[tool.setuptools.packages.find]
+where = ["."]
 
 [tool.setuptools.package-data]
 "cosap" = [
     "snakemake_workflows/*",
-    "snakemake_workflows/rules/*",
-    "snakemake_workflows/*/*",
+    "snakemake_workflows/**/*",
 ]
 
 [project.scripts]

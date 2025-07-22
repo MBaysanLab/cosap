@@ -47,7 +47,9 @@ class Elprep(_IPipelineStep, _PipelineStep):
             self.output_dir, config[self.key][self.name][ElprepKeys.OUTPUT]
         )
 
-    def get_config(self) -> Dict:
+    def get_config(self, core_only: bool = False) -> Dict:
         elprep_config = self._create_config()
+        if core_only:
+            return elprep_config[self.name]
         config = {self.key: elprep_config}
         return config

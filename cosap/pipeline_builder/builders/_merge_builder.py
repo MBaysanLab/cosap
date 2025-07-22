@@ -44,7 +44,9 @@ class Merger(_IPipelineStep, _PipelineStep):
         config = self.get_config()
         return join_paths(self.output_dir, config[self.key][MergingKeys.OUTPUT])
 
-    def get_config(self) -> Dict:
+    def get_config(self, core_only: bool = False) -> Dict:
         merger_config = self._create_config()
+        if core_only:
+            return merger_config
         config = {self.key: merger_config}
         return config

@@ -4,8 +4,11 @@ import os
 import pandas as pd
 
 from .._pipeline_config import PipelineKeys
-from .._utils import (convert_list_to_annovar_input,
-                      convert_list_to_ensembl_vep_input, join_paths)
+from .._utils import (
+    convert_list_to_annovar_input,
+    convert_list_to_vcf_input,
+    join_paths,
+)
 from ..pipeline_builder.builders import Annotator, VCFReader
 from ..tools.annotators import AnnotatorFactory
 
@@ -14,6 +17,11 @@ class VariantMultipleAnnotator:
     def __init__(self, variants: list, workdir: str):
         self.variants = variants
         self.workdir = workdir
+        self.vep_input_file = None
+        self.vep_output_file = None
+        self.annovar_input_file = None
+        self.intervar_output_file = None
+        self.cancervar_output_file = None
 
     def annotate(self):
         """
@@ -22,8 +30,11 @@ class VariantMultipleAnnotator:
         Returns:
             dict: A dictionary containing the annotated variant records.
         """
-        vep_input_file = convert_list_to_ensembl_vep_input(self.variants, self.workdir)
+        vep_input_file = convert_list_to_vcf_input(self.variants, self.workdir)
         annovar_input_file = convert_list_to_annovar_input(self.variants, self.workdir)
+
+        self.vep_input_file = vep_input_file
+        self.annovar_input_file = annovar_input_file
 
         vep_input = VCFReader(filename=vep_input_file)
         annovar_input = VCFReader(filename=annovar_input_file)
@@ -32,8 +43,8 @@ class VariantMultipleAnnotator:
             library="vep",
             input_step=vep_input,
             sample_name="multiple_anotator",
-            name="multiple_anotator",
-            input_type="ensembl",
+            name="multiple_anotator_vep",
+            input_type="vcf",
             output_dir=self.workdir,
         )
         intervar_config = Annotator(
@@ -41,7 +52,7 @@ class VariantMultipleAnnotator:
             input_step=annovar_input,
             sample_name="multiple_anotator",
             input_type="AVinput",
-            name="multiple_anotator",
+            name="multiple_anotator_intervar",
             output_dir=self.workdir,
         )
         cancervar_config = Annotator(
@@ -49,7 +60,7 @@ class VariantMultipleAnnotator:
             input_step=annovar_input,
             sample_name="multiple_anotator",
             input_type="AVinput",
-            name="multiple_anotator",
+            name="multiple_anotator_cancervar",
             output_dir=self.workdir,
         )
 
@@ -58,55 +69,77 @@ class VariantMultipleAnnotator:
         cancervar_annotator = AnnotatorFactory.create("cancervar")
 
         if not os.path.exists(join_paths(self.workdir, vep_config.get_output())):
-            vep_annotator.annotate(
-                self._get_annotator_config(vep_config), workdir=self.workdir
-            )
+            vep_annotator.annotate(self._get_annotator_config(vep_config))
 
         if not os.path.exists(join_paths(self.workdir, intervar_config.get_output())):
-            intervar_annotator.annotate(
-                self._get_annotator_config(intervar_config), workdir=self.workdir
-            )
+            intervar_annotator.annotate(self._get_annotator_config(intervar_config))
 
         if not os.path.exists(join_paths(self.workdir, cancervar_config.get_output())):
-            cancervar_annotator.annotate(
-                self._get_annotator_config(cancervar_config), workdir=self.workdir
-            )
+            cancervar_annotator.annotate(self._get_annotator_config(cancervar_config))
 
-        vep_results = self._parse_ensembl_vep_results(
-            join_paths(self.workdir, vep_config.get_output())
+        self.vep_output_file = join_paths(self.workdir, vep_config.get_output())
+        self.intervar_output_file = join_paths(
+            self.workdir, intervar_config.get_output()
         )
+        self.cancervar_output_file = join_paths(
+            self.workdir, cancervar_config.get_output()
+        )
+
+    def get_results(self):
+        vep_results = self._parse_ensembl_vep_results(self.vep_output_file)
         intervar_results = self._parse_annovar_results(
-            join_paths(self.workdir, intervar_config.get_output()), subtype="intervar"
+            self.intervar_output_file, subtype="intervar"
         )
         cancervar_results = self._parse_annovar_results(
-            join_paths(self.workdir, cancervar_config.get_output()), subtype="cancervar"
+            self.cancervar_output_file, subtype="cancervar"
         )
 
         results = pd.merge(
-            vep_results,
             intervar_results,
-            on="variant_id",
-            how="outer",
-        ).merge(
             cancervar_results,
             on="variant_id",
-            how="outer",
-            suffixes=("_drop", ""),
+            how="inner",
+            suffixes=("_intervar", "_cancervar"),
+        ).merge(
+            vep_results,
+            on="variant_id",
+            how="right",
+            suffixes=("", "_vep"),
         )
 
-        results = results.drop(
-            columns=[c for c in results.columns if c.endswith("_drop")]
+        # Merge orpha, omim and interpro columns from intervar and cancervar
+        results["orpha_info"] = results["orpha_info_intervar"].combine_first(
+            results["orpha_info_cancervar"]
+        )
+        results["omim"] = results["omim_intervar"].combine_first(
+            results["omim_cancervar"]
+        )
+        results["interpro_domain"] = results["interpro_domain_intervar"].combine_first(
+            results["interpro_domain_cancervar"]
+        )
+
+        # Drop the columns that are not needed
+        results.drop(
+            columns=[
+                "orpha_info_intervar",
+                "orpha_info_cancervar",
+                "omim_intervar",
+                "omim_cancervar",
+                "interpro_domain_intervar",
+                "interpro_domain_cancervar",
+            ],
+            inplace=True,
         )
 
         # Make all columns lowercase
         results.columns = [c.lower() for c in results.columns]
         results = self._convert_null_values_to_nan(results)
 
-        # Remove temp input files
-        os.remove(vep_input_file)
-        os.remove(annovar_input_file)
+        # # Remove temp input files
+        # os.remove(self.vep_input_file)
+        # os.remove(self.annovar_input_file)
 
-        return results.to_dict(orient="records")
+        return results.to_json(orient="records")
 
     def _parse_ensembl_vep_results(self, path: str) -> pd.DataFrame:
         """
@@ -114,36 +147,62 @@ class VariantMultipleAnnotator:
         """
 
         vep_column_mapping = {
-            "variant_id": "#Uploaded_variation",
-            "ref": "REF_ALLELE",
-            "alt": "Allele",
+            "variant_id": "Uploaded_variation",
+            "chr": "#CHROM",
+            "pos": "POS",
+            "ref": "REF",
+            "alt": "ALT",
             "gene_id": "Gene",
             "gene_symbol": "SYMBOL",
             "feature": "Feature",
             "feature_type": "Feature_type",
             "consequence": "Consequence",
             "cdna_position": "cDNA_position",
+            "cds_position": "CDS_position",
             "rs_id": "Existing_variation",
             "impact": "IMPACT",
-            "hgvs_g": "HGVSg",
-            "hgvs_c": "HGVSc",
-            "hgvs_p": "HGVSp",
-            "mane_select": "MANE_SELECT",
-            "gnomad_af": "gnomADg_AF",
-            "aa_change": "Amino_acids",
+            "hgvsg": "HGVSg",
+            "hgvsc": "HGVSc",
+            "hgvsp": "HGVSp",
+            "vep_pick": "PICK",
+            "mane": "MANE",
+            "canonical": "CANONICAL",
+            "gnomadg_af": "gnomADg_AF",
+            "gnomadg_afr_af": "gnomADg_AFR_AF",
+            "gnomadg_ami_af": "gnomADg_AMI_AF",
+            "gnomadg_amr_af": "gnomADg_AMR_AF",
+            "gnomadg_asj_af": "gnomADg_ASJ_AF",
+            "gnomadg_eas_af": "gnomADg_EAS_AF",
+            "gnomadg_fin_af": "gnomADg_FIN_AF",
+            "gnomadg_mid_af": "gnomADg_MID_AF",
+            "gnomadg_nfe_af": "gnomADg_NFE_AF",
+            "gnomadg_oth_af": "gnomADg_OTH_AF",
+            "gnomadg_sas_af": "gnomADg_SAS_AF",
+            "aminoacid_change": "Amino_acids",
             "sift_score": "SIFT",
             "polyphen_score": "PolyPhen",
-            "clinical_significane": "CLIN_SIG",
+            "clinical_significance": "CLIN_SIG",
+            "alphamissense_class": "am_class",
+            "alphamissense_pathogenicity": "am_pathogenicity",
+            "pubmed": "PUBMED",
         }
 
         # Skip rows that start with ##
         df = self._read_ensembl_vcf_to_dataframe(path)
         df = df.rename(columns={v: k for k, v in vep_column_mapping.items()})
-        # df = df[[*vep_column_mapping.keys()]]ü
+
+        df = df[[col for col in vep_column_mapping.keys() if col in df.columns]]
 
         # Convert chr_pos_ref/alt to chr_pos_ref_alt
         df["variant_id"] = df["variant_id"].str.replace("/", "_")
 
+        # Convert cannonical and pick to boolean
+        df["canonical"] = df["canonical"].str.lower() == "yes"
+        df["vep_pick"] = df["vep_pick"] == "1"
+
+        # Consequence column is a list of consequences separated by &, \
+        # get first consequence since it is the most severe
+        df["consequence"] = df["consequence"].str.split("&").str[0]
         return df
 
     def _parse_annovar_results(self, path: str, subtype: str) -> pd.DataFrame:
@@ -156,12 +215,11 @@ class VariantMultipleAnnotator:
             raise ValueError(f"subtype must be one of {subtypes}")
 
         annovar_column_mapping = {
-            "gene": "Gene.ensGene",
             f"{subtype}_classification": "Classification",
             "evidence": "Evidence",
             "interpro_domain": "Interpro_domain",
             "omim": "OMIM",
-            "orphanet_info": "Orpha",
+            "orpha_info": "Orpha",
         }
         if subtype == "cancervar":
             annovar_column_mapping["cosmic"] = "cosmic91"
@@ -177,6 +235,7 @@ class VariantMultipleAnnotator:
             + "_"
             + df["Alt"].astype(str)
         )
+
         df = df.rename(columns={v: k for k, v in annovar_column_mapping.items()})
 
         df = df[["variant_id", *annovar_column_mapping.keys()]]
@@ -210,40 +269,97 @@ class VariantMultipleAnnotator:
         """
         with open(path, "r") as f:
             lines = list(f)
-            header_lines = [l for l in lines if l.startswith("##")]
-            data_lines = [l for l in lines if not l.startswith("##")]
-            df = pd.read_csv(
-                io.StringIO("".join(data_lines)),
-                sep="\t",
-            )
 
-            # Get vep fields from vcf header and add them to the dataframe
-            vep_info_field = [
-                l for l in header_lines if l.startswith("##INFO=<ID=CSQ")
-            ][0]
-            vep_fields = vep_info_field.split("Format: ")[1].split("|")
+        header_lines = [l for l in lines if l.startswith("##")]
+        data_lines = [l for l in lines if not l.startswith("##")]
+        df = pd.read_csv(
+            io.StringIO("".join(data_lines)),
+            sep="\t",
+        )
 
-            # The vep data is the last value of the INFO field
-            df_vep = (
-                df["INFO"].str.split("CSQ=", expand=True)[1].str.split("|", expand=True)
-            )
-            df_vep.columns = vep_fields
+        # Get vep fields from vcf header and add them to the dataframe
+        vep_info_field = [l for l in header_lines if l.startswith("##INFO=<ID=CSQ")][0]
+        vep_fields = vep_info_field.split("Format: ")[1].rstrip("'>\n").split("|")
 
-            df_vep["variant_id"] = (
-                df["#CHROM"]
-                + "_"
-                + df["POS"].astype(str)
-                + "_"
-                + df["REF"]
-                + "_"
-                + df["ALT"]
-            )
-            df_vep["ref"] = df["REF"]
-            df_vep["alt"] = df["ALT"]
+        # The vep data is the last value of the INFO field
+        df["INFO"] = df["INFO"].str.extract(r"CSQ=([^;]+)")[0].str.split(",")
+        df = df.explode("INFO")
+        vep_columns = df["INFO"].str.split("|", expand=True)
+        vep_columns.columns = vep_fields
+        df_vep = pd.concat([df, vep_columns], axis=1)
 
-        df_vep.reset_index(inplace=True)
+        df_vep["variant_id"] = (
+            df["#CHROM"]
+            + "_"
+            + df["POS"].astype(str)
+            + "_"
+            + df["REF"]
+            + "_"
+            + df["ALT"]
+        )
+        df_vep.reset_index(inplace=True, drop=True)
 
         return df_vep
+
+    def _read_ensemb_default_output_to_dataframe(self, vep_file: str) -> pd.DataFrame:
+        """
+        Parses the default Ensembl VEP output into a Pandas DataFrame.
+
+        Parameters:
+        vep_file (str): Path to the VEP output file.
+
+        Returns:
+        pd.DataFrame: A DataFrame containing the parsed VEP output.
+        """
+        # Read the VEP output file into a DataFrame
+        df = pd.read_csv(vep_file, sep="\t", comment="#", header=None)
+
+        # Define the column names based on the VEP output format
+        columns = [
+            "Uploaded_variation",
+            "Location",
+            "Allele",
+            "Gene",
+            "Feature",
+            "Feature_type",
+            "Consequence",
+            "cDNA_position",
+            "CDS_position",
+            "Protein_position",
+            "Amino_acids",
+            "Codons",
+            "Existing_variation",
+            "Extra",
+        ]
+
+        # Assign the column names to the DataFrame
+        df.columns = columns
+
+        # Parse the 'Extra' column into separate columns
+        extra_data = df["Extra"].str.split(";", expand=True)
+
+        # Create a dictionary to store the extra information
+        extra_dict = {}
+        for col in extra_data.columns:
+            # Split each key-value pair in the column
+            key_value = extra_data[col].str.split("=", expand=True)
+            if not key_value.empty:
+                # Extract the key and values
+                keys = key_value[0].dropna().unique()
+                for key in keys:
+                    if key:  # Ensure the key is not empty
+                        # Extract values for the current key
+                        values = key_value[key_value[0] == key][1]
+                        extra_dict[key] = values
+
+        # Add the extra information to the DataFrame
+        for key, values in extra_dict.items():
+            df[key] = values
+
+        # Drop the original 'Extra' column
+        df = df.drop(columns=["Extra"])
+
+        return df
 
     def _convert_null_values_to_nan(self, df: pd.DataFrame) -> pd.DataFrame:
         """

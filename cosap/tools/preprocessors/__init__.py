@@ -1,6 +1,7 @@
 from ._base_recalibrator import BaseRecalibrator
 from ._elprep_preprocess import ElprepPreprocess
 from ._indexer import BamIndexer
+from ._liftover_variant import LiftoverVariant
 from ._mark_duplicate import MarkDuplicate
 from ._preprocessor_factory import PreprocessorFactory
 from ._sorter import SamtoolsSorter

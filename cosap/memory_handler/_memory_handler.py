@@ -63,12 +63,7 @@ class MemoryHandler:
 
         # get index path along with bam path. the index can be either in form of .bai or .bam.bai
 
-        if os.path.exists(bam_path + ".bai"):
-            bai_path = bam_path + ".bai"
-        elif os.path.exists(os.path.splitext(bam_path)[0] + ".bai"):
-            bai_path = os.path.splitext(bam_path)[0] + ".bai"
-        else:
-            raise FileNotFoundError(f"Index file for {bam_path} not found")
+        bai_path = get_bam_index_path(bam_path)
 
         _ = self.get_path(bai_path)
         return bam_path

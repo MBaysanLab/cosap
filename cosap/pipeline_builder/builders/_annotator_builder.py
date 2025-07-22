@@ -6,18 +6,19 @@ from ..._pipeline_config import AnnotatorKeys, PipelineKeys, VariantCallingKeys
 from ..._utils import join_paths
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 from ._variantcaller_builder import VariantCaller
+from typing import Optional
 
 
 @dataclass
 class Annotator(_IPipelineStep, _PipelineStep):
     input_step: _PipelineStep
     library: str
-    sample_name: str = None
-    name: str = None
+    sample_name: Optional[str] = None
+    name: Optional[str] = None
     key: str = PipelineKeys.ANNOTATION
-    next_step: _PipelineStep = None
+    next_step: Optional[_PipelineStep] = None
     input_type: str = "vcf"
-    output_dir = None
+    output_dir: Optional[str] = None
 
     def __post_init__(self):
         if self.name is None:
@@ -51,7 +52,7 @@ class Annotator(_IPipelineStep, _PipelineStep):
             return FileFormats.ANNOTATION_OUTPUT.format(
                 identification=self.name, custom_ext="txt"
             )
-        elif self.library.lower() in ["vep", "annotsv"]:
+        elif self.library.lower() in ["annotsv"]:
             return FileFormats.ANNOTATION_OUTPUT.format(
                 identification=self.name, custom_ext="tsv"
             )
@@ -74,7 +75,7 @@ class Annotator(_IPipelineStep, _PipelineStep):
                 AnnotatorKeys.LIBRARY: self.library,
                 AnnotatorKeys.INPUT: self.input_step.get_output(),
                 AnnotatorKeys.OUTPUT: output_filename,
-                AnnotatorKeys.OUTPUT_DIR: OutputFolders.ANNOTATION,
+                AnnotatorKeys.OUTPUT_DIR: self.output_dir,
                 AnnotatorKeys.INPUT_TYPE: self.input_type,
                 AnnotatorKeys.LOG_FILE: self.log_file,
             }
@@ -90,7 +91,9 @@ class Annotator(_IPipelineStep, _PipelineStep):
             self.output_dir, config[self.key][self.name][AnnotatorKeys.OUTPUT]
         )
 
-    def get_config(self) -> Dict:
+    def get_config(self, core_only: bool = False) -> Dict:
         annotation_config = self._create_config()
+        if core_only:
+            return annotation_config[self.name]
         config = {self.key: annotation_config}
         return config

@@ -63,7 +63,9 @@ class CNVCaller(_IPipelineStep, _PipelineStep):
             self.output_dir, config[self.key][self.name][CNVCallingKeys.OUTPUT]
         )
 
-    def get_config(self) -> Dict:
+    def get_config(self, core_only: bool = False) -> Dict:
         cnv_caller_config = self._create_config()
+        if core_only:
+            return cnv_caller_config[self.name]
         config = {self.key: cnv_caller_config}
         return config

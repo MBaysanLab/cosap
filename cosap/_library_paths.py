@@ -82,6 +82,7 @@ class _LibraryPaths38(_LibraryPaths):
     )
     BWA_ASSEMBLY: str = _get_file_path_hg38("Homo_sapiens_assembly38.fasta")
     BOWTIE2_ASSEMBLY: str = _get_file_path_hg38("Homo_sapiens_assembly38")
+    CHAIN_FILE: str = _get_file_path_hg38("hg19ToHg38.over.chain.gz")
 
 
 @dataclass

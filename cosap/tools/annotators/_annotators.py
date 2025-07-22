@@ -40,12 +40,13 @@ class _Annotatable:
         """
         Creates output directory for annotator.
         """
-        output_dir = os.path.dirname(annotator_config[AnnotatorKeys.OUTPUT])
+        library = annotator_config[AnnotatorKeys.LIBRARY]
+        output_dir = annotator_config[AnnotatorKeys.OUTPUT_DIR]
         if workdir:
             output_dir = os.path.join(workdir, output_dir)
         else:
             output_dir = os.path.abspath(output_dir)
 
-        print(f"Creating output directory: {output_dir}")
+        print(f"Creating output directory for {library} annotator: {output_dir}")
         os.makedirs(output_dir, exist_ok=True)
         return output_dir

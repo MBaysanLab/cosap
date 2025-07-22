@@ -63,7 +63,9 @@ class QualityController(_IPipelineStep, _PipelineStep):
             self.output_dir, config[self.key][self.name][QualityControlKeys.OUTPUT]
         )
 
-    def get_config(self) -> Dict:
+    def get_config(self, core_only: bool = False) -> Dict:
         quality_controller_config = self._create_config()
+        if core_only:
+            return quality_controller_config[self.name]
         config = {self.key: quality_controller_config}
         return config

@@ -22,6 +22,8 @@ class FileFormats:
     INDEL_OUTPUT: str = r"indel_{identification}.vcf.gz"
     OTHER_VARIANTS_OUTPUT: str = r"other_variants_{identification}.vcf.gz"
     GVCF_OUTPUT: str = r"{identification}.g.vcf.gz"
+    LIFTOVER_OUTPUT: str = r"liftover_{identification}.vcf.gz"
+    LIFTOVER_REJECT_OUTPUT: str = r"liftover_reject_{identification}.vcf.gz"
     ANNOTATION_OUTPUT: str = r"annotated_{identification}.{custom_ext}"
     ANNOVAR_OUTPUT: str = r"annovar_{identification}.{sample}.avinput"
     QUALIMAP_OUTPUT: str = r"qualimap_{identification}"

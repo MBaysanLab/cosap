@@ -48,6 +48,10 @@ class Pipeline:
         pipeline_config = self._create_config()
 
         if workdir:
+            
+            if not os.path.exists(workdir):
+                raise FileNotFoundError(f"Workdir {workdir} does not exist")
+
             workdir = os.path.abspath(os.path.normpath(workdir))
             pipeline_config[PipelineKeys.WORKDIR] = workdir
 

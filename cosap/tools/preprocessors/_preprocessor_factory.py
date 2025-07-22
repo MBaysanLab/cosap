@@ -1,6 +1,7 @@
 from ._base_recalibrator import BaseRecalibrator
 from ._elprep_preprocess import ElprepPreprocess
 from ._indexer import BamIndexer
+from ._liftover_variant import LiftoverVariant
 from ._mark_duplicate import MarkDuplicate
 from ._preprocessors import _Preprocessor
 from ._sorter import SamtoolsSorter
@@ -11,6 +12,7 @@ class PreprocessorFactory:
     markduplicate = "mark_duplicate"
     indexer = "indexer"
     base_recalibrator = "base_recalibrator"
+    liftover_variant = "liftover_variant"
     merger = "merger"
     sorter = "sorter"
     trimmer = "trimmer"
@@ -26,6 +28,8 @@ class PreprocessorFactory:
             preprocessor = BamIndexer
         elif preprocessor_type == cls.base_recalibrator:
             preprocessor = BaseRecalibrator
+        elif preprocessor_type == cls.liftover_variant:
+            preprocessor = LiftoverVariant
         elif preprocessor_type == cls.sorter:
             preprocessor = SamtoolsSorter
         elif preprocessor_type == cls.trimmer:

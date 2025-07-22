@@ -136,6 +136,7 @@ def parse_qualimap_genome_results(path: str) -> dict:
         "mean_mapping_quality": r"mean mapping quality = ([\d,\.]+)",
         "general_error_rate": r"general error rate = ([\d,\.]+)",
         "mean_coverage": r"mean coverageData = ([\d,\.]+)",
+        "duplication_rate": r"duplication rate = ([\d,\.]+)",
     }
     d = dict()
     for k, r in regexes.items():
@@ -151,10 +152,11 @@ def parse_qualimap_genome_results(path: str) -> dict:
 
     results_dict["total_reads"] = d["total_reads"]
     results_dict["mapped_reads"] = d["mapped_reads"]
-    d["percentage_aligned"] = round((d["mapped_reads"] / d["total_reads"]) * 100, 2)
-    results_dict["percentage_aligned"] = d["percentage_aligned"]
+    d["mapped_reads_percent"] = round((d["mapped_reads"] / d["total_reads"]) * 100, 2)
+    results_dict["mapped_reads_percent"] = d["mapped_reads_percent"]
     results_dict["general_error_rate"] = d["general_error_rate"]
     results_dict["mean_coverage"] = int(d["mean_coverage"])
+    results_dict["duplication_rate"] = d["duplication_rate"]
 
     return results_dict
 

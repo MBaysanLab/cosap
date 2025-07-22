@@ -11,7 +11,7 @@ class _IPipelineStep(ABC):
         pass
 
     @abstractmethod
-    def get_config(self) -> Dict:
+    def get_config(self, core_only: bool = False) -> Dict:
         pass
 
 

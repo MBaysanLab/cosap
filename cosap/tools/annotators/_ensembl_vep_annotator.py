@@ -9,7 +9,7 @@ from ..._pipeline_config import AnnotatorKeys
 from ..._utils import join_paths
 from ...runners.docker_runner import DockerRunner
 from ._annotators import _Annotatable, _Annotator
-
+import os
 
 class VepAnnotator(_Annotatable, _Annotator):
     @classmethod
@@ -37,15 +37,20 @@ class VepAnnotator(_Annotatable, _Annotator):
             join_paths(library_paths.ENSEMBL_VEP, "cache"),
             "--cache",
             "--offline",
-            "--vcf",
             "-e",
             "--fork",
             str(app_config.MAX_THREADS_PER_JOB),
             "--force_overwrite",
             "--show_ref_allele",
-            "--pick",
+            "--flag_pick",
+            "--hgvsg",
+            "--hgvsg_use_accession",
             "--cache_version",
-            "109",
+            app_config.VEP_CACHE_VERSION,
+            "--plugin",
+            f"AlphaMissense,file={join_paths(library_paths.ENSEMBL_VEP, 'AlphaMissense_hg38.tsv.gz')},pathogenicity_cutoff=0.5",
+            "--no_stats",
+            "--vcf",
         ]
         return command
 
@@ -53,19 +58,18 @@ class VepAnnotator(_Annotatable, _Annotator):
     def annotate(cls, annotator_config: Dict):
         library_paths = LibraryPaths()
         app_config = AppConfig()
-        workdir = annotator_config[AnnotatorKeys.OUTPUT_DIR]
 
-        output_dir = cls.create_output_dir(annotator_config, workdir=workdir)
+        output_dir = cls.create_output_dir(annotator_config)
 
         # Change the read/write permissions of the output directory
-        run(["chmod", "-R", "a+rwx", output_dir], cwd=workdir)
+        run(["chmod", "-R", "a+rwx", output_dir])
 
         # Change the read/write permissions of the input file
-        run(["chmod", "a+rwx", annotator_config[AnnotatorKeys.INPUT]], cwd=workdir)
+        run(["chmod", "a+rwx", annotator_config[AnnotatorKeys.INPUT]])
 
         runner = DockerRunner()
         runner.run(
             DockerImages.ENSEMBL_VEP,
             " ".join(cls.create_command(library_paths, app_config, annotator_config)),
-            workdir=str(Path(output_dir).parent.parent) if not workdir else workdir,
+            workdir=output_dir,
         )
