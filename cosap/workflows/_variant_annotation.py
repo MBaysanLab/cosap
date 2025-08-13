@@ -106,6 +106,16 @@ class VariantMultipleAnnotator:
             self.cancervar_output_file, subtype="cancervar"
         )
 
+        if any(vep_results.empty, intervar_results.empty, cancervar_results.empty):
+            logger.warning(
+                "One or more annotation results are empty. Returning empty DataFrame."
+            )
+            return pd.DataFrame(
+                columns=vep_results.columns
+                | intervar_results.columns
+                | cancervar_results.columns
+            )
+
         results = pd.merge(
             intervar_results,
             cancervar_results,
@@ -199,22 +209,28 @@ class VariantMultipleAnnotator:
             "pubmed": "PUBMED",
         }
 
-        # Skip rows that start with ##
-        df = self._read_ensembl_vcf_to_dataframe(path)
-        df = df.rename(columns={v: k for k, v in vep_column_mapping.items()})
+        try:
+            df = self._read_ensembl_vcf_to_dataframe(path)
+            df = df.rename(columns={v: k for k, v in vep_column_mapping.items()})
 
-        df = df[[col for col in vep_column_mapping.keys() if col in df.columns]]
+            df = df[[col for col in vep_column_mapping.keys() if col in df.columns]]
 
-        # Convert chr_pos_ref/alt to chr_pos_ref_alt
-        df["variant_id"] = df["variant_id"].str.replace("/", "_")
+            # Convert chr_pos_ref/alt to chr_pos_ref_alt
+            df["variant_id"] = df["variant_id"].str.replace("/", "_")
 
-        # Convert cannonical and pick to boolean
-        df["canonical"] = df["canonical"].str.lower() == "yes"
-        df["vep_pick"] = df["vep_pick"] == "1"
+            # Convert cannonical and pick to boolean
+            df["canonical"] = df["canonical"].str.lower() == "yes"
+            df["vep_pick"] = df["vep_pick"] == "1"
 
-        # Consequence column is a list of consequences separated by &, \
-        # get first consequence since it is the most severe
-        df["consequence"] = df["consequence"].str.split("&").str[0]
+            # Consequence column is a list of consequences separated by &, \
+            # get first consequence since it is the most severe
+            df["consequence"] = df["consequence"].str.split("&").str[0]
+        except Exception as e:
+            logger.error(f"Error parsing VEP results: {e}")
+
+            # Return an empty DataFrame if parsing fails
+            return pd.DataFrame(columns=vep_column_mapping.keys())
+
         return df
 
     def _parse_annovar_results(self, path: str, subtype: str) -> pd.DataFrame:
@@ -236,21 +252,28 @@ class VariantMultipleAnnotator:
         if subtype == "cancervar":
             annovar_column_mapping["cosmic"] = "cosmic91"
 
-        df = pd.read_csv(path, sep="\t", dtype={"#Uploaded_variation": str})
-        df["variant_id"] = (
-            "chr"
-            + df["#Chr"].astype(str)
-            + "_"
-            + df["Start"].astype(str)
-            + "_"
-            + df["Ref"].astype(str)
-            + "_"
-            + df["Alt"].astype(str)
-        )
+        try:
+            df = pd.read_csv(path, sep="\t", dtype={"#Uploaded_variation": str})
+            df["variant_id"] = (
+                "chr"
+                + df["#Chr"].astype(str)
+                + "_"
+                + df["Start"].astype(str)
+                + "_"
+                + df["Ref"].astype(str)
+                + "_"
+                + df["Alt"].astype(str)
+            )
 
-        df = df.rename(columns={v: k for k, v in annovar_column_mapping.items()})
+            df = df.rename(columns={v: k for k, v in annovar_column_mapping.items()})
 
-        df = df[["variant_id", *annovar_column_mapping.keys()]]
+            df = df[["variant_id", *annovar_column_mapping.keys()]]
+
+        except Exception as e:
+            logger.error(f"Error parsing {subtype} results: {e}")
+
+            # Return an empty DataFrame if parsing fails
+            return pd.DataFrame(columns=["variant_id", *annovar_column_mapping.keys()])
 
         return df
 
@@ -284,6 +307,10 @@ class VariantMultipleAnnotator:
 
         header_lines = [l for l in lines if l.startswith("##")]
         data_lines = [l for l in lines if not l.startswith("##")]
+
+        if not data_lines:
+            raise ValueError("No data lines found in the vep VCF file.")
+
         df = pd.read_csv(
             io.StringIO("".join(data_lines)),
             sep="\t",
