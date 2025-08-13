@@ -5,7 +5,6 @@ from datetime import datetime
 from typing import Dict
 
 from .._config import AppConfig
-from .._formats import FileFormats
 from .._pipeline_config import PipelineKeys
 from .._version import version
 from .builders import _PipelineStep
@@ -48,7 +47,6 @@ class Pipeline:
         pipeline_config = self._create_config()
 
         if workdir:
-            
             if not os.path.exists(workdir):
                 raise FileNotFoundError(f"Workdir {workdir} does not exist")
 

@@ -100,5 +100,5 @@ class MemoryHandler:
         for dir in self.opened_dirs.copy():
             dir.cleanup()
             self.opened_dirs.remove(dir)
-        
+
         self.temp_dir = None

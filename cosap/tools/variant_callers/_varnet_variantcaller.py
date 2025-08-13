@@ -1,4 +1,3 @@
-import os
 import shutil
 from pathlib import Path
 
@@ -31,24 +30,34 @@ class VarNetVariantCaller(_Callable, _VariantCaller):
 
     @classmethod
     def _get_thread_count(cls, app_config: AppConfig, memory_per_thread: int) -> int:
-        available_memory = 0.9 * current_available_system_memory()  # Tolerate minor fluctuations
+        available_memory = (
+            0.9 * current_available_system_memory()
+        )  # Tolerate minor fluctuations
 
         maximum_acceptable_thread_count = available_memory // memory_per_thread
 
-        target_thread_count = min(maximum_acceptable_thread_count, app_config.MAX_THREADS_PER_JOB)
+        target_thread_count = min(
+            maximum_acceptable_thread_count, app_config.MAX_THREADS_PER_JOB
+        )
 
         if target_thread_count == 0:
             available_memory_GB = int(available_memory // cls.GIGABYTE)
             memory_per_thread_GB = int(memory_per_thread // cls.GIGABYTE)
-            raise ResourceWarning(f"Insufficient system memory. "
-                                  f"Minimum Required: {memory_per_thread_GB}GB, "
-                                  f"Current Available: {available_memory_GB}GB")
+            raise ResourceWarning(
+                f"Insufficient system memory. "
+                f"Minimum Required: {memory_per_thread_GB}GB, "
+                f"Current Available: {available_memory_GB}GB"
+            )
 
         return int(target_thread_count)
-    
+
     @classmethod
     def _populate_common_arguments(
-        cls, caller_config: dict, library_paths: LibraryPaths, app_config: AppConfig, variant_type: str
+        cls,
+        caller_config: dict,
+        library_paths: LibraryPaths,
+        app_config: AppConfig,
+        variant_type: str,
     ) -> list:
         germline_bam = (
             caller_config[VariantCallingKeys.GERMLINE_INPUT]
@@ -66,22 +75,33 @@ class VarNetVariantCaller(_Callable, _VariantCaller):
         output_dir = caller_config[VariantCallingKeys.OUTPUT_DIR]
 
         if variant_type not in cls.valid_variant_types:
-            raise ValueError(f"Unexpected variant_type: Expected one of {cls.valid_variant_types}, got {variant_type}.")
+            raise ValueError(
+                f"Unexpected variant_type: Expected one of {cls.valid_variant_types}, got {variant_type}."
+            )
 
         common_arguments = [
-            "--sample_name", tumor_sample_name,
-            "--normal_bam", germline_bam,
-            "--tumor_bam", tumor_bam,
-            "--output_dir", output_dir,
-            "--reference", library_paths.REF_FASTA,
-            f"-{variant_type}"
+            "--sample_name",
+            tumor_sample_name,
+            "--normal_bam",
+            germline_bam,
+            "--tumor_bam",
+            tumor_bam,
+            "--output_dir",
+            output_dir,
+            "--reference",
+            library_paths.REF_FASTA,
+            f"-{variant_type}",
         ]
-        
+
         return common_arguments
-    
+
     @classmethod
     def _create_filter_command(
-        cls, caller_config: dict, library_paths: LibraryPaths, app_config: AppConfig, variant_type: str = "snv"
+        cls,
+        caller_config: dict,
+        library_paths: LibraryPaths,
+        app_config: AppConfig,
+        variant_type: str = "snv",
     ) -> list:
         varnet_filter_script = "/VarNet/filter.py"  # Location within Docker container
 
@@ -91,14 +111,20 @@ class VarNetVariantCaller(_Callable, _VariantCaller):
             else None
         )
 
-        thread_count = cls._get_thread_count(app_config, memory_per_thread=cls.FILTER_THREAD_MEMORY)
+        thread_count = cls._get_thread_count(
+            app_config, memory_per_thread=cls.FILTER_THREAD_MEMORY
+        )
 
-        common_arguments = cls._populate_common_arguments(caller_config, library_paths, app_config, variant_type)
+        common_arguments = cls._populate_common_arguments(
+            caller_config, library_paths, app_config, variant_type
+        )
 
         command = [
-            "python", varnet_filter_script,
+            "python",
+            varnet_filter_script,
             *common_arguments,
-            "--processes", str(thread_count)
+            "--processes",
+            str(thread_count),
         ]
         if bed_file is not None:
             command.extend(["--region_bed", bed_file])
@@ -106,48 +132,63 @@ class VarNetVariantCaller(_Callable, _VariantCaller):
 
     @classmethod
     def _create_predict_command(
-        cls, caller_config: dict, library_paths: LibraryPaths, app_config: AppConfig, variant_type: str = "snv"
+        cls,
+        caller_config: dict,
+        library_paths: LibraryPaths,
+        app_config: AppConfig,
+        variant_type: str = "snv",
     ) -> list:
         varnet_predict_script = "/VarNet/predict.py"  # Location within Docker container
 
-        thread_count = cls._get_thread_count(app_config, memory_per_thread=cls.PREDICT_THREAD_MEMORY)
+        thread_count = cls._get_thread_count(
+            app_config, memory_per_thread=cls.PREDICT_THREAD_MEMORY
+        )
 
-        common_arguments = cls._populate_common_arguments(caller_config, library_paths, app_config, variant_type)
+        common_arguments = cls._populate_common_arguments(
+            caller_config, library_paths, app_config, variant_type
+        )
 
         command = [
-            "python", varnet_predict_script,
+            "python",
+            varnet_predict_script,
             *common_arguments,
-            "--processes", str(thread_count)
+            "--processes",
+            str(thread_count),
         ]
         return command
-    
-    @classmethod
-    def _create_rename_output_vcf_command(cls, caller_config: dict, variant_type: str = "snv"):
-            
-            tumor_sample_name = cls._get_tumor_sample_name(caller_config)
-
-            varnet_output_vcf = f"VCF/varnet/{tumor_sample_name}/{tumor_sample_name}.vcf"
-            varnet_renamed_output_vcf =  f"VCF/varnet/{tumor_sample_name}/{tumor_sample_name}.{variant_type}.vcf"
-
-            return ["mv", varnet_output_vcf, varnet_renamed_output_vcf]
 
     @classmethod
-    def _move_vcf(
+    def _create_rename_output_vcf_command(
         cls, caller_config: dict, variant_type: str = "snv"
-    ) -> list:
+    ):
         tumor_sample_name = cls._get_tumor_sample_name(caller_config)
 
-        source_vcf_path = f"VCF/varnet/{tumor_sample_name}/{tumor_sample_name}.{variant_type}.vcf"
+        varnet_output_vcf = f"VCF/varnet/{tumor_sample_name}/{tumor_sample_name}.vcf"
+        varnet_renamed_output_vcf = (
+            f"VCF/varnet/{tumor_sample_name}/{tumor_sample_name}.{variant_type}.vcf"
+        )
+
+        return ["mv", varnet_output_vcf, varnet_renamed_output_vcf]
+
+    @classmethod
+    def _move_vcf(cls, caller_config: dict, variant_type: str = "snv") -> list:
+        tumor_sample_name = cls._get_tumor_sample_name(caller_config)
+
+        source_vcf_path = (
+            f"VCF/varnet/{tumor_sample_name}/{tumor_sample_name}.{variant_type}.vcf"
+        )
 
         if variant_type not in cls.valid_variant_types:
-            raise ValueError(f"Unexpected variant_type: Expected one of {cls.valid_variant_types}, got {variant_type}.")
+            raise ValueError(
+                f"Unexpected variant_type: Expected one of {cls.valid_variant_types}, got {variant_type}."
+            )
 
         if variant_type == "snv":
             destination_vcf_path = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
-        
+
         if variant_type == "indel":
             destination_vcf_path = caller_config[VariantCallingKeys.INDEL_OUTPUT]
-            
+
         with open(source_vcf_path, "rb") as source_vcf:
             with open(destination_vcf_path, "wb") as destination_vcf:
                 shutil.copyfileobj(source_vcf, destination_vcf)
@@ -157,49 +198,46 @@ class VarNetVariantCaller(_Callable, _VariantCaller):
         library_paths = LibraryPaths()
         app_config = AppConfig()
 
-        output_dir = Path(
-            caller_config[VariantCallingKeys.OUTPUT_DIR]
-        ).absolute()
+        output_dir = Path(caller_config[VariantCallingKeys.OUTPUT_DIR]).absolute()
 
         for variant_type in cls.valid_variant_types:
             varnet_filter_command = cls._create_filter_command(
                 caller_config=caller_config,
                 library_paths=library_paths,
                 app_config=app_config,
-                variant_type=variant_type
+                variant_type=variant_type,
             )
             varnet_predict_command = cls._create_predict_command(
                 caller_config=caller_config,
                 library_paths=library_paths,
                 app_config=app_config,
-                variant_type=variant_type
+                variant_type=variant_type,
             )
 
-            varnet_output_rename_command = cls._create_rename_output_vcf_command(caller_config, variant_type)
+            varnet_output_rename_command = cls._create_rename_output_vcf_command(
+                caller_config, variant_type
+            )
 
             docker_runner = DockerRunner(device=device)
             docker_runner.run(
                 DockerImages.VARNET,
                 " ".join(varnet_filter_command),
                 workdir=str(output_dir.parent.parent),
-                paths_to_bind=["/mnt/hdd2tb/ll_data/"]
+                paths_to_bind=["/mnt/hdd2tb/ll_data/"],
             )
 
             docker_runner.run(
                 DockerImages.VARNET,
                 " ".join(varnet_predict_command),
                 workdir=str(output_dir.parent.parent),
-                paths_to_bind=["/mnt/hdd2tb/ll_data/"]
+                paths_to_bind=["/mnt/hdd2tb/ll_data/"],
             )
 
             docker_runner.run(
                 DockerImages.VARNET,
                 " ".join(varnet_output_rename_command),
                 workdir=str(output_dir.parent.parent),
-                paths_to_bind=["/mnt/hdd2tb/ll_data/"]
+                paths_to_bind=["/mnt/hdd2tb/ll_data/"],
             )
 
-            cls._move_vcf(
-                caller_config=caller_config,
-                variant_type=variant_type
-            )
+            cls._move_vcf(caller_config=caller_config, variant_type=variant_type)

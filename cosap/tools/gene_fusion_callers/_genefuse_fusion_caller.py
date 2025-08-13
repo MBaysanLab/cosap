@@ -4,7 +4,6 @@ from typing import Dict, List
 from ..._config import AppConfig
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import GeneFusionCallingKeys
-from ..._utils import join_paths
 from ._gene_fusion_callers import _GeneFusionCaller
 
 

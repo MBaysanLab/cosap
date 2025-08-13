@@ -16,7 +16,6 @@ bcftools==1.16
 tqdm
 varscan==2.4.4
 yaml
-black
 numpy
 pillow
 pygraphviz

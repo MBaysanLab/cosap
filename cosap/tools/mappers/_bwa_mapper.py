@@ -89,7 +89,6 @@ class BWAMapper(_Mapper, _Mappable):
         library_paths: LibraryPaths,
         read_group: str = None,
     ) -> List:
-
         fastq_inputs = [
             convert_to_absolute_path(fastq)
             for fastq in mapper_config[MappingKeys.INPUT].values()
@@ -157,7 +156,7 @@ class BWAMapper(_Mapper, _Mappable):
             )
             if bwa.returncode != 0:
                 raise Exception(
-                    f"BWA command {*bwa_command,} failed with error: {bwa.stderr.decode('utf-8')}"
+                    f"BWA command {(*bwa_command,)} failed with error: {bwa.stderr.decode('utf-8')}"
                 )
             else:
                 print(samtools.stdout.decode("utf-8"))

@@ -2,7 +2,6 @@ import os
 from subprocess import run
 from typing import Dict, List
 
-from ..._config import AppConfig
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import AnnotatorKeys
 from ..._utils import join_paths

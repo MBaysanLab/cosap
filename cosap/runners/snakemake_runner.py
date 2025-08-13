@@ -1,5 +1,5 @@
 import multiprocessing
-import sys
+import os
 from subprocess import PIPE, Popen, check_output, run
 import psutil
 
@@ -95,37 +95,86 @@ class SnakemakeRunner:
         snakemake = self._create_snakemake_run_command()
         self._create_snakemake_report_command()
 
-        run(unlock_dir, cwd=self.workdir)
+        # Create log file path
+        log_file_path = os.path.join(self.workdir, "cosap_output.log")
+
+        # Run unlock command and log output
+        with open(log_file_path, "w") as log_file:
+            log_file.write("=== Snakemake Pipeline Execution Log ===\n\n")
+            log_file.write("1. Unlocking directory...\n")
+            log_file.flush()
+
+            unlock_result = run(
+                unlock_dir, cwd=self.workdir, capture_output=True, text=True
+            )
+            log_file.write(f"Unlock stdout: {unlock_result.stdout}\n")
+            log_file.write(f"Unlock stderr: {unlock_result.stderr}\n\n")
+
+            log_file.write("2. Creating DAG...\n")
+            log_file.flush()
+
         dag = Popen(create_dag, cwd=self.workdir, stdout=PIPE)
         print_dat_to_file = check_output(save_dag, cwd=self.workdir, stdin=dag.stdout)
         dag.wait()
-        # cont = input(("Check the DAG of the created workflow. Do you want to continue? ([y]/n)") or "y")
-        # if cont.lower() == "n":
-        #     sys.exit()
-        run(dry_run, cwd=self.workdir)
+
+        with open(log_file_path, "a") as log_file:
+            log_file.write("DAG created and saved as SVG.\n\n")
+
+            log_file.write("3. Running dry run...\n")
+            log_file.flush()
+
+        dry_run_result = run(dry_run, cwd=self.workdir, capture_output=True, text=True)
+        with open(log_file_path, "a") as log_file:
+            log_file.write(f"Dry run stdout: {dry_run_result.stdout}\n")
+            log_file.write(f"Dry run stderr: {dry_run_result.stderr}\n\n")
+
+            log_file.write("4. Running main Snakemake pipeline...\n")
+            log_file.flush()
 
         # Run and return sys output
         try:
-            snakemake_process = Popen(snakemake, cwd=self.workdir, text=True, stderr=sys.stderr)
-            snakemake_process.wait()
+            snakemake_process = Popen(
+                snakemake, cwd=self.workdir, text=True, stdout=PIPE, stderr=PIPE
+            )
+            stdout, stderr = snakemake_process.communicate()
+
+            # Save stdout and stderr to log file
+            with open(log_file_path, "a") as log_file:
+                log_file.write("Main pipeline stdout:\n")
+                log_file.write(stdout)
+                log_file.write("\nMain pipeline stderr:\n")
+                log_file.write(stderr)
+                log_file.write(f"\nReturn code: {snakemake_process.returncode}\n")
+
         except KeyboardInterrupt:
             snakemake_process.terminate()
 
-            snakemake_child_processes = psutil.Process(snakemake_process.pid).children(recursive=True)
+            snakemake_child_processes = psutil.Process(snakemake_process.pid).children(
+                recursive=True
+            )
 
             for child_process in snakemake_child_processes:
                 child_process.kill()  # Child processes do not respond to `terminate`
 
-            snakemake_child_process_pids = [process.pid for process in snakemake_child_processes]
+            snakemake_child_process_pids = [
+                process.pid for process in snakemake_child_processes
+            ]
 
-            DockerRunner.stop_all_cosap_handled_containers(pids=snakemake_child_process_pids)
+            DockerRunner.stop_all_cosap_handled_containers(
+                pids=snakemake_child_process_pids
+            )
 
             snakemake_process.wait()
-        
-        results = snakemake_process
+
+            # Log the interruption
+            with open(log_file_path, "a") as log_file:
+                log_file.write("\nPipeline execution was interrupted by user.\n")
+
+            stdout, stderr = "", ""
 
         return {
-            "stdout": results.stdout,
-            "stderr": results.stderr,
-            "returncode": results.returncode,
+            "stdout": stdout,
+            "stderr": stderr,
+            "returncode": snakemake_process.returncode,
+            "log_file": log_file_path,
         }

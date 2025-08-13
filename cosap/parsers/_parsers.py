@@ -1,10 +1,9 @@
 import os
 import re
 from abc import ABC, abstractmethod
-from glob import glob
 
 from .._pipeline_config import *
-from .._utils import convert_vcf_to_json, join_paths, read_vcf_into_df
+from .._utils import convert_vcf_to_json, join_paths
 
 
 class _Parser(ABC):
@@ -70,7 +69,6 @@ class ProjectResultsParser:
         )
 
     def _get_variants(self):
-
         # If there is variant caller in the pipeline config, parse the VCF
         if PipelineKeys.VARIANT_CALLING in self.pipeline_config:
             variant_caller_config = self.pipeline_config[PipelineKeys.VARIANT_CALLING][

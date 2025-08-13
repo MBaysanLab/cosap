@@ -23,7 +23,6 @@ class VariantUtils:
                 mode="w", delete=False, suffix=".txt", dir=output_dir
             ) as f:
                 for variant in variants:
-
                     end = variant["POS"] + len(variant["REF"]) - 1
                     f.write(
                         f"{variant['CHROM']}\t{variant['POS']}\t{end}\t{variant['REF']}/{variant['ALT']}\t+\n"
@@ -65,7 +64,6 @@ class VariantUtils:
             print(f"Permission denied to create directory: {output_dir}")
         except OSError as e:
             print(f"Error creating directory or file: {e}")
-
 
     @staticmethod
     def convert_list_to_annovar_input(variants: list, output_dir: str) -> str:

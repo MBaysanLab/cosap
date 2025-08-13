@@ -46,7 +46,6 @@ class VCFUtils:
 
     @staticmethod
     def remove_same_ref_alt_alleles(path: str):
-
         new_path = path + ".removed_same_ref_alt.vcf"
         if path.endswith(".gz"):
             awk_command = rf"zcat {path} | awk -F '\t' '/^#/ || $4 != $5' > {new_path}"
@@ -404,67 +403,87 @@ class VCFUtils:
         """
         Extracts the variant caller from the VCF file using multiple detection methods
         with the pysam library for robust and efficient parsing.
-        
+
         Args:
             vcf_path: The path to the VCF file.
-            
+
         Returns:
             The name of the variant caller as a string (e.g., "mutect", "varscan")
             or None if no caller can be identified.
         """
         # List of known caller identifiers
         KNOWN_CALLERS = [
-            "mutect", "varscan", "vardict", "haplotypecaller",
-            "strelka", "varnet", "freebayes"
+            "mutect",
+            "varscan",
+            "vardict",
+            "haplotypecaller",
+            "strelka",
+            "varnet",
+            "freebayes",
         ]
-        
+
         try:
             with pysam.VariantFile(vcf_path) as vcf_file:
                 # Method 1: Check '##source' header lines
                 for record in vcf_file.header.records:
-                    if record.key == 'source':
+                    if record.key == "source":
                         source_value = str(record.value).lower()
-                        
+
                         for caller in KNOWN_CALLERS:
                             if caller in source_value:
                                 return caller
                         break
-                
+
                 # Method 2: Check command line information in header
                 for record in vcf_file.header.records:
-                    if hasattr(record, 'key') and record.key in ['command', 'commandline']:
+                    if hasattr(record, "key") and record.key in [
+                        "command",
+                        "commandline",
+                    ]:
                         command_value = str(record.value).lower()
                         for caller in KNOWN_CALLERS:
                             if caller in command_value:
                                 return caller
-                
+
                 # Method 3: Check other header records for caller names
                 header_text = str(vcf_file.header).lower()
                 for caller in KNOWN_CALLERS:
                     if caller in header_text:
                         return caller
-                
+
                 # Method 4: Use signatures specifically for haplotypecaller vs mutect distinction
-                info_fields = set(field.lower() for field in vcf_file.header.info.keys())
-                format_fields = set(field.lower() for field in vcf_file.header.formats.keys())
-                filter_fields = set(field.lower() for field in vcf_file.header.filters.keys())
-                
+                info_fields = set(
+                    field.lower() for field in vcf_file.header.info.keys()
+                )
+                format_fields = set(
+                    field.lower() for field in vcf_file.header.formats.keys()
+                )
+                filter_fields = set(
+                    field.lower() for field in vcf_file.header.filters.keys()
+                )
+
                 # Check for definitive signatures to distinguish haplotypecaller vs mutect
                 if "tlod" in info_fields:  # Tumor LOD - unique to Mutect2
                     return "mutect"
-                elif "min_dp" in format_fields:  # GVCF field - unique to HaplotypeCaller
+                elif (
+                    "min_dp" in format_fields
+                ):  # GVCF field - unique to HaplotypeCaller
                     return "haplotypecaller"
-                elif "rgq" in format_fields:  # Reference genotype quality - HaplotypeCaller
+                elif (
+                    "rgq" in format_fields
+                ):  # Reference genotype quality - HaplotypeCaller
                     return "haplotypecaller"
                 elif "germq" in info_fields:  # Germline quality - Mutect2
                     return "mutect"
                 elif "failed_hc_filter" in filter_fields:  # Specific HC filter
                     return "haplotypecaller"
-                elif "strand_bias" in filter_fields and "weak_evidence" in filter_fields:  # Mutect2 filters
+                elif (
+                    "strand_bias" in filter_fields and "weak_evidence" in filter_fields
+                ):  # Mutect2 filters
                     return "mutect"
-                                
+
         except (IOError, ValueError, AttributeError) as e:
             logger.error(f"Error reading VCF file {vcf_path}: {e}")
             return None
-        
+
         return None

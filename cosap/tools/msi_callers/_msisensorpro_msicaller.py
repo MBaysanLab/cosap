@@ -3,7 +3,7 @@ from subprocess import run
 from ..._config import AppConfig
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import MSICallingKeys
-from ..._utils import convert_to_absolute_path, join_paths
+from ..._utils import convert_to_absolute_path
 from ._msi_callers import _MSICaller
 
 

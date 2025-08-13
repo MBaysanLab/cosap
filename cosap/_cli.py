@@ -1,15 +1,23 @@
 import os
 
 import click
-from dotenv import load_dotenv, set_key
+from dotenv import set_key
 
 from ._config import get_cosap_dotenv
 from ._formats import FileFormats
 from ._utils import join_paths
 from .file_downloader import FileDownloader
-from .pipeline_builder.builders import (MDUP, BamReader, FastqReader, Mapper,
-                                        Merger, Recalibrator, Sorter, Trimmer,
-                                        VariantCaller)
+from .pipeline_builder.builders import (
+    MDUP,
+    BamReader,
+    FastqReader,
+    Mapper,
+    Merger,
+    Recalibrator,
+    Sorter,
+    Trimmer,
+    VariantCaller,
+)
 from .tools import MapperFactory, PreprocessorFactory, VariantCallerFactory
 from .workflows import DNAPipeline, DNAPipelineInput
 
@@ -109,7 +117,6 @@ def pipeline(
     gene_fusion,
     device=None,
 ):
-
     print(
         f"Running cosap pipeline with the following parameters: \n \
             analysis_type: {analysis_type} \n \
@@ -171,7 +178,6 @@ def download_data():
     required=True,
 )
 def set_ref_dir(path):
-
     if existing_path := os.environ.get("COSAP_LIBRARY_PATH"):
         if input(
             f"This environment variable is already set to {existing_path}. Continue? [Y/n]: "
@@ -221,7 +227,6 @@ def set_ref_dir(path):
     required=False,
 )
 def mapper(fastqs, mapper, output_dir, sample_name, read_groups, output_name):
-
     # Check if reads are provided
     if not fastqs:
         print("Please provide the path to the reads")
@@ -260,7 +265,7 @@ def mapper(fastqs, mapper, output_dir, sample_name, read_groups, output_name):
     cosap_mapper.map(mapper_config[mapper_builder.key][mapper_builder.name])
 
     print(
-        f"Output file: {join_paths(output_dir,FileFormats.MAPPING_OUTPUT.format(identification=output_name))}"
+        f"Output file: {join_paths(output_dir, FileFormats.MAPPING_OUTPUT.format(identification=output_name))}"
     )
 
 
@@ -270,7 +275,6 @@ def mapper(fastqs, mapper, output_dir, sample_name, read_groups, output_name):
     help="Variant caller algorithm to use for variant detection. \
     Options = ['mutect2','varscan2','haplotypecaller','octopus','strelka','somaticsniper','vardict', 'deepvariant']",
     required=True,
-    multiple=True,
 )
 @click.option(
     "--tumor_sample",
@@ -299,7 +303,6 @@ def variant_caller(
     output_dir,
     tumor_sample_name,
 ):
-
     # Check if tumor_sample is provided
     if not tumor_sample and not normal_sample:
         print("Please provide the path to the analysis ready bam files.")
@@ -311,13 +314,15 @@ def variant_caller(
         output_dir = os.getcwd()
 
     # Create variant caller object with builder pattern
-    tumor_bam = BamReader(tumor_sample, name="tumor")
-    normal_bam = BamReader(normal_sample, name="normal")
+    if tumor_sample:
+        tumor_bam = BamReader(tumor_sample, name="tumor")
+    if normal_sample:
+        normal_bam = BamReader(normal_sample, name="normal")
 
     variant_caller_builder = VariantCaller(
         library=variant_caller,
-        tumor_sample=tumor_bam,
-        normal_sample=normal_bam,
+        tumor_sample=tumor_bam if tumor_sample else None,
+        normal_sample=normal_bam if normal_sample else None,
         params={
             "tumor_sample_name": tumor_sample_name,
         },
@@ -351,7 +356,6 @@ def bam_preprocessor(
     input_file,
     output_dir,
 ):
-
     # Check if input_file is provided
     if not input_file:
         print("Please provide the path to the input file")

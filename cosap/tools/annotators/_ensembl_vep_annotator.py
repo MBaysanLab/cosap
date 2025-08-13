@@ -1,4 +1,3 @@
-from pathlib import Path
 from subprocess import run
 from typing import Dict, List
 
@@ -9,7 +8,7 @@ from ..._pipeline_config import AnnotatorKeys
 from ..._utils import join_paths
 from ...runners.docker_runner import DockerRunner
 from ._annotators import _Annotatable, _Annotator
-import os
+
 
 class VepAnnotator(_Annotatable, _Annotator):
     @classmethod

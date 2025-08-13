@@ -3,11 +3,21 @@ import os
 import pandas as pd
 import pytest
 
-from cosap import (MDUP, AnnotatorFactory, BamReader, CNVCallerFactory,
-                   FastqReader, Mapper, MapperFactory, MSICallerFactory,
-                   Pipeline, PipelineRunner, PreprocessorFactory,
-                   VariantCaller, VariantCallerFactory)
-from cosap._pipeline_config import MappingKeys, VariantCallingKeys
+from cosap import (
+    MDUP,
+    AnnotatorFactory,
+    BamReader,
+    CNVCallerFactory,
+    FastqReader,
+    Mapper,
+    MapperFactory,
+    MSICallerFactory,
+    Pipeline,
+    PipelineRunner,
+    PreprocessorFactory,
+    VariantCaller,
+    VariantCallerFactory,
+)
 from cosap._utils import join_paths
 from cosap.tests import create_test_fastqs_from_chr1_ref_with_1_snp
 

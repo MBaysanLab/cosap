@@ -1,13 +1,10 @@
 import os
-from pathlib import Path
 from subprocess import run
 from typing import Dict
 
-from ..._docker_images import DockerImages
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import LiftoverKeys
 from ..._utils import convert_to_absolute_path
-from ...runners.docker_runner import DockerRunner
 from ._preprocessors import _PreProcessable, _Preprocessor
 
 
@@ -31,7 +28,7 @@ class LiftoverVariant(_Preprocessor, _PreProcessable):
             "--REJECT",
             liftover_config[LiftoverKeys.REJECT_OUTPUT],
         ]
-        
+
         return command
 
     @classmethod
@@ -43,7 +40,7 @@ class LiftoverVariant(_Preprocessor, _PreProcessable):
         output_dir = os.path.abspath(liftover_config[LiftoverKeys.OUTPUT_DIR])
         print(f"Creating output directory: {output_dir}")
         os.makedirs(output_dir, exist_ok=True)
-        
+
         command = cls._create_command(
             liftover_config=liftover_config, library_paths=library_paths
         )
@@ -53,7 +50,7 @@ class LiftoverVariant(_Preprocessor, _PreProcessable):
     def run_preprocessor(cls, liftover_config: Dict, device="cpu"):
         """
         Main entry point to run the LiftoverVariant tool.
-        
+
         Args:
             liftover_config: Configuration dictionary containing input/output paths
             device: Execution device - "cpu" or "gpu" (currently only CPU supported)

@@ -4,6 +4,9 @@ from typing import Union
 import docker
 
 from .._config import AppConfig
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 
 class DockerRunner:
@@ -22,7 +25,6 @@ class DockerRunner:
         paths_to_bind: list = [],
         remove: bool = True,
     ) -> None:
-
         # Check if the image exists
         if not self._check_if_image_exists(image):
             self._pull_image(image)
@@ -32,10 +34,9 @@ class DockerRunner:
 
         # Set volumes
         volumes_dict = {
-                library_path: {"bind": library_path, "mode": "ro"},
-                workdir: {"bind": workdir, "mode": "rw"},
-
-            }
+            library_path: {"bind": library_path, "mode": "ro"},
+            workdir: {"bind": workdir, "mode": "rw"},
+        }
         for path in paths_to_bind:
             volumes_dict[path] = {"bind": path, "mode": "rw"}
 
@@ -50,8 +51,10 @@ class DockerRunner:
             volumes_from = [hostname]
 
         if self.device == "gpu":
-            device_requests = [docker.types.DeviceRequest(count=-1, capabilities=[["gpu"]])]
-        
+            device_requests = [
+                docker.types.DeviceRequest(count=-1, capabilities=[["gpu"]])
+            ]
+
         # Run and return the log generator
         container = self.docker_client.containers.run(
             image=image,
@@ -63,14 +66,13 @@ class DockerRunner:
             init=True,
             restart_policy={"Name": "no"},
             device_requests=device_requests,
-            labels=[self.container_label]
+            labels=[self.container_label],
         )
 
         logs = container.attach(stdout=True, stderr=True, stream=True, logs=True)
 
-        # Print logs
         for log in logs:
-            print(log.decode("utf-8"), end="")
+            logger.info(log.decode("utf-8").strip())
 
     def _check_if_running_in_docker(self) -> bool:
         """
@@ -93,7 +95,7 @@ class DockerRunner:
         Pulls the image.
         """
         self.docker_client.images.pull(image)
-    
+
     @classmethod
     def stop_all_cosap_handled_containers(cls, pids: tuple) -> None:
         """
@@ -104,7 +106,7 @@ class DockerRunner:
         Intended to be used with a listing of all child processes of a parent process.
 
         Example usage:
-        
+
         `processes = psutil.Process(parent_process.pid).children(recursive=True)`
 
         `process_pids = [process.pid for process in processes]`

@@ -84,7 +84,6 @@ class BaseRecalibrator(_Preprocessor, _PreProcessable):
     def _create_parabricks_bqsr_command(
         cls, calibration_config: Dict, library_paths: LibraryPaths
     ) -> list:
-
         command = [
             "pbrun",
             "bqsr",
@@ -108,7 +107,6 @@ class BaseRecalibrator(_Preprocessor, _PreProcessable):
     def _create_parabricks_applybqsr_command(
         cls, calibration_config: Dict, library_paths: LibraryPaths
     ) -> list:
-
         command = [
             "pbrun",
             "applybqsr",

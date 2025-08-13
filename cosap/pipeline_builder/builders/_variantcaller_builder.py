@@ -11,7 +11,6 @@ from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
 @dataclass
 class VariantCaller(_IPipelineStep, _PipelineStep):
-
     library: str
     params: dict = field(default_factory=dict)
     normal_sample: str = None
@@ -32,6 +31,7 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
                 name_temp.append(self.tumor_sample.name)
             name_temp.append(self.library)
 
+            print(name_temp)
             self.name = "_".join(name_temp)
 
         self.library = self.library.lower()
@@ -97,14 +97,14 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
         }
 
         if self.tumor_sample is not None:
-            vc_config[self.name][
-                VariantCallingKeys.TUMOR_INPUT
-            ] = self.tumor_sample.get_output()
+            vc_config[self.name][VariantCallingKeys.TUMOR_INPUT] = (
+                self.tumor_sample.get_output()
+            )
 
         if self.normal_sample is not None:
-            vc_config[self.name][
-                VariantCallingKeys.GERMLINE_INPUT
-            ] = self.normal_sample.get_output()
+            vc_config[self.name][VariantCallingKeys.GERMLINE_INPUT] = (
+                self.normal_sample.get_output()
+            )
 
         if self.bed_file is not None:
             vc_config[self.name][VariantCallingKeys.BED_FILE] = self.bed_file

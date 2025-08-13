@@ -1,11 +1,7 @@
-import gzip
 import os
 import psutil
 
 import pandas as pd
-from pandas.api.types import is_numeric_dtype
-from subprocess import run
-import gzip
 
 from cosap.utils.path_utils import PathUtils
 from cosap.utils.variant_utils import VariantUtils
@@ -63,10 +59,12 @@ def convert_vcf_to_dict(
 ) -> list:
     return VCFUtils.convert_vcf_to_dict(path, caller_type, sample_name, filter)
 
+
 def convert_vcf_to_json(
     path: str, caller_type: str = None, sample_name: str = None, filter: str = "PASS"
 ) -> list:
     return VCFUtils.convert_vcf_to_json(path, caller_type, sample_name, filter)
+
 
 def is_valid_path(path: str) -> bool:
     """
@@ -97,8 +95,10 @@ def convert_list_to_annovar_input(variants: list, workdir: str) -> str:
 def get_variants_within_bed_regions(variants_df, bed_df):
     return VariantUtils.get_variants_within_bed_regions(variants_df, bed_df)
 
+
 class MultipleFilesFoundError(Exception):
     """Exception raised when multiple files are found when only one is expected."""
+
     def __init__(self, *args: object) -> None:
         super().__init__(*args)
 
@@ -118,16 +118,17 @@ def get_bam_index_path(bam_path: str) -> str:
     ]
 
     present_index_files = [
-        file for file in possible_index_files
-        if os.path.isfile(file)
+        file for file in possible_index_files if os.path.isfile(file)
     ]
 
     if len(present_index_files) == 0:
         raise FileNotFoundError(f"No BAM index file found for: {bam_path}")
-    
+
     if len(present_index_files) > 1:
-        raise MultipleFilesFoundError(f"Multiple possible BAM index files found for: {bam_path}")
-    
+        raise MultipleFilesFoundError(
+            f"Multiple possible BAM index files found for: {bam_path}"
+        )
+
     bai_path = present_index_files[0]
 
     return bai_path

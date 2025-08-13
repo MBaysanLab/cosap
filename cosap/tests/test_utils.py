@@ -17,21 +17,18 @@ class TestGetBamIndexPath:
         with pytest.raises(ValueError, match="[Ee]xtension"):
             _ = get_bam_index_path(bai_path)
 
-
     def test_no_bam_file(self, tmp_path):
         bam_path = os.path.join(tmp_path, BAM_FILE)
 
         with pytest.raises(FileNotFoundError, match="BAM file"):
             _ = get_bam_index_path(bam_path)
-    
-    
+
     def test_no_bam_index_file(self, tmp_path):
         bam_path = os.path.join(tmp_path, BAM_FILE)
         open(bam_path, "w").write("alignment contents")
 
         with pytest.raises(FileNotFoundError, match="BAM index file"):
             _ = get_bam_index_path(bam_path)
-    
 
     def test_bai_file_found(self, tmp_path):
         bam_path = os.path.join(tmp_path, BAM_FILE)
@@ -41,7 +38,6 @@ class TestGetBamIndexPath:
         open(bai_path, "w").write("alignment index contents")
 
         assert get_bam_index_path(bam_path) == bai_path
-    
 
     def test_bam_bai_file_found(self, tmp_path):
         bam_path = os.path.join(tmp_path, BAM_FILE)
@@ -51,7 +47,6 @@ class TestGetBamIndexPath:
         open(bam_bai_path, "w").write("alignment index contents")
 
         assert get_bam_index_path(bam_path) == bam_bai_path
-    
 
     def test_multiple_index_files_found(self, tmp_path):
         bam_path = os.path.join(tmp_path, BAM_FILE)

@@ -7,7 +7,7 @@ from ..._config import AppConfig
 from ..._docker_images import DockerImages
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import MDUPKeys
-from ..._utils import convert_to_absolute_path, join_paths
+from ..._utils import convert_to_absolute_path
 from ...memory_handler import MemoryHandler
 from ...runners.docker_runner import DockerRunner
 from ._preprocessors import _PreProcessable, _Preprocessor
@@ -111,7 +111,6 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
     def create_parabricks_sort_command(
         cls, mdup_config: dict, library_paths: LibraryPaths, sort_order: str
     ) -> list:
-
         command = [
             "pbrun",
             "bamsort",
@@ -149,7 +148,6 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
                 run(command, cwd=mdup_config[MDUPKeys.OUTPUT_DIR])
 
         elif device == "gpu":
-
             output_dir = os.path.abspath(os.path.dirname(mdup_config[MDUPKeys.OUTPUT]))
             os.makedirs(output_dir, exist_ok=True)
 

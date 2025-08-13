@@ -1,14 +1,12 @@
 import gzip
 import os
 import shutil
-from pathlib import Path
 
 from ..._config import AppConfig
 from ..._docker_images import DockerImages
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import VariantCallingKeys
 from ..._utils import join_paths
-from ...memory_handler import MemoryHandler
 from ...runners.docker_runner import DockerRunner
 from ._variantcallers import _Callable, _VariantCaller
 
@@ -48,9 +46,7 @@ class StrelkaVariantCaller(_Callable, _VariantCaller):
         return command
 
     @classmethod
-    def _move_vcfs(
-        cls, caller_config: dict, rundir: str
-    ) -> list:
+    def _move_vcfs(cls, caller_config: dict, rundir: str) -> list:
         snvs = f"{rundir}/results/variants/somatic.snvs.vcf.gz"
         indels = f"{rundir}/results/variants/somatic.indels.vcf.gz"
 

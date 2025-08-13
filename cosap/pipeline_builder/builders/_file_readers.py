@@ -2,7 +2,6 @@ import os
 from dataclasses import dataclass
 from typing import Dict
 
-from ..._formats import FileFormats
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
 
@@ -20,7 +19,7 @@ class FastqReader(_IPipelineStep, _PipelineStep):
 
         if self.name == None:
             self.name = self._get_name_from_path(self.filename)
-        
+
         if not os.path.isfile(self.filename):
             raise FileNotFoundError(f"The file {self.filename} does not exist.")
 
@@ -42,7 +41,7 @@ class BamReader(_IPipelineStep, _PipelineStep):
 
         if self.name == None:
             self.name = self._get_name_from_path(self.filename)
-        
+
         if not os.path.isfile(self.filename):
             raise FileNotFoundError(f"The file {self.filename} does not exist.")
 
@@ -64,7 +63,7 @@ class VCFReader(_IPipelineStep, _PipelineStep):
 
         if self.name == None:
             self.name = self._get_name_from_path(self.filename)
-        
+
         if not os.path.isfile(self.filename):
             raise FileNotFoundError(f"The file {self.filename} does not exist.")
 

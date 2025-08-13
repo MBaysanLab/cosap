@@ -49,7 +49,6 @@ class Bowtie2Mapper(_Mapper, _Mappable):
         library_paths: LibraryPaths,
         app_config: AppConfig,
     ) -> List:
-
         fastq_reads = [fastq for fastq in fastq_reads]
         command = [
             "bowtie2",
@@ -100,7 +99,7 @@ class Bowtie2Mapper(_Mapper, _Mappable):
         )
         if bowtie.returncode != 0:
             raise Exception(
-                f"Bowtie2 command {*bowtie_command,} failed with error: {bowtie.stderr.decode('utf-8')}"
+                f"Bowtie2 command {(*bowtie_command,)} failed with error: {bowtie.stderr.decode('utf-8')}"
             )
         else:
             print(samtools.stdout.decode("utf-8"))

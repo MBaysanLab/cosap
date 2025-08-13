@@ -4,7 +4,6 @@ from typing import Dict
 from ..._config import AppConfig
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import SortingKeys
-from ..._utils import join_paths
 
 
 class SamtoolsSorter:

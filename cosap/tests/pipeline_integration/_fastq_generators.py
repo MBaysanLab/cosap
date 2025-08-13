@@ -32,13 +32,13 @@ def create_test_fastqs_from_chr1_ref_with_1_snp(
     with open(os.path.join(workdir, f"{sample_name}N_1.fastq"), "w") as N_1:
         N_1.write(f"@{sample_name}N.1 1/1\n")
         N_1.write(f"{seq}\n")
-        N_1.write(f"+\n")
+        N_1.write("+\n")
         N_1.write(f"{quality_chr * len(seq)}\n")
 
     with open(os.path.join(workdir, f"{sample_name}N_2.fastq"), "w") as N_2:
         N_2.write(f"@{sample_name}N.1 1/2\n")
         N_2.write(f"{complement(reverse(seq))}\n")
-        N_2.write(f"+\n")
+        N_2.write("+\n")
         N_2.write(f"{quality_chr * len(seq)}\n")
 
     bad_seq = seq[:-1] + complement(seq[-1])
@@ -46,13 +46,13 @@ def create_test_fastqs_from_chr1_ref_with_1_snp(
     with open(os.path.join(workdir, f"{sample_name}T_1.fastq"), "w") as T_1:
         T_1.write(f"@{sample_name}T.1 1/1\n")
         T_1.write(f"{bad_seq}\n")
-        T_1.write(f"+\n")
+        T_1.write("+\n")
         T_1.write(f"{quality_chr * len(bad_seq)}\n")
 
     with open(os.path.join(workdir, f"{sample_name}T_2.fastq"), "w") as T_2:
         T_2.write(f"@{sample_name}T.1 1/2\n")
         T_2.write(f"{complement(reverse(bad_seq))}\n")
-        T_2.write(f"+\n")
+        T_2.write("+\n")
         T_2.write(f"{quality_chr * len(bad_seq)}\n")
 
     return (

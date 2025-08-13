@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 from typing import Dict
 
 from ..._config import AppConfig

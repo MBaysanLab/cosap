@@ -1,9 +1,8 @@
 from dataclasses import dataclass
 from typing import Dict
 
-from ..._formats import FileFormats, OutputFolders
+from ..._formats import FileFormats
 from ..._pipeline_config import IndexingKeys, PipelineKeys
-from ..._utils import join_paths
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 
 

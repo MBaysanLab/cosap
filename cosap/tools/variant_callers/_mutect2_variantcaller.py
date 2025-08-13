@@ -23,7 +23,6 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         library_paths: LibraryPaths,
         memory_handler: MemoryHandler,
     ) -> list:
-
         MAX_MEMORY_IN_GB = int(AppConfig.MAX_MEMORY_PER_JOB // (1024**3))
 
         germline_bam = None
@@ -49,7 +48,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         command = [
             "gatk",
             "--java-options",
-            f"-Xmx20G -XX:+UseParallelGC -XX:ParallelGCThreads=1",
+            "-Xmx20G -XX:+UseParallelGC -XX:ParallelGCThreads=1",
             "Mutect2",
             "-R",
             ref_fasta,
@@ -191,7 +190,6 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
     def _create_parabricks_mutectcaller_command(
         cls, caller_config: dict, library_paths: LibraryPaths
     ) -> list:
-
         germline_bam = None
         if VariantCallingKeys.GERMLINE_INPUT in caller_config.keys():
             germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
@@ -288,7 +286,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
                     non_zero_results = [
                         result for result in results if result.returncode != 0
                     ]
-                    raise Exception(
+                    raise RuntimeError(
                         f"Error running Mutect2: {non_zero_results[0].stderr}, {non_zero_results[0].stdout}, {non_zero_results[0].returncode}"
                     )
 
@@ -312,7 +310,6 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             ScatterGather.clean_temp_files(caller_config[VariantCallingKeys.OUTPUT_DIR])
 
         elif device == "gpu":
-
             print("Running Mutect2 on GPU")
             command = cls._create_parabricks_mutectcaller_command(
                 caller_config=caller_config, library_paths=library_paths

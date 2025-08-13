@@ -2,12 +2,15 @@ import os
 
 import yaml
 
-from .._config import AppConfig
 from .._pipeline_config import MappingKeys, PipelineKeys, VariantCallingKeys
 from .._utils import join_paths
 from ..tools.mappers import MapperFactory
-from ..tools.preprocessors import (BamIndexer, BaseRecalibrator, MarkDuplicate,
-                                   SamtoolsSorter)
+from ..tools.preprocessors import (
+    BamIndexer,
+    BaseRecalibrator,
+    MarkDuplicate,
+    SamtoolsSorter,
+)
 from ..tools.variant_callers import VariantCallerFactory
 from .snakemake_runner import SnakemakeRunner
 

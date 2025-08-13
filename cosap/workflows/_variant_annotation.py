@@ -11,6 +11,9 @@ from .._utils import (
 )
 from ..pipeline_builder.builders import Annotator, VCFReader
 from ..tools.annotators import AnnotatorFactory
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 
 class VariantMultipleAnnotator:
@@ -69,12 +72,21 @@ class VariantMultipleAnnotator:
         cancervar_annotator = AnnotatorFactory.create("cancervar")
 
         if not os.path.exists(join_paths(self.workdir, vep_config.get_output())):
+            logger.info(
+                f"Annotating {len(self.variants)} variants with VEP using input file: {self.vep_input_file}"
+            )
             vep_annotator.annotate(self._get_annotator_config(vep_config))
 
         if not os.path.exists(join_paths(self.workdir, intervar_config.get_output())):
+            logger.info(
+                f"Annotating {len(self.variants)} variants with Intervar using input file: {self.annovar_input_file}"
+            )
             intervar_annotator.annotate(self._get_annotator_config(intervar_config))
 
         if not os.path.exists(join_paths(self.workdir, cancervar_config.get_output())):
+            logger.info(
+                f"Annotating {len(self.variants)} variants with Cancervar using input file: {self.annovar_input_file}"
+            )
             cancervar_annotator.annotate(self._get_annotator_config(cancervar_config))
 
         self.vep_output_file = join_paths(self.workdir, vep_config.get_output())

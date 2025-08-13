@@ -41,7 +41,7 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
         command = [
             "gatk",
             "--java-options",
-            f"-Xmx20G",
+            "-Xmx20G",
             "HaplotypeCaller",
             "-R",
             library_paths.REF_FASTA,
@@ -68,7 +68,6 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
     def _create_parabricks_haplotypecaller_command(
         cls, caller_config: dict, library_paths: LibraryPaths
     ) -> list:
-
         germline_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
 
         output_file = (
@@ -128,17 +127,19 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
         ]
 
         return command
-    
+
     @classmethod
     def _create_vcf_index_command(
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> List:
-        input_name = convert_to_absolute_path(join_paths(
-            caller_config[VariantCallingKeys.OUTPUT_DIR],
-            cls._create_cnn_annotated_output_name(
-                caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
-            ),
-        ))
+        input_name = convert_to_absolute_path(
+            join_paths(
+                caller_config[VariantCallingKeys.OUTPUT_DIR],
+                cls._create_cnn_annotated_output_name(
+                    caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
+                ),
+            )
+        )
 
         command = [
             "gatk",
@@ -277,7 +278,6 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
         )
 
         if device == "cpu":
-
             splitted_configs = ScatterGather.split_variantcaller_configs(
                 caller_config, bed_file=bed_file
             )
@@ -300,7 +300,12 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
                     (result.returncode != 0 and result is not None)
                     for result in results
                 ):
-                    raise Exception("HaplotypeCaller failed")
+                    non_zero_results = [
+                        result for result in results if result.returncode != 0
+                    ]
+                    raise RuntimeError(
+                        f"Error running Haplotypecaller: {non_zero_results[0].stderr}, {non_zero_results[0].stdout}, {non_zero_results[0].returncode}"
+                    )
 
             ScatterGather.gather_vcfs(
                 splitted_configs,
@@ -334,7 +339,6 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
             )
 
         if caller_config[VariantCallingKeys.OUTPUT_TYPE] == "VCF":
-
             output_dir = Path(workdir).absolute()
 
             cnnscorevariants_command = cls._create_cnnscorevariants_command(
@@ -362,7 +366,7 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
                 DockerImages.GATK,
                 " ".join(cnnscorevariants_command),
                 workdir=str(output_dir.parent.parent),
-            )                
+            )
 
             run(create_vcfs_index_command, cwd=workdir)
             run(filter_variants_command, cwd=workdir)

@@ -1,22 +1,16 @@
 import glob
 import os
-import signal
 import subprocess
-from collections.abc import Callable
-from concurrent.futures import ProcessPoolExecutor
 from contextlib import contextmanager
-from functools import partial
 from itertools import chain, repeat
 from subprocess import run
 
 import shortuuid
 
 from .._config import AppConfig
-from .._pipeline_config import (PipelineBaseKeys, PipelineKeys,
-                                VariantCallingKeys)
+from .._pipeline_config import PipelineBaseKeys, PipelineKeys, VariantCallingKeys
 from ..pipeline_builder import VariantCaller
-from .utils import (create_tmp_filename, get_region_file_list,
-                    split_bam_by_intervals)
+from .utils import get_region_file_list, split_bam_by_intervals
 
 
 class ScatterGather:

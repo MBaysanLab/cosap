@@ -1,17 +1,14 @@
-from .._pipeline_config import PipelineKeys
-from ..pipeline_builder import (MDUP, Annotator, BamReader, FastqReader,
-                                Mapper, Recalibrator, Trimmer, VariantCaller)
-from ..tools.annotators import AnnotatorFactory
-from ..tools.mappers import MapperFactory
+from ..pipeline_builder import (
+    FastqReader,
+    Trimmer,
+)
 from ..tools.preprocessors import PreprocessorFactory
-from ..tools.variant_callers import VariantCallerFactory
 
 
 def trim(
     fastqs: list,
     output: str,
 ):
-
     trimmer = PreprocessorFactory().get_preprocessor("trimmer")
 
     readers = [FastqReader(fastq, read=i) for i, fastq in enumerate(fastqs)]

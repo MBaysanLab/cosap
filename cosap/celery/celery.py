@@ -10,7 +10,7 @@ from celery import Celery, shared_task
 
 from .._config import AppConfig
 from ..parsers import ProjectResultsParser
-from ..workflows import DNAPipeline, DNAPipelineInput,VariantMultipleAnnotator
+from ..workflows import DNAPipeline, DNAPipelineInput, VariantMultipleAnnotator
 from .._utils import convert_vcf_to_json
 from logging import getLogger
 
@@ -61,18 +61,10 @@ def dna_pipeline_task(
         dna_pipeline.run_pipeline()
         return {"return_code": 0, "message": "Pipeline completed successfully"}
 
-    except FileNotFoundError as e:
-        logger.error(f"Required file not found in DNA pipeline: {e}")
-        raise Exception(f"File not found: {str(e)}")
-    except PermissionError as e:
-        logger.error(f"Permission error in DNA pipeline: {e}")
-        raise Exception(f"Permission denied: {str(e)}")
-    except ValueError as e:
-        logger.error(f"Invalid parameter in DNA pipeline: {e}")
-        raise Exception(f"Invalid parameter: {str(e)}")
-    except Exception as e:
-        logger.error(f"Unexpected error running DNA pipeline: {e}")
-        raise Exception(f"Unexpected error: {str(e)}")
+    except (FileNotFoundError, PermissionError, ValueError, Exception) as e:
+        error_type = type(e).__name__
+        logger.error(f"{error_type} in DNA pipeline: {e}")
+        raise Exception(f"{error_type.replace('Error', '')}: {str(e)}")
 
 
 @shared_task(name="parse_project_results")
@@ -163,7 +155,9 @@ def annotate_variants(variants_file_path: str, workdir: str) -> str:
 
 
 @shared_task(name="parse_vcf_task")
-def parse_vcf(vcf_path: str, sample_name: str, caller_type: str, reference_genome: str = None) -> str:
+def parse_vcf(
+    vcf_path: str, sample_name: str, caller_type: str, reference_genome: str = None
+) -> str:
     try:
         logger.info(
             f"Received request to parse VCF file: {vcf_path}, sample_name: {sample_name}, caller_type: {caller_type}"
@@ -171,20 +165,22 @@ def parse_vcf(vcf_path: str, sample_name: str, caller_type: str, reference_genom
 
         if not os.path.exists(vcf_path):
             raise FileNotFoundError(f"VCF file not found: {vcf_path}")
-        
-        # If reference is not hg38, we need to liftover the VCF
+
+        # If reference is not hg38, we need to liftover the VCF
         if reference_genome and reference_genome.lower() != "hg38":
             from cosap.tools.preprocessors import PreprocessorFactory
             from cosap.pipeline_builder import VCFReader, LiftoverVariant
+
             liftover_builder = LiftoverVariant(
                 input_step=VCFReader(vcf_path),
-                name=f"{Path(vcf_path).stem}_liftover"
-                )
+                name=f"{Path(vcf_path).stem}_liftover",
+                output_dir=Path(vcf_path).parent,
+            )
             liftover_preprocessor = PreprocessorFactory.create(
                 preprocessor_type="liftover_variant",
             )
             liftover_preprocessor.run_preprocessor(
-                liftover_config=liftover_builder.get_config(),
+                liftover_config=liftover_builder.get_config(core_only=True),
             )
             vcf_path = liftover_builder.get_output()
 
@@ -221,4 +217,3 @@ def parse_vcf(vcf_path: str, sample_name: str, caller_type: str, reference_genom
     except Exception as e:
         logger.error(f"Unexpected error in parse_vcf: {e}")
         raise Exception(f"VCF parsing failed: {str(e)}")
-

@@ -4,7 +4,6 @@ from typing import Dict, List, Union
 from ..._formats import FileFormats, OutputFolders
 from ..._pipeline_config import MappingKeys, PipelineKeys
 from ..._utils import join_paths
-from ._file_readers import FastqReader
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 from ._trimmer_builder import Trimmer
 
