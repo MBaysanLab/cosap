@@ -57,6 +57,9 @@ class _LibraryPaths:
     CNVKIT_ACCESS: str = _get_file_path_hg38("cnvkit_hg38_access-5kb.bed")
     ANNOTSV: str = _get_file_path_hg38("annotsv", "bin", "AnnotSV")
     CLASSIFYCNV: str = _get_file_path_hg38("classifycnv")
+    EXOMISER_JAR: str = _get_file_path_hg38(
+        "exomiser-cli-14.1.0", "exomiser-cli-14.1.0.jar"
+    )
 
 
 @dataclass

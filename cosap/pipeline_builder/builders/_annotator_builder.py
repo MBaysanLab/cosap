@@ -18,6 +18,7 @@ class Annotator(_IPipelineStep, _PipelineStep):
     key: str = PipelineKeys.ANNOTATION
     next_step: Optional[_PipelineStep] = None
     input_type: str = "vcf"
+    params: Optional[Dict] = None
     output_dir: Optional[str] = None
 
     def __post_init__(self):
@@ -56,7 +57,7 @@ class Annotator(_IPipelineStep, _PipelineStep):
             return FileFormats.ANNOTATION_OUTPUT.format(
                 identification=self.name, custom_ext="tsv"
             )
-        elif self.library.lower() == "pharmcat":
+        elif self.library.lower() in ["pharmcat", "exomiser"]:
             return FileFormats.ANNOTATION_OUTPUT.format(
                 identification=self.name, custom_ext="json"
             )
@@ -78,6 +79,7 @@ class Annotator(_IPipelineStep, _PipelineStep):
                 AnnotatorKeys.OUTPUT_DIR: self.output_dir,
                 AnnotatorKeys.INPUT_TYPE: self.input_type,
                 AnnotatorKeys.LOG_FILE: self.log_file,
+                AnnotatorKeys.PARAMS: self.params if self.params is not None else {},
             }
         }
         if self.library.lower() == "annovar":

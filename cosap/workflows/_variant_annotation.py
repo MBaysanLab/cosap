@@ -106,7 +106,7 @@ class VariantMultipleAnnotator:
             self.cancervar_output_file, subtype="cancervar"
         )
 
-        if any(vep_results.empty, intervar_results.empty, cancervar_results.empty):
+        if any([vep_results.empty, intervar_results.empty, cancervar_results.empty]):
             logger.warning(
                 "One or more annotation results are empty. Returning empty DataFrame."
             )
