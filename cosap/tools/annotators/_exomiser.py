@@ -1,15 +1,16 @@
 import os
+from datetime import datetime
+from pathlib import Path
 from subprocess import run
 from typing import Dict, List
+
+import pysam
+import yaml
 
 from ..._config import AppConfig
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import AnnotatorKeys
 from ._annotators import _Annotatable, _Annotator
-import pysam
-import yaml
-from datetime import datetime
-from pathlib import Path
 
 
 class Exomiser(_Annotatable, _Annotator):
@@ -23,8 +24,12 @@ class Exomiser(_Annotatable, _Annotator):
         output_dir = annotator_config[AnnotatorKeys.OUTPUT_DIR]
         job_file = cls._create_job_file(input_vcf, hpo_terms, output_file, output_dir)
 
-        spring_config_location = os.path.dirname(library_paths.EXOMISER_JAR) + "/docker/application.properties" if os.path.exists("/.dockerenv") else \
-            os.path.dirname(library_paths.EXOMISER_JAR) + "/application.properties"
+        spring_config_location = (
+            os.path.dirname(library_paths.EXOMISER_JAR)
+            + "/docker/application.properties"
+            if os.path.exists("/.dockerenv")
+            else os.path.dirname(library_paths.EXOMISER_JAR) + "/application.properties"
+        )
 
         command = [
             "java",

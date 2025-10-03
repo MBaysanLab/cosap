@@ -1,10 +1,10 @@
 import os
-from typing import Union, List, Dict
+from logging import getLogger
+from typing import Dict, List, Union
 
 import docker
 
 from .._config import AppConfig
-from logging import getLogger
 
 logger = getLogger(__name__)
 
@@ -25,7 +25,6 @@ class DockerRunner:
         paths_to_bind: List[Dict[str, str]] = None,
         remove: bool = True,
     ) -> None:
-        
         """
         image: Docker image to use
         command: Command to run in the Docker container
@@ -39,7 +38,7 @@ class DockerRunner:
 
         if paths_to_bind is None:
             paths_to_bind = []
-        
+
         # Check if the image exists
         if not self._check_if_image_exists(image):
             self._pull_image(image)
@@ -80,7 +79,7 @@ class DockerRunner:
             volumes=volumes,
             volumes_from=volumes_from,
             detach=True,
-            init=True, # Required to handle process signals correctly
+            init=True,  # Required to handle process signals correctly
             restart_policy={"Name": "no"},
             device_requests=device_requests,
             labels=[self.container_label],

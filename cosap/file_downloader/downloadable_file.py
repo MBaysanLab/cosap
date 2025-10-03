@@ -1,11 +1,12 @@
-import os
-import requests
-import hashlib
-from enum import Enum
 import functools
+import hashlib
+import os
+from enum import Enum
 
-from .._utils import join_paths
+import requests
+
 from .._config import AppConfig
+from .._utils import join_paths
 
 
 def _get_file_hash_md5(file_path: str, block_size: int = 2**20) -> str:

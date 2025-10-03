@@ -1,12 +1,11 @@
 from dataclasses import dataclass
-from typing import Dict
+from typing import Dict, Optional
 
 from ..._formats import FileFormats, OutputFolders
 from ..._pipeline_config import AnnotatorKeys, PipelineKeys, VariantCallingKeys
 from ..._utils import join_paths
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 from ._variantcaller_builder import VariantCaller
-from typing import Optional
 
 
 @dataclass

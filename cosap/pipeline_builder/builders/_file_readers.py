@@ -2,8 +2,10 @@ import os
 from dataclasses import dataclass
 from typing import Dict
 
-from ._pipeline_steps import _IPipelineStep, _PipelineStep
 import pysam
+
+from ._pipeline_steps import _IPipelineStep, _PipelineStep
+
 
 @dataclass
 class FastqReader(_IPipelineStep, _PipelineStep):
@@ -66,7 +68,7 @@ class VCFReader(_IPipelineStep, _PipelineStep):
 
         if not os.path.isfile(self.filename):
             raise FileNotFoundError(f"The file {self.filename} does not exist.")
-    
+
     def get_sample_name(self) -> str:
         return pysam.VariantFile(self.filename).header.samples[0]
 

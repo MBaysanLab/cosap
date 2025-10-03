@@ -1,12 +1,12 @@
+import os
 import shutil
 from pathlib import Path
-import os
 
 from ..._config import AppConfig
 from ..._docker_images import DockerImages
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import VariantCallingKeys
-from ..._utils import current_available_system_memory, convert_to_absolute_path
+from ..._utils import convert_to_absolute_path, current_available_system_memory
 from ...runners.docker_runner import DockerRunner
 from ._variantcallers import _Callable, _VariantCaller
 

@@ -3,9 +3,9 @@ from ._annotsv_annotator import AnnotSVAnnotator
 from ._annovar_annotator import AnnovarAnnotator
 from ._cancervar_annotatator import CancervarAnnotator
 from ._ensembl_vep_annotator import VepAnnotator
+from ._exomiser import Exomiser
 from ._intervar_annotator import IntervarAnnotator
 from ._pharmcat_annotator import PharmcatAnnotator
-from ._exomiser import Exomiser
 
 
 class AnnotatorFactory:

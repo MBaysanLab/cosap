@@ -1,13 +1,12 @@
 import gzip
 import os
+from logging import getLogger
 from subprocess import run
-
-import pandas as pd
-from pandas.api.types import is_numeric_dtype
-import pysam
 from typing import Optional
 
-from logging import getLogger
+import pandas as pd
+import pysam
+from pandas.api.types import is_numeric_dtype
 
 logger = getLogger(__name__)
 

@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Literal
 
 from .._config import AppConfig
-from .._utils import join_paths, get_bam_index_path
+from .._utils import get_bam_index_path, join_paths
 
 
 class MemoryHandler:

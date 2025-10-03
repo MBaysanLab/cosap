@@ -1,18 +1,22 @@
 import glob
 import json
 import os
+from logging import getLogger
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 import yaml
-
 from celery import Celery, shared_task
 
 from .._config import AppConfig
-from ..parsers import ProjectResultsParser
-from ..workflows import DNAPipeline, DNAPipelineInput, VariantMultipleAnnotator, ExomiserPrioritizer
 from .._utils import convert_vcf_to_json
-from logging import getLogger
+from ..parsers import ProjectResultsParser
+from ..workflows import (
+    DNAPipeline,
+    DNAPipelineInput,
+    ExomiserPrioritizer,
+    VariantMultipleAnnotator,
+)
 
 celery_app = Celery("cosap")
 celery_app.config_from_object("cosap.celery.celeryconfig")
@@ -168,8 +172,8 @@ def parse_vcf(
 
         # If reference is not hg38, we need to liftover the VCF
         if reference_genome and reference_genome.lower() != "hg38":
+            from cosap.pipeline_builder import LiftoverVariant, VCFReader
             from cosap.tools.preprocessors import PreprocessorFactory
-            from cosap.pipeline_builder import VCFReader, LiftoverVariant
 
             liftover_builder = LiftoverVariant(
                 input_step=VCFReader(vcf_path),
@@ -220,20 +224,14 @@ def parse_vcf(
 
 
 @shared_task(name="exomiser_task")
-def exomiser_task(
-    vcf_path: str, hpo_terms:list, workdir: str) -> str:
-
+def exomiser_task(vcf_path: str, hpo_terms: list, workdir: str) -> str:
     if workdir is None:
-            workdir = str(Path(vcf_path).parent)
+        workdir = str(Path(vcf_path).parent)
 
-    variants_json = ExomiserPrioritizer(
-        vcf_path, hpo_terms, workdir
-    ).prioritize()
+    variants_json = ExomiserPrioritizer(vcf_path, hpo_terms, workdir).prioritize()
 
-    with NamedTemporaryFile(
-        mode="w", dir=workdir, suffix=".json", delete=False
-    ) as f:
+    with NamedTemporaryFile(mode="w", dir=workdir, suffix=".json", delete=False) as f:
         json.dump(json.loads(variants_json), f)
         exomiser_variants_file_path = f.name
-    
+
     return exomiser_variants_file_path

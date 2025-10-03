@@ -1,7 +1,7 @@
 import os
-import psutil
 
 import pandas as pd
+import psutil
 
 from cosap.utils.path_utils import PathUtils
 from cosap.utils.variant_utils import VariantUtils

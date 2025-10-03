@@ -3,7 +3,7 @@ from tempfile import TemporaryDirectory
 
 import pytest
 
-from cosap import MemoryHandler, AppConfig
+from cosap import AppConfig, MemoryHandler
 
 
 # Prevent unexpected behaviour due to AppConfig being global

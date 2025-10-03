@@ -1,6 +1,7 @@
 import multiprocessing
 import os
 from subprocess import PIPE, Popen, check_output, run
+
 import psutil
 
 from .._config import AppConfig

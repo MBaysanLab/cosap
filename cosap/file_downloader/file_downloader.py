@@ -3,8 +3,7 @@ import os
 import yaml
 
 from .._config import AppConfig
-from .._utils import join_paths, swap_dict_keys_and_values, prompt_continue
-
+from .._utils import join_paths, prompt_continue, swap_dict_keys_and_values
 from .downloadable_file import DownloadableFileStatus
 from .files import downloadable_files
 

@@ -2,8 +2,7 @@ import os
 
 import pytest
 
-from cosap._utils import get_bam_index_path, MultipleFilesFoundError
-
+from cosap._utils import MultipleFilesFoundError, get_bam_index_path
 
 BAM_FILE = "alignment.bam"
 BAI_FILE = "alignment.bai"

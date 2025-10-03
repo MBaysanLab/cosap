@@ -13,7 +13,6 @@
 
 from .downloadable_file import DownloadableFile
 
-
 downloadable_files = [
     DownloadableFile(
         filename="Homo_sapiens_assembly38.dict",
