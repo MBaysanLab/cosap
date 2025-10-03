@@ -184,5 +184,7 @@ class BWAMapper(_Mapper, _Mappable):
                 image=DockerImages.PARABRICKS,
                 command=" ".join(bwa_command),
                 workdir=str(Path(output_dir).parent.parent),
-                paths_to_bind=[input_dir],
+                paths_to_bind=[
+                    {"source": input_dir, "target": input_dir},
+                ],
             )

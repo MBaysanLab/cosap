@@ -31,7 +31,6 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
                 name_temp.append(self.tumor_sample.name)
             name_temp.append(self.library)
 
-            print(name_temp)
             self.name = "_".join(name_temp)
 
         self.library = self.library.lower()

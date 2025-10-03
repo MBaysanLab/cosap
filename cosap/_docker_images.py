@@ -12,3 +12,4 @@ class DockerImages:
     MANTA: str = "szarate/manta:v1.6.0"
     GATK: str = "broadinstitute/gatk"
     VARNET: str = "kiranchari/varnet"
+    METARNN: str = "itubioinformatics/metarnn"

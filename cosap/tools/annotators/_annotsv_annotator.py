@@ -25,6 +25,8 @@ class AnnotSVAnnotator(_Annotatable, _Annotator):
             output_file,
             "-outputDir",
             output_dir,
+            "-snvIndelPASS",
+            "1"
         ]
         return command
 

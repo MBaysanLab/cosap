@@ -10,7 +10,7 @@ from celery import Celery, shared_task
 
 from .._config import AppConfig
 from ..parsers import ProjectResultsParser
-from ..workflows import DNAPipeline, DNAPipelineInput, VariantMultipleAnnotator
+from ..workflows import DNAPipeline, DNAPipelineInput, VariantMultipleAnnotator, ExomiserPrioritizer
 from .._utils import convert_vcf_to_json
 from logging import getLogger
 
@@ -217,3 +217,23 @@ def parse_vcf(
     except Exception as e:
         logger.error(f"Unexpected error in parse_vcf: {e}")
         raise Exception(f"VCF parsing failed: {str(e)}")
+
+
+@shared_task(name="exomiser_task")
+def exomiser_task(
+    vcf_path: str, hpo_terms:list, workdir: str) -> str:
+
+    if workdir is None:
+            workdir = str(Path(vcf_path).parent)
+
+    variants_json = ExomiserPrioritizer(
+        vcf_path, hpo_terms, workdir
+    ).prioritize()
+
+    with NamedTemporaryFile(
+        mode="w", dir=workdir, suffix=".json", delete=False
+    ) as f:
+        json.dump(json.loads(variants_json), f)
+        exomiser_variants_file_path = f.name
+    
+    return exomiser_variants_file_path

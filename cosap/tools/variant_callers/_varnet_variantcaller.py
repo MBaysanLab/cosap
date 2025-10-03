@@ -1,11 +1,12 @@
 import shutil
 from pathlib import Path
+import os
 
 from ..._config import AppConfig
 from ..._docker_images import DockerImages
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import VariantCallingKeys
-from ..._utils import current_available_system_memory
+from ..._utils import current_available_system_memory, convert_to_absolute_path
 from ...runners.docker_runner import DockerRunner
 from ._variantcallers import _Callable, _VariantCaller
 
@@ -197,7 +198,9 @@ class VarNetVariantCaller(_Callable, _VariantCaller):
     def call_variants(cls, caller_config: dict, device: str = "cpu"):
         library_paths = LibraryPaths()
         app_config = AppConfig()
-
+        input_dir = convert_to_absolute_path(
+            os.path.dirname(caller_config[VariantCallingKeys.GERMLINE_INPUT])
+        )
         output_dir = Path(caller_config[VariantCallingKeys.OUTPUT_DIR]).absolute()
 
         for variant_type in cls.valid_variant_types:
@@ -223,21 +226,27 @@ class VarNetVariantCaller(_Callable, _VariantCaller):
                 DockerImages.VARNET,
                 " ".join(varnet_filter_command),
                 workdir=str(output_dir.parent.parent),
-                paths_to_bind=["/mnt/hdd2tb/ll_data/"],
+                paths_to_bind=[
+                    {"source": input_dir, "target": input_dir},
+                ],
             )
 
             docker_runner.run(
                 DockerImages.VARNET,
                 " ".join(varnet_predict_command),
                 workdir=str(output_dir.parent.parent),
-                paths_to_bind=["/mnt/hdd2tb/ll_data/"],
+                paths_to_bind=[
+                    {"source": input_dir, "target": input_dir},
+                ],
             )
 
             docker_runner.run(
                 DockerImages.VARNET,
                 " ".join(varnet_output_rename_command),
                 workdir=str(output_dir.parent.parent),
-                paths_to_bind=["/mnt/hdd2tb/ll_data/"],
+                paths_to_bind=[
+                    {"source": input_dir, "target": input_dir},
+                ],
             )
 
             cls._move_vcf(caller_config=caller_config, variant_type=variant_type)

@@ -1,5 +1,5 @@
 import os
-from typing import Union
+from typing import Union, List, Dict
 
 import docker
 
@@ -22,9 +22,24 @@ class DockerRunner:
         image: str,
         command: Union[str, list],
         workdir: str = None,
-        paths_to_bind: list = [],
+        paths_to_bind: List[Dict[str, str]] = None,
         remove: bool = True,
     ) -> None:
+        
+        """
+        image: Docker image to use
+        command: Command to run in the Docker container
+        workdir: Working directory to use in the Docker container. If None, uses current working
+                    directory.
+        paths_to_bind: List of dictionaries specifying additional paths to bind mount.
+                        Each dictionary should have 'source' and 'target' keys, and an optional
+                        'mode' key (default is 'rw').
+        remove: Whether to remove the container after it exits (default is True)
+        """
+
+        if paths_to_bind is None:
+            paths_to_bind = []
+        
         # Check if the image exists
         if not self._check_if_image_exists(image):
             self._pull_image(image)
@@ -37,8 +52,11 @@ class DockerRunner:
             library_path: {"bind": library_path, "mode": "ro"},
             workdir: {"bind": workdir, "mode": "rw"},
         }
-        for path in paths_to_bind:
-            volumes_dict[path] = {"bind": path, "mode": "rw"}
+        for path_binding in paths_to_bind:
+            source = path_binding["source"]
+            target = path_binding["target"]
+            mode = path_binding.get("mode", "rw")
+            volumes_dict[source] = {"bind": target, "mode": mode}
 
         volumes = None
         volumes_from = None
@@ -46,8 +64,7 @@ class DockerRunner:
 
         if not self._check_if_running_in_docker():
             volumes = volumes_dict
-
-        if self._check_if_running_in_docker():
+        else:
             volumes_from = [hostname]
 
         if self.device == "gpu":
@@ -63,16 +80,17 @@ class DockerRunner:
             volumes=volumes,
             volumes_from=volumes_from,
             detach=True,
-            init=True,
+            init=True, # Required to handle process signals correctly
             restart_policy={"Name": "no"},
             device_requests=device_requests,
             labels=[self.container_label],
+            remove=remove,
         )
 
         logs = container.attach(stdout=True, stderr=True, stream=True, logs=True)
 
         for log in logs:
-            logger.info(log.decode("utf-8").strip())
+            print(log.decode("utf-8").strip())
 
     def _check_if_running_in_docker(self) -> bool:
         """

@@ -59,7 +59,7 @@ def test_bowtie_somaticsniper_pipeline(tmp_path):
         "TUMOR",
     ]
     vcf_body = pd.read_csv(vcf_path, sep="\t", comment="#", names=somaticsniper_headers)
-    print(vcf_body[["CHROM", "POS", "REF", "ALT"]])
+
     assert vcf_body[["CHROM", "POS", "REF", "ALT"]].equals(
         pd.DataFrame(
             {

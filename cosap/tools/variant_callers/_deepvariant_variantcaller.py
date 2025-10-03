@@ -48,5 +48,7 @@ class DeepVariantVariantCaller(_Callable, _VariantCaller):
             DockerImages.DEEPVARIANT,
             " ".join(deepvariant_command),
             workdir=str(workdir),
-            paths_to_bind=[input_dir],  # Bind the input dir
+            paths_to_bind=[
+                {"source": input_dir, "target": input_dir},
+            ],
         )

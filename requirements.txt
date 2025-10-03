@@ -40,3 +40,4 @@ redis-py
 docker-py
 python-dotenv
 pysam
+bedtools

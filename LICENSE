@@ -19,3 +19,40 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+======================================================================
+Third-Party Tools and Licenses (Not Part of MIT License)
+======================================================================
+
+This project integrates predictions from external tools and resources. 
+These are subject to their own licenses and terms:
+
+1. SpliceAI  
+   - License: Illumina Open Source Software License Agreement  
+   - Free for academic and non-commercial use.  
+   - More info: https://github.com/Illumina/SpliceAI
+
+2. CADD (Combined Annotation–Dependent Depletion)  
+   - License: Free for academic and non-commercial use only.  
+   - Commercial use requires a separate license from the developers.  
+   - More info: https://cadd.gs.washington.edu
+
+3. AlphaMissense  
+   - License: Creative Commons Attribution 4.0 International (CC BY 4.0)  
+   - Free for academic and research use with attribution to DeepMind.  
+   - Not for clinical use.  
+   - More info: https://www.deepmind.com/research/highlighted-research/alphamissense
+
+4. REVEL (Rare Exome Variant Ensemble Learner)  
+   - License: Free for academic and non-commercial research use.  
+   - Commercial use requires a license from the authors.  
+   - More info: https://sites.google.com/site/revelgenomics
+
+======================================================================
+Disclaimer
+======================================================================
+
+This application is intended for research and academic use only.  
+Users are responsible for ensuring compliance with the licenses of 
+third-party tools (SpliceAI, CADD, AlphaMissense, REVEL) when using 
+this application.
