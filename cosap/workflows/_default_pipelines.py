@@ -26,6 +26,7 @@ class DNAPipelineInput:
     MSI: bool = False
     GENEFUSION: bool = False
     DEVICE: str = "cpu"
+    SKIP_RECALIBRATION: bool = True
 
     def __post_init__(self):
         if isinstance(self.TUMOR_SAMPLES, tuple):
@@ -143,13 +144,18 @@ class DNAPipeline:
                         },
                     )
                     mdup_normal = MDUP(input_step=mapper_normal)
-                    bqsr_normal = Recalibrator(
-                        input_step=mdup_normal, bed_file=self.input.BED_FILE
-                    )
+                    
+                    if not self.input.SKIP_RECALIBRATION:
+                        bqsr_normal = Recalibrator(
+                            input_step=mdup_normal, bed_file=self.input.BED_FILE
+                        )
+                        self.pipeline.add(bqsr_normal)
+                        normal_final_step = bqsr_normal
+                    else:
+                        normal_final_step = mdup_normal
 
                     self.pipeline.add(mapper_normal)
                     self.pipeline.add(mdup_normal)
-                    self.pipeline.add(bqsr_normal)
 
                 mapper_tumor = Mapper(
                     library=mapper,
@@ -176,19 +182,22 @@ class DNAPipeline:
                         )
                         self.pipeline.add(msicaller)
 
-                bqsr_tumor = Recalibrator(
-                    input_step=mdup_tumor, bed_file=self.input.BED_FILE
-                )
+                if not self.input.SKIP_RECALIBRATION:
+                    bqsr_tumor = Recalibrator(
+                        input_step=mdup_tumor, bed_file=self.input.BED_FILE
+                    )
+                    self.pipeline.add(bqsr_tumor)
+                    tumor_final_step = bqsr_tumor
+                else:
+                    tumor_final_step = mdup_tumor
 
                 self.pipeline.add(mapper_tumor)
                 self.pipeline.add(mdup_tumor)
 
-                self.pipeline.add(bqsr_tumor)
-
                 if self.input.BAM_QC is not None:
                     quality_controller_tumor = QualityController(
                         library=self.input.BAM_QC,
-                        input_step=bqsr_tumor,
+                        input_step=tumor_final_step,
                         bed_file=self.input.BED_FILE,
                     )
                     self.pipeline.add(quality_controller_tumor)
@@ -196,8 +205,8 @@ class DNAPipeline:
                 for variant_caller in variant_callers:
                     vc = VariantCaller(
                         library=variant_caller,
-                        normal_sample=bqsr_normal if self.input.NORMAL_SAMPLE else None,
-                        tumor_sample=bqsr_tumor,
+                        normal_sample=normal_final_step if self.input.NORMAL_SAMPLE else None,
+                        tumor_sample=tumor_final_step,
                         bed_file=self.input.BED_FILE,
                         params={
                             "germline_sample_name": self.input.NORMAL_SAMPLE_NAME,
@@ -249,24 +258,29 @@ class DNAPipeline:
                 },
             )
             mdup_normal = MDUP(input_step=mapper_normal)
-            bqsr_normal = Recalibrator(
-                input_step=mdup_normal, bed_file=self.input.BED_FILE
-            )
+            
+            if not self.input.SKIP_RECALIBRATION:
+                bqsr_normal = Recalibrator(
+                    input_step=mdup_normal, bed_file=self.input.BED_FILE
+                )
+                self.pipeline.add(bqsr_normal)
+                normal_final_step = bqsr_normal
+            else:
+                normal_final_step = mdup_normal
 
             self.pipeline.add(mapper_normal)
             self.pipeline.add(mdup_normal)
-            self.pipeline.add(bqsr_normal)
 
             if self.input.BAM_QC is not None:
                 quality_controller_tumor = QualityController(
-                    library=self.input.BAM_QC, input_step=bqsr_normal
+                    library=self.input.BAM_QC, input_step=normal_final_step
                 )
                 self.pipeline.add(quality_controller_tumor)
 
             for variant_caller in variant_callers:
                 vc = VariantCaller(
                     library=variant_caller,
-                    normal_sample=bqsr_normal if self.input.NORMAL_SAMPLE else None,
+                    normal_sample=normal_final_step if self.input.NORMAL_SAMPLE else None,
                     tumor_sample=None,
                     bed_file=self.input.BED_FILE,
                     gvcf=self.input.GVCF,

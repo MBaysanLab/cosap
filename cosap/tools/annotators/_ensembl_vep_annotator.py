@@ -27,8 +27,14 @@ class VepAnnotator(_Annotatable, _Annotator):
                 "name": "AlphaMissense",
                 "file": "AlphaMissense_hg38.tsv.gz",
                 "params": "pathogenicity_cutoff=0.5",
+                "use_file_prefix": True,
             },
-            {"name": "REVEL", "file": "REVEL_grch38.tsv.gz", "params": None},
+            {
+                "name": "REVEL",
+                "file": "REVEL_grch38.tsv.gz",
+                "params": None,
+                "use_file_prefix": True,
+            },
             {
                 "name": "SpliceAI",
                 "files": {
@@ -36,28 +42,53 @@ class VepAnnotator(_Annotatable, _Annotator):
                     "indel": "spliceai_scores.raw.indel.hg38.vcf.gz",
                 },
                 "params": None,
+                "use_file_prefix": True,
             },
-            # Add more plugins here as needed
-            # {
-            #     "name": "CADD",
-            #     "file": "CADD_GRCh38.tsv.gz",
-            #     "params": None
-            # },
+            {
+                "name": "CADD",
+                "files": {
+                    "snv": "CADD_whole_genome_SNVs.tsv.gz",
+                    "indels": "CADD_gnomad.genomes.r4.0.indel.tsv.gz",
+                },
+                "params": None,
+                "use_file_prefix": True,
+            },
+            {
+                "name": "BayesDel",
+                "file": "BayesDel_hg38_all_scores.txt.gz",
+                "params": None,
+                "use_file_prefix": True,
+            },
+            {
+                "name": "PrimateAI",
+                "file": "PrimateAI_scores_v0.2_GRCh38_sorted.tsv.bgz",
+                "params": None,
+                "use_file_prefix": False,  # PrimateAI doesn't use file= prefix
+            }
         ]
 
         for plugin in plugins:
+            use_file_prefix = plugin.get("use_file_prefix", True)
+            
             # Handle single file plugins
             if "file" in plugin:
                 plugin_file = join_paths(
                     library_paths.ENSEMBL_VEP, "plugin_data", plugin["file"]
                 )
                 if os.path.exists(plugin_file):
-                    plugin_config = f"{plugin['name']},file={plugin_file}"
+                    # Build plugin configuration based on whether to use file= prefix
+                    if use_file_prefix:
+                        plugin_config = f"{plugin['name']},file={plugin_file}"
+                    else:
+                        plugin_config = f"{plugin['name']},{plugin_file}"
+                    
                     if plugin["params"]:
                         plugin_config += f",{plugin['params']}"
                     command.extend(["--plugin", plugin_config])
+                else:
+                    print(f"Plugin file not found for {plugin['name']}: {plugin_file}")
 
-            # Handle multiple files plugins (like SpliceAI)
+            # Handle multiple files plugins (like SpliceAI, CADD)
             elif "files" in plugin:
                 file_paths = {}
                 all_files_exist = True
@@ -75,15 +106,26 @@ class VepAnnotator(_Annotatable, _Annotator):
 
                 if all_files_exist:
                     # Build plugin configuration with file keys
-                    file_params = ",".join(
-                        [f"{key}={path}" for key, path in file_paths.items()]
-                    )
+                    if use_file_prefix:
+                        file_params = ",".join(
+                            [f"{key}={path}" for key, path in file_paths.items()]
+                        )
+                    else:
+                        # If no file prefix needed, just join the paths
+                        file_params = ",".join(file_paths.values())
+                    
                     plugin_config = f"{plugin['name']},{file_params}"
 
                     if plugin["params"]:
                         plugin_config += f",{plugin['params']}"
 
                     command.extend(["--plugin", plugin_config])
+                else:
+                    missing_files = [
+                        name for key, name in plugin["files"].items()
+                        if key not in file_paths
+                    ]
+                    print(f"Plugin files not found for {plugin['name']}: {', '.join(missing_files)}")
 
     @classmethod
     def create_command(

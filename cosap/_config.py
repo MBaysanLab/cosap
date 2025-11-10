@@ -93,4 +93,4 @@ class AppConfig(metaclass=_AppConfigMeta):
     IN_MEMORY_MODE = strtobool(os.getenv("COSAP_IN_MEMORY_MODE", "False"))
 
     DEVICE = os.getenv("COSAP_DEVICE", "cpu")
-    VEP_CACHE_VERSION = os.getenv("COSAP_VEP_CACHE_VERSION", "113")
+    VEP_CACHE_VERSION = os.getenv("COSAP_VEP_CACHE_VERSION", "115")

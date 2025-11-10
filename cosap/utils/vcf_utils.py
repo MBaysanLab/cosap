@@ -6,6 +6,8 @@ from typing import Optional
 
 import pandas as pd
 import pysam
+from cyvcf2 import VCF
+import orjson
 from pandas.api.types import is_numeric_dtype
 
 logger = getLogger(__name__)
@@ -47,9 +49,12 @@ class VCFUtils:
     def remove_same_ref_alt_alleles(path: str):
         new_path = path + ".removed_same_ref_alt.vcf"
         if path.endswith(".gz"):
-            awk_command = rf"zcat {path} | awk -F '\t' '/^#/ || $4 != $5' > {new_path}"
+            # Keep header lines, and keep variants where:
+            # - REF != ALT (column 4 != column 5)
+            # - ALT is not <NON_REF>
+            awk_command = rf"zcat {path} | awk -F '\t' '/^#/ || ($4 != $5 && $5 !~ /<NON_REF>/)' > {new_path}"
         else:
-            awk_command = rf"awk -F '\t' '/^#/ || $4 != $5' {path} > {new_path}"
+            awk_command = rf"awk -F '\t' '/^#/ || ($4 != $5 && $5 !~ /<NON_REF>/)' {path} > {new_path}"
 
         run(["bash", "-c", awk_command], check=True)
         return new_path
@@ -57,7 +62,7 @@ class VCFUtils:
     @staticmethod
     def convert_vcf_to_tsv(path: str, caller_type: str = "gatk") -> str:
         # Gatk VariantsToTable gives error when ref and alt alleles are same, so remove those lines
-
+        
         path = VCFUtils.remove_same_ref_alt_alleles(path)
         output_filename = path.replace(".vcf", ".tsv")
 
@@ -291,10 +296,11 @@ class VCFUtils:
         final_df.rename(
             columns={v: k for k, v in columns_to_keep.items()}, inplace=True
         )
-
-        if not is_numeric_dtype(final_df["AD"]):
+        print(final_df.head())
+        # Check if AD column exists and process it if needed
+        if "AD" in final_df.columns and not is_numeric_dtype(final_df["AD"]):
             final_df["AD"] = final_df["AD"].apply(
-                lambda x: x.split(",")[-1] if "," in x else x
+                lambda x: x.split(",")[-1] if isinstance(x, str) and "," in x else x
             )
 
         return final_df.to_dict("records")
@@ -367,12 +373,181 @@ class VCFUtils:
             columns={v: k for k, v in columns_to_keep.items()}, inplace=True
         )
 
-        if not is_numeric_dtype(final_df["AD"]):
+        if "AD" in final_df.columns and not is_numeric_dtype(final_df["AD"]):
             final_df["AD"] = final_df["AD"].apply(
                 lambda x: x.split(",")[-1] if "," in x else x
             )
 
         return final_df.to_json(orient="records")
+
+    @staticmethod
+    def convert_vcf_to_json_fast(
+        path: str,
+        caller_type: str = None,
+        sample_name: str = None,
+        filter: str = "PASS",
+    ) -> str:
+        """
+        Returns list of variants as json objects using cyvcf2 for faster parsing.
+        """
+        
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"File not found: {path}")
+
+        vcf = VCF(path)
+        
+        # Extract sample name if not provided
+        if sample_name is None:
+            sample_names = vcf.samples
+            if not sample_names:
+                raise ValueError(
+                    "Sample name not provided and could not be extracted from VCF file."
+                )
+            elif len(sample_names) == 1:
+                sample_name = sample_names[0]
+            elif len(sample_names) > 1 and "tumor" in [s.lower() for s in sample_names]:
+                sample_name = next(s for s in sample_names if s.lower() == "tumor")
+            elif len(sample_names) > 1:
+                raise ValueError(f"Multiple samples found in VCF file: {sample_names}")
+        
+        # Get sample index
+        try:
+            sample_idx = vcf.samples.index(sample_name)
+        except ValueError:
+            raise ValueError(f"Sample '{sample_name}' not found in VCF file. Available samples: {vcf.samples}")
+        
+        # Extract caller type if not provided
+        if caller_type is None:
+            caller_type = VCFUtils.extract_variantcaller_from_vcf(path)
+            if caller_type is None:
+                caller_type = "haplotypecaller"
+        
+        caller_type = caller_type.lower()
+        
+        # Parse variants
+        variants = []
+        for variant in vcf:
+            # Apply filter
+            if filter and variant.FILTER and variant.FILTER != filter:
+                continue
+            
+            # Extract basic fields
+            chrom = str(variant.CHROM)
+            pos = int(variant.POS)
+            ref = str(variant.REF)
+            alt = ",".join(variant.ALT) if variant.ALT else "."
+            status = str(variant.INFO.get("STATUS", ".")) if variant.INFO.get("STATUS") is not None else "."
+            
+            # Extract sample-specific fields
+            gt = variant.gt_types[sample_idx] if hasattr(variant, 'gt_types') else None
+            
+            dp_val = variant.format('DP')[sample_idx][0] if 'DP' in variant.FORMAT else None
+            dp = int(dp_val) if dp_val is not None else None
+            
+            # Calculate AF and AD based on caller type
+            af = None
+            ad = None
+            
+            if caller_type == "strelka":
+                af, ad = VCFUtils._extract_strelka_af_ad_cyvcf2(variant, sample_idx, ref, alt)
+            elif caller_type == "somaticsniper":
+                af, ad = VCFUtils._extract_somaticsniper_af_ad_cyvcf2(variant, sample_idx)
+            elif caller_type == "varscan":
+                freq = variant.format('FREQ')[sample_idx][0] if 'FREQ' in variant.FORMAT else None
+                if freq:
+                    af = float(str(freq).replace('%', '')) / 100.0
+                ad_values = variant.format('AD')[sample_idx] if 'AD' in variant.FORMAT else None
+                ad = int(ad_values[-1]) if ad_values is not None and len(ad_values) > 1 else None
+            elif caller_type == "varnet":
+                af_values = variant.format('AF')[sample_idx] if 'AF' in variant.FORMAT else None
+                af = float(af_values[0]) if af_values is not None else None
+                ad_values = variant.format('AO')[sample_idx] if 'AO' in variant.FORMAT else None
+                ad = int(ad_values[0]) if ad_values is not None else None
+            elif caller_type == "haplotypecaller":
+                ad_values = variant.format('AD')[sample_idx] if 'AD' in variant.FORMAT else None
+                ad = int(ad_values[-1]) if ad_values is not None and len(ad_values) > 1 else None
+                # Calculate AF from AD
+                if ad_values is not None and len(ad_values) > 1:
+                    total = sum(ad_values)
+                    af = float(ad_values[-1]) / total if total > 0 else 0.0
+            else:  # Default extraction for mutect, vardict, etc.
+                af_values = variant.format('AF')[sample_idx] if 'AF' in variant.FORMAT else None
+                af = float(af_values[0]) if af_values is not None else None
+                ad_values = variant.format('AD')[sample_idx] if 'AD' in variant.FORMAT else None
+                ad = int(ad_values[-1]) if ad_values is not None and len(ad_values) > 1 else None
+            
+            # Format GT - explicitly convert to string
+            gt_str = None
+            if gt is not None:
+                gt_bases = variant.gt_bases[sample_idx] if hasattr(variant, 'gt_bases') else None
+                gt_str = str(gt_bases) if gt_bases else str(gt)
+            
+            # Ensure all numeric values are Python native types
+            variants.append({
+                "CHROM": chrom,
+                "POS": pos,
+                "REF": ref,
+                "ALT": alt,
+                "AF": float(af) if af is not None else None,
+                "AD": int(ad) if ad is not None else None,
+                "DP": dp,
+                "GT": gt_str,
+                "STATUS": status
+            })
+        
+        vcf.close()
+        
+        # Use orjson to serialize
+        return orjson.dumps(variants).decode('utf-8')
+    
+    @staticmethod
+    def _extract_strelka_af_ad_cyvcf2(variant, sample_idx, ref, alt):
+        """Extract AF and AD for Strelka from cyvcf2 variant."""
+        try:
+            ref_u = f"{ref}U"
+            alt_u = f"{alt.split(',')[0]}U"  # Take first ALT allele
+            
+            ref_counts = variant.format(ref_u)[sample_idx] if ref_u in variant.FORMAT else None
+            alt_counts = variant.format(alt_u)[sample_idx] if alt_u in variant.FORMAT else None
+            
+            if ref_counts is not None and alt_counts is not None:
+                # Strelka uses tier1,tier2 format
+                tier1_ref = int(ref_counts[0]) if len(ref_counts) > 0 else 0
+                tier1_alt = int(alt_counts[1]) if len(alt_counts) > 1 else 0
+                
+                af = float(tier1_alt) / (tier1_alt + tier1_ref) if (tier1_alt + tier1_ref) > 0 else 0.0
+                
+                # Calculate AD as sum of all nucleotide counts (tier1 only)
+                au = int(variant.format('AU')[sample_idx][0]) if 'AU' in variant.FORMAT else 0
+                cu = int(variant.format('CU')[sample_idx][0]) if 'CU' in variant.FORMAT else 0
+                gu = int(variant.format('GU')[sample_idx][0]) if 'GU' in variant.FORMAT else 0
+                tu = int(variant.format('TU')[sample_idx][0]) if 'TU' in variant.FORMAT else 0
+                ad = int(au + cu + gu + tu)
+                
+                return af, ad
+        except (IndexError, TypeError):
+            pass
+        
+        return None, None
+    
+    @staticmethod
+    def _extract_somaticsniper_af_ad_cyvcf2(variant, sample_idx):
+        """Extract AF and AD for SomaticSniper from cyvcf2 variant."""
+        try:
+            dp4 = variant.format('DP4')[sample_idx] if 'DP4' in variant.FORMAT else None
+            
+            if dp4 is not None and len(dp4) == 4:
+                ref_counts = int(dp4[0]) + int(dp4[1])
+                alt_counts = int(dp4[2]) + int(dp4[3])
+                
+                total = ref_counts + alt_counts
+                af = float(alt_counts) / total if total > 0 else 0.0
+                
+                return af, int(alt_counts)
+        except (IndexError, TypeError):
+            pass
+        
+        return None, None
 
     @staticmethod
     def create_vcf_index(vcf_path: str) -> None:
@@ -388,14 +563,18 @@ class VCFUtils:
             print("Index already exists.")
 
     @staticmethod
-    def extract_sample_names_from_vcf(vcf_path: str) -> str:
+    def extract_sample_names_from_vcf(vcf_path: str) -> list:
         """
-        Extracts sample name from vcf file.
+        Extracts sample names from vcf file using cyvcf2.
         """
-        bcftools_command = f"bcftools query -l {vcf_path}"
-        output = run(bcftools_command, shell=True, capture_output=True, text=True)
-
-        return output.stdout.strip().split("\n")
+        if not os.path.exists(vcf_path):
+            raise FileNotFoundError(f"File not found: {vcf_path}")
+        
+        vcf = VCF(vcf_path)
+        sample_names = vcf.samples
+        vcf.close()
+        
+        return list(sample_names) if sample_names else []
 
     @staticmethod
     def extract_variantcaller_from_vcf(vcf_path: str) -> Optional[str]:
@@ -464,6 +643,12 @@ class VCFUtils:
                 # Check for definitive signatures to distinguish haplotypecaller vs mutect
                 if "tlod" in info_fields:  # Tumor LOD - unique to Mutect2
                     return "mutect"
+                elif "germq" in info_fields:  # Germline quality - Mutect2
+                    return "mutect"
+                elif (
+                    "strand_bias" in filter_fields and "weak_evidence" in filter_fields
+                ):  # Mutect2 filters
+                    return "mutect"
                 elif (
                     "min_dp" in format_fields
                 ):  # GVCF field - unique to HaplotypeCaller
@@ -472,14 +657,8 @@ class VCFUtils:
                     "rgq" in format_fields
                 ):  # Reference genotype quality - HaplotypeCaller
                     return "haplotypecaller"
-                elif "germq" in info_fields:  # Germline quality - Mutect2
-                    return "mutect"
                 elif "failed_hc_filter" in filter_fields:  # Specific HC filter
                     return "haplotypecaller"
-                elif (
-                    "strand_bias" in filter_fields and "weak_evidence" in filter_fields
-                ):  # Mutect2 filters
-                    return "mutect"
 
         except (IOError, ValueError, AttributeError) as e:
             logger.error(f"Error reading VCF file {vcf_path}: {e}")

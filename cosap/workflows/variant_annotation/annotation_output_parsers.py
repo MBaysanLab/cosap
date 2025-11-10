@@ -151,31 +151,48 @@ class VEPResultsProcessor:
         """Create empty DataFrame with expected columns."""
         return pd.DataFrame(columns=self.config.VEP_COLUMN_MAPPING.keys())
 
-    def _read_ensembl_vcf_to_dataframe(self, path: str) -> pd.DataFrame:
+    def _read_ensembl_vcf_from_string(self, vcf_string: str) -> pd.DataFrame:
         """
-        Reads the output of ensembl vep and returns a dataframe.
+        Reads VCF content from a string and returns a dataframe.
+        Reuses the logic from _read_ensembl_vcf_to_dataframe.
+
+        Args:
+            vcf_string: VCF content as string
+
+        Returns:
+            pd.DataFrame: Parsed VCF data
         """
-        with open(path, "r") as f:
-            lines = list(f)
+        lines = vcf_string.split("\n")
 
         header_lines = [l for l in lines if l.startswith("##")]
-        data_lines = [l for l in lines if not l.startswith("##")]
+        data_lines = [l for l in lines if not l.startswith("##") and l.strip()]
 
         if not data_lines:
-            raise ValueError("No data lines found in the vep VCF file.")
+            logger.warning("No data lines found in VCF content.")
+            return pd.DataFrame()
 
         df = pd.read_csv(
-            io.StringIO("".join(data_lines)),
+            io.StringIO("\n".join(data_lines)),
             sep="\t",
         )
 
         # Get vep fields from vcf header and add them to the dataframe
-        vep_info_field = [l for l in header_lines if l.startswith("##INFO=<ID=CSQ")][0]
-        vep_fields = vep_info_field.split("Format: ")[1].rstrip("'>\n").split("|")
+        csq_lines = [l for l in header_lines if l.startswith("##INFO=<ID=CSQ")]
+        if not csq_lines:
+            logger.warning("No CSQ field found in VCF header.")
+            return pd.DataFrame()
+
+        vep_info_field = csq_lines[0]
+        vep_fields = vep_info_field.split("Format: ")[1].rstrip('">\n').split("|")
 
         # The vep data is the last value of the INFO field
         df["INFO"] = df["INFO"].str.extract(r"CSQ=([^;]+)")[0].str.split(",")
         df = df.explode("INFO")
+
+        if df["INFO"].isna().all():
+            logger.warning("No CSQ data found in INFO field.")
+            return pd.DataFrame()
+
         vep_columns = df["INFO"].str.split("|", expand=True)
         vep_columns.columns = vep_fields
         df_vep = pd.concat([df, vep_columns], axis=1)
@@ -193,65 +210,151 @@ class VEPResultsProcessor:
 
         return df_vep
 
-    def _read_ensemb_default_output_to_dataframe(self, vep_file: str) -> pd.DataFrame:
+    def _read_ensembl_vcf_to_dataframe(self, path: str) -> pd.DataFrame:
         """
-        Parses the default Ensembl VEP output into a Pandas DataFrame.
+        Reads the output of ensembl vep and returns a dataframe.
+        """
+        with open(path, "r", encoding="utf-8") as f:
+            vcf_content = f.read()
 
-        Parameters:
-        vep_file (str): Path to the VEP output file.
+        return self._read_ensembl_vcf_from_string(vcf_content)
+
+    def process_record(self, record, header_lines: list = None) -> dict:
+        """
+        Process a single pysam.VariantFile record or a list of records with the same transformations as process().
+
+        Args:
+            record: pysam.VariantRecord object or list of pysam.VariantRecord objects
+            header_lines: List of VCF header lines (optional, for efficiency)
 
         Returns:
-        pd.DataFrame: A DataFrame containing the parsed VEP output.
+            dict or list of dict: Processed record data, or None if processing fails
+                                 If input is a list, returns a list of dicts
         """
-        # Read the VEP output file into a DataFrame
-        df = pd.read_csv(vep_file, sep="\t", comment="#", header=None)
+        # Handle list of records
+        if isinstance(record, list):
+            return self._process_multiple_records(record, header_lines)
 
-        # Define the column names based on the VEP output format
-        columns = [
-            "Uploaded_variation",
-            "Location",
-            "Allele",
-            "Gene",
-            "Feature",
-            "Feature_type",
-            "Consequence",
-            "cDNA_position",
-            "CDS_position",
-            "Protein_position",
-            "Amino_acids",
-            "Codons",
-            "Existing_variation",
-            "Extra",
-        ]
+        # Handle single record
+        return self._process_single_record(record, header_lines)
 
-        # Assign the column names to the DataFrame
-        df.columns = columns
+    def _process_single_record(self, record, header_lines: list = None) -> dict:
+        """Process a single pysam.VariantFile record."""
+        try:
+            import io
 
-        # Parse the 'Extra' column into separate columns
-        extra_data = df["Extra"].str.split(";", expand=True)
+            # If header_lines not provided, extract from record
+            if header_lines is None:
+                header_lines = []
+                for header_rec in record.header.records:
+                    header_lines.append(str(header_rec))
 
-        # Create a dictionary to store the extra information
-        extra_dict = {}
-        for col in extra_data.columns:
-            # Split each key-value pair in the column
-            key_value = extra_data[col].str.split("=", expand=True)
-            if not key_value.empty:
-                # Extract the key and values
-                keys = key_value[0].dropna().unique()
-                for key in keys:
-                    if key:  # Ensure the key is not empty
-                        # Extract values for the current key
-                        values = key_value[key_value[0] == key][1]
-                        extra_dict[key] = values
+            # Create a minimal VCF content with just this record
+            vcf_content = []
 
-        # Add the extra information to the DataFrame
-        for key, values in extra_dict.items():
-            df[key] = values
+            # Add header lines
+            vcf_content.extend(header_lines)
 
-        # Drop the original 'Extra' column
-        df = df.drop(columns=["Extra"])
+            # Add column header line
+            vcf_content.append("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n")
 
-        return df
+            # Add the record line
+            alt = record.alts[0] if record.alts else "."
+            info_str = ";".join(
+                [
+                    f"{key}={','.join(map(str, val)) if isinstance(val, (list, tuple)) else val}"
+                    for key, val in record.info.items()
+                ]
+            )
+
+            record_line = f"{record.chrom}\t{record.pos}\t.\t{record.ref}\t{alt}\t.\t.\t{info_str}\n"
+            vcf_content.append(record_line)
+
+            # Create a StringIO object
+            vcf_string = "".join(vcf_content)
+
+            # Use existing _read_ensembl_vcf_to_dataframe logic
+            df = self._read_ensembl_vcf_from_string(vcf_string)
+
+            if df.empty:
+                return None
+
+            # Apply transformations using existing pipeline
+            df = self._apply_transformations(df)
+
+            # Return the first (and only) record as a dict
+            return df.iloc[0].to_dict()
+
+        except Exception as e:
+            logger.error(f"Error processing record: {e}")
+            return None
+
+    def _process_multiple_records(self, records: list, header_lines: list = None) -> list:
+        """
+        Process multiple pysam.VariantFile records at once for better efficiency.
+
+        Args:
+            records: List of pysam.VariantRecord objects
+            header_lines: List of VCF header lines (optional, for efficiency)
+
+        Returns:
+            list of dict: List of processed record data
+        """
+        try:
+            import io
+
+            if not records:
+                return []
+
+            # If header_lines not provided, extract from first record
+            if header_lines is None:
+                header_lines = []
+                for header_rec in records[0].header.records:
+                    header_lines.append(str(header_rec))
+
+            # Create VCF content with all records
+            vcf_content = []
+
+            # Add header lines
+            vcf_content.extend(header_lines)
+
+            # Add column header line
+            vcf_content.append("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n")
+
+            # Add all record lines
+            for record in records:
+                alt = record.alts[0] if record.alts else "."
+                info_str = ";".join(
+                    [
+                        f"{key}={','.join(map(str, val)) if isinstance(val, (list, tuple)) else val}"
+                        for key, val in record.info.items()
+                    ]
+                )
+
+                record_line = f"{record.chrom}\t{record.pos}\t.\t{record.ref}\t{alt}\t.\t.\t{info_str}\n"
+                vcf_content.append(record_line)
+
+            # Create a StringIO object
+            vcf_string = "".join(vcf_content)
+
+            # Use existing _read_ensembl_vcf_to_dataframe logic
+            df = self._read_ensembl_vcf_from_string(vcf_string)
+
+            if df.empty:
+                return []
+
+            # Apply transformations using existing pipeline
+            df = self._apply_transformations(df)
+            # Return all records as list of dicts
+            return df.to_dict(orient="records")
+
+        except Exception as e:
+            logger.error(f"Error processing multiple records: {e}")
+            return []
+
+    def _create_empty_dataframe(self) -> pd.DataFrame:
+        """Create empty DataFrame with expected columns."""
+        return pd.DataFrame(columns=self.config.VEP_COLUMN_MAPPING.keys())
 
 
 class AnnovarResultsProcessor:
@@ -277,6 +380,30 @@ class AnnovarResultsProcessor:
 
         except Exception as e:
             logger.error(f"Error processing Annovar results from {path}: {e}")
+            return self._create_empty_dataframe(subtype)
+
+    def process_dataframe(self, df: pd.DataFrame, subtype: str) -> pd.DataFrame:
+        """
+        Process a DataFrame of Annovar records.
+
+        Args:
+            df: DataFrame with Annovar data
+            subtype: Type of annotation ("annovar", "intervar", or "cancervar")
+
+        Returns:
+            pd.DataFrame: Processed data
+        """
+        try:
+            self._validate_subtype(subtype)
+
+            if df.empty:
+                logger.warning("Empty DataFrame provided")
+                return self._create_empty_dataframe(subtype)
+
+            return self._apply_transformations(df, subtype)
+
+        except Exception as e:
+            logger.error(f"Error processing DataFrame: {e}")
             return self._create_empty_dataframe(subtype)
 
     def _validate_subtype(self, subtype: str) -> None:
@@ -354,3 +481,99 @@ class AnnovarResultsProcessor:
         column_mapping = self._get_column_mapping(subtype)
         columns = ["variant_id", *column_mapping.keys()]
         return pd.DataFrame(columns=columns)
+
+
+class MetaRnnResultsProcessor:
+    """Dedicated class for processing MetaRNN results."""
+
+    def process(self, path: str) -> pd.DataFrame:
+        """Process MetaRNN results from the specified file path."""
+        try:
+            if not os.path.exists(path):
+                raise FileNotFoundError(f"MetaRNN results file not found: {path}")
+
+            df = pd.read_csv(path, sep="\t")
+
+            if df.empty:
+                logger.warning(f"No data found in MetaRNN results file: {path}")
+                return self._create_empty_dataframe()
+
+            df = df.assign(
+                TRANSCRIPT=df["TRANSCRIPT"].str.split(";"),
+                MetaRNN_score=df["MetaRNN_score"].str.split(";")
+            ).explode(
+                ["TRANSCRIPT", "MetaRNN_score"]
+            )
+            return self._apply_transformations(df)
+
+        except Exception as e:
+            logger.error(f"Error processing MetaRNN results from {path}: {e}")
+            return self._create_empty_dataframe()
+
+    def process_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Process a DataFrame of MetaRNN records.
+
+        Args:
+            df: DataFrame with MetaRNN data
+
+        Returns:
+            pd.DataFrame: Processed data
+        """
+        try:
+            if df.empty:
+                logger.warning("Empty DataFrame provided")
+                return self._create_empty_dataframe()
+
+            # Handle transcript and score expansion if needed
+            if "TRANSCRIPT" in df.columns and "MetaRNN_score" in df.columns:
+                if df["TRANSCRIPT"].dtype == "object" and df["TRANSCRIPT"].str.contains(";", na=False).any():
+                    df = df.assign(
+                        TRANSCRIPT=df["TRANSCRIPT"].str.split(";"),
+                        MetaRNN_score=df["MetaRNN_score"].str.split(";")
+                    ).explode(
+                        ["TRANSCRIPT", "MetaRNN_score"]
+                    )
+
+            return self._apply_transformations(df)
+
+        except Exception as e:
+            logger.error(f"Error processing MetaRNN DataFrame: {e}")
+            return self._create_empty_dataframe()
+
+    def _apply_transformations(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Apply all data transformations."""
+        df = self._process_variant_identifiers(df)
+        df = self._process_metarnn_scores(df)
+
+        df = df.drop(
+            columns=["#CHROM", "POS", "REF", "ALT"],
+        )
+
+        # Make colum names lowercase
+        df.columns = [col.lower() for col in df.columns]
+
+        return df
+
+    def _process_variant_identifiers(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Process variant ID formatting."""
+        df["variant_id"] = df[["#CHROM", "POS", "REF", "ALT"]].astype(str).agg("_".join, axis=1)
+        df["variant_id"] = np.where(
+            df["variant_id"].str.startswith("chr"),
+            df["variant_id"],
+            "chr" + df["variant_id"],
+        )
+        return df
+
+    def _process_metarnn_scores(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Process MetaRNN prediction scores."""
+        if "MetaRNN_score" in df.columns:
+            df["MetaRNN_score"] = pd.to_numeric(df["MetaRNN_score"], errors="coerce")
+            df["MetaRNN_interpretation"] = np.where(
+                df["MetaRNN_score"] >= 0.5, "pathogenic", "benign"
+            )
+        return df
+
+    def _create_empty_dataframe(self) -> pd.DataFrame:
+        """Create empty DataFrame with expected columns."""
+        return pd.DataFrame(columns=["variant_id", "metarnn_score", "metarnn_interpretation"])

@@ -71,7 +71,7 @@ def cli():
     required=False,
 )
 @click.option(
-    "--annotator",
+    "--annotators",
     help="Annotation tool to annotate variants in vcf files.",
     required=False,
     multiple=True,

@@ -6,6 +6,7 @@ from ._ensembl_vep_annotator import VepAnnotator
 from ._exomiser import Exomiser
 from ._intervar_annotator import IntervarAnnotator
 from ._pharmcat_annotator import PharmcatAnnotator
+from ._metarnn_annotator import MetaRnnAnnotator
 
 
 class AnnotatorFactory:
@@ -16,6 +17,7 @@ class AnnotatorFactory:
     PHARMGKB_ANNOTATOR = "pharmcat"
     ANNOTSV = "annotsv"
     EXOMISER = "exomiser"
+    METARNN = "metarnn"
 
     @classmethod
     def create(cls, annotator_type: str) -> _Annotator:
@@ -35,6 +37,8 @@ class AnnotatorFactory:
             annotator = AnnotSVAnnotator
         elif annotator_type == cls.EXOMISER:
             annotator = Exomiser
+        elif annotator_type == cls.METARNN:
+            annotator = MetaRnnAnnotator
         else:
             raise Exception(f"Unknown annotator type: {annotator_type}")
 

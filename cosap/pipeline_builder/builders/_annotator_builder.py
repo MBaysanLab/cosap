@@ -52,7 +52,7 @@ class Annotator(_IPipelineStep, _PipelineStep):
             return FileFormats.ANNOTATION_OUTPUT.format(
                 identification=self.name, custom_ext="txt"
             )
-        elif self.library.lower() in ["annotsv"]:
+        elif self.library.lower() in ["annotsv", "metarnn"]:
             return FileFormats.ANNOTATION_OUTPUT.format(
                 identification=self.name, custom_ext="tsv"
             )

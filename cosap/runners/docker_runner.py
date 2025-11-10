@@ -84,6 +84,7 @@ class DockerRunner:
             device_requests=device_requests,
             labels=[self.container_label],
             remove=remove,
+            user=os.getuid(),
         )
 
         logs = container.attach(stdout=True, stderr=True, stream=True, logs=True)

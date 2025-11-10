@@ -9,7 +9,7 @@ import yaml
 from celery import Celery, shared_task
 
 from .._config import AppConfig
-from .._utils import convert_vcf_to_json
+from .._utils import convert_vcf_to_json_fast
 from ..parsers import ProjectResultsParser
 from ..workflows import (
     DNAPipeline,
@@ -139,7 +139,7 @@ def annotate_variants(variants_file_path: str, workdir: str) -> str:
         with NamedTemporaryFile(
             mode="w", dir=workdir, suffix=".json", delete=False
         ) as f:
-            json.dump(json.loads(variant_annotator.get_results()), f)
+            variant_annotator.save_results(f)
             annotated_variants_file_path = f.name
 
         return annotated_variants_file_path
@@ -188,7 +188,7 @@ def parse_vcf(
             )
             vcf_path = liftover_builder.get_output()
 
-        output_json = convert_vcf_to_json(
+        output_json = convert_vcf_to_json_fast(
             vcf_path, caller_type=caller_type, sample_name=sample_name
         )
 

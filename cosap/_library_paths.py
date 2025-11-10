@@ -60,6 +60,7 @@ class _LibraryPaths:
     EXOMISER_JAR: str = _get_file_path_hg38(
         "exomiser-cli-14.1.0", "exomiser-cli-14.1.0.jar"
     )
+    METARNN = _get_file_path_hg38("MetaRNN")
 
 
 @dataclass

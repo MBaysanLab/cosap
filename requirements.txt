@@ -41,3 +41,5 @@ docker-py
 python-dotenv
 pysam
 bedtools
+cyvcf2
+orjson

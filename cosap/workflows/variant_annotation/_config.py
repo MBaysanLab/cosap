@@ -49,6 +49,10 @@ class VariantAnnotationConfig:
         "spliceai_pred_ds_dg": "SpliceAI_pred_DS_DG",
         "spliceai_pred_ds_dl": "SpliceAI_pred_DS_DL",
         "spliceai_pred_symbol": "SpliceAI_pred_SYMBOL",
+        "cadd_phred": "CADD_PHRED",
+        "cadd_raw": "CADD_RAW",
+        "bayesdel_addaf": "BayesDel",
+        "primateai": "PrimateAI",
         "pubmed": "PUBMED",
     }
 

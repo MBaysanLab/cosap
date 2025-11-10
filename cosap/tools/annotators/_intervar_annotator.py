@@ -48,12 +48,11 @@ class IntervarAnnotator(_Annotatable, _Annotator):
     @classmethod
     def annotate(cls, annotator_config: Dict):
         library_paths = LibraryPaths()
-        workdir = annotator_config[AnnotatorKeys.OUTPUT_DIR]
 
         intervar_command = cls.create_command(
             library_paths=library_paths,
             annotator_config=annotator_config,
         )
 
-        cls.create_output_dir(annotator_config, workdir=workdir)
-        run(intervar_command, cwd=workdir)
+        output_dir = cls.create_output_dir(annotator_config)
+        run(intervar_command, cwd=output_dir)
