@@ -103,6 +103,7 @@ class BWAMapper(_Mapper, _Mappable):
             *fastq_inputs,
             "--out-bam",
             mapper_config[MappingKeys.OUTPUT],
+            "--bwa-options=-'K 10000000'"
         ]
         if not mapper_config[MappingKeys.POST_PROCESSING]:
             command.extend(["--no-markdups"])

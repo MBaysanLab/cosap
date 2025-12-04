@@ -226,7 +226,13 @@ def set_ref_dir(path):
     help="Name of the output file",
     required=False,
 )
-def mapper(fastqs, mapper, output_dir, sample_name, read_groups, output_name):
+@click.option(
+    "--device",
+    help="Device to run the mapping on. Options = ['cpu', 'gpu']",
+    required=False,
+    default="cpu",
+)
+def mapper(fastqs, mapper, output_dir, sample_name, read_groups, output_name, device):
     # Check if reads are provided
     if not fastqs:
         print("Please provide the path to the reads")
@@ -236,6 +242,10 @@ def mapper(fastqs, mapper, output_dir, sample_name, read_groups, output_name):
     if not output_dir:
         print("Current directory is used as the default output directory")
         output_dir = os.getcwd()
+
+    if not sample_name and not read_groups:
+        print("Please provide either a sample name or read groups")
+        exit()
 
     fastqs = [
         FastqReader(fastq, name=sample_name, read=i + 1)
@@ -251,7 +261,7 @@ def mapper(fastqs, mapper, output_dir, sample_name, read_groups, output_name):
         params={
             "read_groups": {
                 "ID": "0",
-                "SM": "test",
+                "SM": sample_name,
                 "PU": "0",
                 "PL": "ILLUMINA",
                 "LB": "0",
@@ -262,7 +272,7 @@ def mapper(fastqs, mapper, output_dir, sample_name, read_groups, output_name):
     )
     mapper_config = mapper_builder.get_config()
     cosap_mapper = MapperFactory.create(mapper)
-    cosap_mapper.map(mapper_config[mapper_builder.key][mapper_builder.name])
+    cosap_mapper.map(mapper_config[mapper_builder.key][mapper_builder.name], device=device)
 
     print(
         f"Output file: {join_paths(output_dir, FileFormats.MAPPING_OUTPUT.format(identification=output_name))}"
