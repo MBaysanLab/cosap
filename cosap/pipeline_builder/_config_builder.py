@@ -33,6 +33,8 @@ class Pipeline:
             PipelineKeys.QUALITY_CONTROL: dict(),
             PipelineKeys.GENEFUSION: dict(),
             PipelineKeys.MSI: dict(),
+            PipelineKeys.CNV: dict(),
+            PipelineKeys.GERMLINE_CNV: dict(),
             PipelineKeys.FINAL_OUTPUT: list(),
             PipelineKeys.WORKDIR: str,
         }

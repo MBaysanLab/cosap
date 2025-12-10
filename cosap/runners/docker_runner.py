@@ -24,6 +24,7 @@ class DockerRunner:
         workdir: str = None,
         paths_to_bind: List[Dict[str, str]] = None,
         remove: bool = True,
+        run_as_root: bool = False,
     ) -> None:
         """
         image: Docker image to use
@@ -71,6 +72,7 @@ class DockerRunner:
                 docker.types.DeviceRequest(count=-1, capabilities=[["gpu"]])
             ]
 
+        user = None if run_as_root else os.getuid()
         # Run and return the log generator
         container = self.docker_client.containers.run(
             image=image,
@@ -84,7 +86,7 @@ class DockerRunner:
             device_requests=device_requests,
             labels=[self.container_label],
             remove=remove,
-            user=os.getuid(),
+            user=user,
         )
 
         logs = container.attach(stdout=True, stderr=True, stream=True, logs=True)

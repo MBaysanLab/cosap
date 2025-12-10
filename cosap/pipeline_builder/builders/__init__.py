@@ -4,6 +4,11 @@ from ._cnv_caller_builder import CNVCaller
 from ._elprep_builder import Elprep
 from ._file_readers import BamReader, FastqReader, VCFReader
 from ._genefusioncaller_builder import GeneFusionCaller
+from ._germline_cnv_caller_builder import (
+    GermlineCNVCaller,
+    GermlineCNVCallerExome,
+    GermlineCNVCallerSensitive,
+)
 from ._index_builder import Indexer
 from ._liftover_builder import LiftoverVariant
 from ._mapper_builder import Mapper

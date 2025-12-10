@@ -11,6 +11,7 @@ from cosap._pipeline_config import (
     GeneFusionCallingKeys,
     MSICallingKeys,
     CNVCallingKeys,
+    GermlineCNVCallingKeys,
 )
 
 def get_bams(wildcards, calling_rule: str) -> list[str]:
@@ -128,4 +129,40 @@ rule cnv_caller:
         )
         cnv_caller.call(
             config[PipelineKeys.CNV][wildcards.identification]
+        )
+
+
+def get_germline_cnv_bams(wildcards) -> list[str]:
+    """Get all BAM inputs for germline CNV calling"""
+    return config[PipelineKeys.GERMLINE_CNV][wildcards.identification][
+        GermlineCNVCallingKeys.SAMPLE_INPUTS
+    ]
+
+
+rule germline_cnv_caller:
+    """
+    GATK GermlineCNVCaller pipeline for detecting rare germline CNVs.
+    
+    This rule handles the complete GATK GermlineCNVCaller workflow:
+    1. PreprocessIntervals - Prepare analysis intervals
+    2. AnnotateIntervals - Annotate with GC content
+    3. CollectReadCounts - Collect per-sample read counts
+    4. FilterIntervals - Filter problematic intervals
+    5. DetermineGermlineContigPloidy - Determine contig ploidies
+    6. GermlineCNVCaller - Call CNVs
+    7. PostprocessGermlineCNVCalls - Generate final VCFs
+    """
+    input:
+        bams=lambda wildcards: get_germline_cnv_bams(wildcards),
+    output:
+        intervals=FolderedOutputs.GCNV_GENOTYPED_INTERVALS,
+        segments=FolderedOutputs.GCNV_GENOTYPED_SEGMENTS,
+    run:
+        cnv_caller = CNVCallerFactory.create(
+            caller_type=config[PipelineKeys.GERMLINE_CNV][wildcards.identification][
+                GermlineCNVCallingKeys.LIBRARY
+            ]
+        )
+        cnv_caller.call(
+            config[PipelineKeys.GERMLINE_CNV][wildcards.identification]
         )

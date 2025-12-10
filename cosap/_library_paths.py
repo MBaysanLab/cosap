@@ -67,6 +67,7 @@ class _LibraryPaths:
 class _LibraryPaths38(_LibraryPaths):
     REF_DIR: str = AppConfig.LIBRARY_PATH
     REF_FASTA: str = _get_file_path_hg38("Homo_sapiens_assembly38.fasta")
+    REF_DICT: str = _get_file_path_hg38("Homo_sapiens_assembly38.dict")
     REF_ELFASTA: str = _get_file_path_hg38("Homo_sapiens_assembly38.elfasta")
     DBSNP: str = _get_file_path_hg38("Homo_sapiens_assembly38.dbsnp138.vcf")
     DBSNP_ELSITES: str = _get_file_path_hg38("Homo_sapiens_assembly38.dbsnp138.elsites")
@@ -86,6 +87,8 @@ class _LibraryPaths38(_LibraryPaths):
     BWA_ASSEMBLY: str = _get_file_path_hg38("Homo_sapiens_assembly38.fasta")
     BOWTIE2_ASSEMBLY: str = _get_file_path_hg38("Homo_sapiens_assembly38")
     CHAIN_FILE: str = _get_file_path_hg38("hg19ToHg38.over.chain.gz")
+    # GermlineCNVCaller reference files
+    CONTIG_PLOIDY_PRIORS: str = _get_file_path_hg38("contig_ploidy_priors_hg38.tsv")
 
 
 @dataclass

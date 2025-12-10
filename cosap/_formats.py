@@ -32,6 +32,14 @@ class FileFormats:
     GENEFUSION_OUTPUT: str = r"gene_fusion_{identification}.json"
     MSI_OUTPUT: str = r"msi_{identification}.txt"
     CNV_OUTPUT: str = r"cnv_{identification}.txt"
+    # GermlineCNVCaller outputs
+    GCNV_PREPROCESSED_INTERVALS: str = r"preprocessed_{identification}.interval_list"
+    GCNV_ANNOTATED_INTERVALS: str = r"annotated_{identification}.tsv"
+    GCNV_READ_COUNTS: str = r"read_counts_{identification}.hdf5"
+    GCNV_FILTERED_INTERVALS: str = r"filtered_{identification}.interval_list"
+    GCNV_GENOTYPED_INTERVALS: str = r"genotyped_intervals_{identification}.vcf.gz"
+    GCNV_GENOTYPED_SEGMENTS: str = r"genotyped_segments_{identification}.vcf.gz"
+    GCNV_DENOISED_COPY_RATIOS: str = r"denoised_copy_ratios_{identification}.tsv"
 
 
 @dataclass
@@ -49,6 +57,7 @@ class OutputFolders:
     GENE_FUSION: str = "GENE_FUSION"
     MSI: str = "MSI"
     CNV: str = "CNV"
+    GERMLINE_CNV: str = "GERMLINE_CNV"
 
 
 @dataclass
@@ -84,3 +93,10 @@ class FolderedOutputs:
     )
     MSI_OUTPUT: str = join_paths(OutputFolders.MSI, "{library}", FileFormats.MSI_OUTPUT)
     CNV_OUTPUT: str = join_paths(OutputFolders.CNV, "{library}", FileFormats.CNV_OUTPUT)
+    # GermlineCNVCaller outputs
+    GCNV_GENOTYPED_INTERVALS: str = join_paths(
+        OutputFolders.GERMLINE_CNV, "{library}", FileFormats.GCNV_GENOTYPED_INTERVALS
+    )
+    GCNV_GENOTYPED_SEGMENTS: str = join_paths(
+        OutputFolders.GERMLINE_CNV, "{library}", FileFormats.GCNV_GENOTYPED_SEGMENTS
+    )

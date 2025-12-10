@@ -9,7 +9,7 @@ class PipelineKeys:
     LIBRARY_PATH: str = "library_path"
     CREATION_DATE: str = "creation-date"
     VERSION: str = "cosap_version"
-    MAPPING: str = "mapping"
+    MAPPING: str = "sorting"
     SORTING: str = "sorting"
     INDEX: str = "index"
     MERGE: str = "merge"
@@ -26,6 +26,7 @@ class PipelineKeys:
     GENEFUSION: str = "genefusion"
     MSI: str = "msi"
     CNV: str = "cnv"
+    GERMLINE_CNV: str = "germline_cnv"
 
 
 @dataclass
@@ -127,6 +128,39 @@ class CNVCallingKeys(PipelineBaseKeys):
     NORMAL_INPUT: str = "normal_input"
     TUMOR_INPUT: str = "tumor_input"
     OUTPUT_DIR: str = "output_dir"
+
+
+@dataclass
+class GermlineCNVCallingKeys(PipelineBaseKeys):
+    """Keys specific to GATK GermlineCNVCaller pipeline"""
+
+    # Inputs
+    INTERVALS: str = "intervals"
+    CONTIG_PLOIDY_PRIORS: str = "contig_ploidy_priors"
+    SAMPLE_INPUTS: str = "sample_inputs"  # List of BAM files
+
+    # Intermediate outputs
+    PREPROCESSED_INTERVALS: str = "preprocessed_intervals"
+    ANNOTATED_INTERVALS: str = "annotated_intervals"
+    READ_COUNTS: str = "read_counts"  # Dict of sample_name -> hdf5 path
+    FILTERED_INTERVALS: str = "filtered_intervals"
+    PLOIDY_MODEL: str = "ploidy_model"
+    PLOIDY_CALLS: str = "ploidy_calls"
+    CNV_MODEL: str = "cnv_model"
+    CNV_CALLS: str = "cnv_calls"
+
+    # Outputs
+    GENOTYPED_INTERVALS: str = "genotyped_intervals"
+    GENOTYPED_SEGMENTS: str = "genotyped_segments"
+    DENOISED_COPY_RATIOS: str = "denoised_copy_ratios"
+
+    # Parameters
+    SCATTER_COUNT: str = "scatter_count"
+    SAMPLE_INDEX: str = "sample_index"
+    ALLOSOMAL_CONTIGS: str = "allosomal_contigs"
+    RUN_MODE: str = "run_mode"  # COHORT or CASE
+    BIN_LENGTH: str = "bin_length"
+    PADDING: str = "padding"
 
 
 @dataclass

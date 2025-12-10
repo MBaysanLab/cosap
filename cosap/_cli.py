@@ -11,6 +11,7 @@ from .pipeline_builder.builders import (
     MDUP,
     BamReader,
     FastqReader,
+    GermlineCNVCaller,
     Mapper,
     Merger,
     Recalibrator,
@@ -19,6 +20,7 @@ from .pipeline_builder.builders import (
     VariantCaller,
 )
 from .tools import MapperFactory, PreprocessorFactory, VariantCallerFactory
+from .tools.cnv_callers import CNVCallerFactory
 from .workflows import DNAPipeline, DNAPipelineInput
 
 
@@ -401,3 +403,235 @@ def bam_preprocessor(
     cosap_preprocessor.run_preprocessor(
         proprocessor_config[preprocessor_obj.key][preprocessor_obj.name]
     )
+
+
+@cli.command()
+@click.option(
+    "--bam",
+    "bam_files",
+    help="Path to a BAM file. Can be specified multiple times for cohort analysis. "
+         "Minimum 3 samples recommended for cohort mode.",
+    required=True,
+    multiple=True,
+    type=click.Path(exists=True),
+)
+@click.option(
+    "--intervals",
+    help="Path to intervals file (BED or interval_list). Required for exome/panel data.",
+    required=False,
+    type=click.Path(exists=True),
+)
+@click.option(
+    "--contig-ploidy-priors",
+    "contig_ploidy_priors",
+    help="Path to contig ploidy priors TSV file. Required for cohort mode.",
+    required=False,
+    type=click.Path(exists=True),
+)
+@click.option(
+    "--output-dir",
+    "output_dir",
+    help="Output directory for results. Defaults to current directory.",
+    required=False,
+    type=click.Path(),
+)
+@click.option(
+    "--name",
+    help="Name for this analysis run. Used in output file naming.",
+    required=False,
+    default="germline_cnv_cohort",
+)
+@click.option(
+    "--data-type",
+    "data_type",
+    help="Type of sequencing data.",
+    type=click.Choice(["wgs", "exome"], case_sensitive=False),
+    default="wgs",
+)
+@click.option(
+    "--bin-length",
+    "bin_length",
+    help="Bin length for WGS data (default 1000). Set to 0 for exome data.",
+    type=int,
+    default=None,
+)
+@click.option(
+    "--padding",
+    help="Padding for intervals in bp (default 0 for WGS, 250 for exome).",
+    type=int,
+    default=None,
+)
+@click.option(
+    "--sensitive",
+    help="Use increased sensitivity parameters for WGS data. May increase false positives.",
+    is_flag=True,
+    default=False,
+)
+@click.option(
+    "--allosomal-contig",
+    "allosomal_contigs",
+    help="Allosomal contig name (e.g., chrX, chrY). Can be specified multiple times.",
+    multiple=True,
+    default=["chrX", "chrY"],
+)
+@click.option(
+    "--mappability-track",
+    "mappability_track",
+    help="Path to mappability track BED file for interval filtering.",
+    required=False,
+    type=click.Path(exists=True),
+)
+@click.option(
+    "--max-copy-number",
+    "max_copy_number",
+    help="Maximum copy number to report (default 5).",
+    type=int,
+    default=5,
+)
+@click.option(
+    "--verbosity",
+    help="Logging verbosity level.",
+    type=click.Choice(["INFO", "DEBUG", "WARNING", "ERROR"], case_sensitive=False),
+    default="INFO",
+)
+def germline_cnv_cohort(
+    bam_files,
+    intervals,
+    contig_ploidy_priors,
+    output_dir,
+    name,
+    data_type,
+    bin_length,
+    padding,
+    sensitive,
+    allosomal_contigs,
+    mappability_track,
+    max_copy_number,
+    verbosity,
+):
+    """
+    Run GATK GermlineCNVCaller pipeline in cohort mode.
+
+    This command runs the complete GATK GermlineCNVCaller workflow for detecting
+    rare germline copy number variants from multiple samples.
+
+    The pipeline includes:
+
+    \b
+    Phase 1 - Cohort Model Building:
+      1. PreprocessIntervals - Prepare intervals
+      2. AnnotateIntervals - Annotate with GC content
+      3. CollectReadCounts - Collect per-sample read counts
+      4. FilterIntervals - Filter problematic intervals
+      5. DetermineGermlineContigPloidy - Determine contig ploidies
+
+    \b
+    Phase 2 - Sample CNV Calling:
+      6. GermlineCNVCaller - Call CNVs
+      7. PostprocessGermlineCNVCalls - Generate per-sample VCFs
+
+    \b
+    Examples:
+      # WGS cohort analysis
+      cosap germline-cnv-cohort --bam sample1.bam --bam sample2.bam --bam sample3.bam \\
+          --contig-ploidy-priors priors.tsv --output-dir ./results
+
+      # Exome/panel analysis
+      cosap germline-cnv-cohort --bam s1.bam --bam s2.bam --bam s3.bam \\
+          --data-type exome --intervals targets.bed --output-dir ./results
+
+      # WGS with increased sensitivity
+      cosap germline-cnv-cohort --bam s1.bam --bam s2.bam --bam s3.bam \\
+          --sensitive --output-dir ./results
+    """
+    # Validate inputs
+    if len(bam_files) < 2:
+        click.echo("Warning: Cohort mode works best with at least 3 samples. "
+                   "Consider using more samples for better model training.", err=True)
+
+    if data_type == "exome" and not intervals:
+        click.echo("Error: --intervals is required for exome/panel data.", err=True)
+        raise SystemExit(1)
+
+    # Set output directory
+    if not output_dir:
+        output_dir = os.getcwd()
+        click.echo(f"Using current directory as output: {output_dir}")
+    
+    output_dir = os.path.abspath(output_dir)
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Set default bin_length and padding based on data type
+    if bin_length is None:
+        bin_length = 0 if data_type == "exome" else 1000
+    if padding is None:
+        padding = 250 if data_type == "exome" else 0
+
+    # Build params dict
+    params = {
+        "max_copy_number": max_copy_number,
+        "verbosity": verbosity.upper(),
+        "allosomal_contigs": list(allosomal_contigs),
+    }
+
+    if mappability_track:
+        params["mappability_track"] = mappability_track
+
+    # Add sensitive parameters if requested (for WGS)
+    if sensitive:
+        params.update({
+            "class_coherence_length": 1000.0,
+            "cnv_coherence_length": 1000.0,
+            "enable_bias_factors": False,
+            "interval_psi_scale": 1.0e-6,
+            "log_mean_bias_standard_deviation": 0.01,
+            "sample_psi_scale": 1.0e-6,
+        })
+        click.echo("Using increased sensitivity parameters for WGS data.")
+
+    # For exome, ensure bias factors are enabled
+    if data_type == "exome":
+        params["enable_bias_factors"] = True
+
+    # Create BAM readers
+    click.echo(f"Processing {len(bam_files)} BAM files:")
+    bam_readers = []
+    for bam_path in bam_files:
+        bam_name = os.path.basename(bam_path).replace(".bam", "")
+        click.echo(f"  - {bam_name}: {bam_path}")
+        bam_readers.append(BamReader(bam_path, name=bam_name))
+
+    # Create GermlineCNVCaller builder
+    germline_cnv_builder = GermlineCNVCaller(
+        input_steps=bam_readers,
+        intervals=intervals,
+        contig_ploidy_priors=contig_ploidy_priors,
+        name=name,
+        bin_length=bin_length,
+        padding=padding,
+        allosomal_contigs=list(allosomal_contigs),
+        params=params,
+        output_dir=output_dir,
+    )
+
+    # Get config and run
+    config = germline_cnv_builder.get_config()
+    
+    click.echo(f"\nStarting GATK GermlineCNVCaller pipeline...")
+    click.echo(f"  Data type: {data_type.upper()}")
+    click.echo(f"  Bin length: {bin_length}")
+    click.echo(f"  Padding: {padding}")
+    click.echo(f"  Output directory: {output_dir}")
+    
+    if intervals:
+        click.echo(f"  Intervals: {intervals}")
+    if contig_ploidy_priors:
+        click.echo(f"  Contig ploidy priors: {contig_ploidy_priors}")
+
+    # Create and run the CNV caller
+    cnv_caller = CNVCallerFactory.create("gatk_germline_cnv")
+    cnv_caller.call(config[germline_cnv_builder.key][germline_cnv_builder.name])
+
+    click.echo(f"\nPipeline completed successfully!")
+    click.echo(f"Results are in: {output_dir}")
+
