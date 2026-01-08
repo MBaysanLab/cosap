@@ -166,11 +166,12 @@ class VepAnnotator(_Annotatable, _Annotator):
             app_config.VEP_CACHE_VERSION,
             "--no_stats",
             "--vcf",
+            "--buffer_size",
+            "10000",
         ]
 
         # Add plugins dynamically based on file availability
         cls._add_vep_plugins(command, library_paths)
-
         return command
 
     @classmethod

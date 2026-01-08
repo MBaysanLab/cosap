@@ -389,6 +389,7 @@ class VCFUtils:
     ) -> str:
         """
         Returns list of variants as json objects using cyvcf2 for faster parsing.
+        If no sample information is available, returns only CHROM, POS, REF, ALT, and INFO fields.
         """
         
         if not os.path.exists(path):
@@ -396,49 +397,94 @@ class VCFUtils:
 
         vcf = VCF(path)
         
-        # Extract sample name if not provided
-        if sample_name is None:
-            sample_names = vcf.samples
-            if not sample_names:
-                raise ValueError(
-                    "Sample name not provided and could not be extracted from VCF file."
-                )
-            elif len(sample_names) == 1:
-                sample_name = sample_names[0]
-            elif len(sample_names) > 1 and "tumor" in [s.lower() for s in sample_names]:
-                sample_name = next(s for s in sample_names if s.lower() == "tumor")
-            elif len(sample_names) > 1:
-                raise ValueError(f"Multiple samples found in VCF file: {sample_names}")
+        # Check if VCF has sample information
+        sample_names = vcf.samples
+        has_samples = bool(sample_names)
+        sample_idx = None
         
-        # Get sample index
-        try:
-            sample_idx = vcf.samples.index(sample_name)
-        except ValueError:
-            raise ValueError(f"Sample '{sample_name}' not found in VCF file. Available samples: {vcf.samples}")
+        if has_samples:
+            # Extract sample name if not provided
+            if sample_name is None:
+                if len(sample_names) == 1:
+                    sample_name = sample_names[0]
+                elif len(sample_names) > 1 and "tumor" in [s.lower() for s in sample_names]:
+                    sample_name = next(s for s in sample_names if s.lower() == "tumor")
+                elif len(sample_names) > 1:
+                    # Use first sample if multiple exist and no tumor
+                    sample_name = sample_names[0]
+            
+            # Get sample index
+            if sample_name:
+                try:
+                    sample_idx = vcf.samples.index(sample_name)
+                except ValueError:
+                    # Sample not found, proceed without sample info
+                    has_samples = False
+                    sample_idx = None
         
-        # Extract caller type if not provided
-        if caller_type is None:
+        # Extract caller type if not provided and we have samples
+        if caller_type is None and has_samples:
             caller_type = VCFUtils.extract_variantcaller_from_vcf(path)
             if caller_type is None:
                 caller_type = "haplotypecaller"
         
-        caller_type = caller_type.lower()
+        if caller_type:
+            caller_type = caller_type.lower()
         
         # Parse variants
         variants = []
         for variant in vcf:
             # Apply filter
-            if filter and variant.FILTER and variant.FILTER != filter:
-                continue
+            if filter:
+                variant_filter = variant.FILTER
+                if variant_filter is None:
+                    # PASS or no filter
+                    pass
+                elif filter == "PASS" and variant_filter:
+                    # Skip non-PASS variants when filter is "PASS"
+                    continue
+                elif variant_filter != filter:
+                    continue
             
-            # Extract basic fields
+            # Extract basic fields (always available)
             chrom = str(variant.CHROM)
             pos = int(variant.POS)
             ref = str(variant.REF)
             alt = ",".join(variant.ALT) if variant.ALT else "."
-            status = str(variant.INFO.get("STATUS", ".")) if variant.INFO.get("STATUS") is not None else "."
+            
+            # If no sample information, return basic variant info only
+            if not has_samples or sample_idx is None:
+                variant_data = {
+                    "CHROM": chrom,
+                    "POS": pos,
+                    "REF": ref,
+                    "ALT": alt,
+                }
+                
+                # Try to extract some INFO fields if available
+                qual = variant.QUAL
+                if qual is not None:
+                    variant_data["QUAL"] = float(qual)
+                
+                # Extract common INFO fields
+                info_fields_to_extract = ["AF", "DP", "AC", "AN", "STATUS"]
+                for field in info_fields_to_extract:
+                    try:
+                        value = variant.INFO.get(field)
+                        if value is not None:
+                            if isinstance(value, tuple):
+                                variant_data[field] = value[0] if len(value) == 1 else list(value)
+                            else:
+                                variant_data[field] = value
+                    except (KeyError, TypeError):
+                        pass
+                
+                variants.append(variant_data)
+                continue
             
             # Extract sample-specific fields
+            status = str(variant.INFO.get("STATUS", ".")) if variant.INFO.get("STATUS") is not None else "."
+            
             gt = variant.gt_types[sample_idx] if hasattr(variant, 'gt_types') else None
             
             dp_val = variant.format('DP')[sample_idx][0] if 'DP' in variant.FORMAT else None
