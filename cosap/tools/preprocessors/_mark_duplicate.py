@@ -159,7 +159,7 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
             runner.run(
                 image=DockerImages.PARABRICKS,
                 command=" ".join(query_name_sort_command),
-                workdir=str(Path(output_dir).parent.parent),
+                workdir=str(Path(mdup_config[MDUPKeys.WORKDIR]).absolute()),
             )
 
             mdup_command = cls.create_parabricks_markdup_command(
@@ -172,7 +172,7 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
             runner.run(
                 image=DockerImages.PARABRICKS,
                 command=" ".join(mdup_command),
-                workdir=str(Path(output_dir).parent.parent),
+                workdir=str(Path(mdup_config[MDUPKeys.WORKDIR]).absolute()),
             )
 
             # Convert output to coordinate sorted bam
@@ -182,5 +182,5 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
             runner.run(
                 image=DockerImages.PARABRICKS,
                 command=" ".join(coordinate_sort_command),
-                workdir=str(Path(output_dir).parent.parent),
+                workdir=str(Path(mdup_config[MDUPKeys.WORKDIR]).absolute()),
             )

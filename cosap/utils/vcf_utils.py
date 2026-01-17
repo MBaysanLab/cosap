@@ -180,7 +180,7 @@ class VCFUtils:
                 "AF": "strelka_AF",
                 "AD": "strelka_AD",
             }
-        elif caller_type == "haplotypecaller":
+        elif caller_type in ["haplotypecaller", "deepvariant"]:
             return {
                 "AD": f"{sample_name}.AD",
                 "DP": f"{sample_name}.DP",

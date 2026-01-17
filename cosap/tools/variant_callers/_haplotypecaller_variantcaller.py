@@ -35,6 +35,9 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
             if caller_config[VariantCallingKeys.OUTPUT_TYPE] == "VCF"
             else caller_config[VariantCallingKeys.GVCF_OUTPUT]
         )
+        output_file = join_paths(
+            caller_config[VariantCallingKeys.OUTPUT_DIR], output_file
+        )
 
         output_name = memory_handler.get_output_path(output_file)
 
@@ -74,6 +77,9 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
             caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
             if caller_config[VariantCallingKeys.OUTPUT_TYPE] == "VCF"
             else caller_config[VariantCallingKeys.GVCF_OUTPUT]
+        )
+        output_file = join_paths(
+            caller_config[VariantCallingKeys.OUTPUT_DIR], output_file
         )
 
         command = [
@@ -335,7 +341,7 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
             runner.run(
                 image=DockerImages.PARABRICKS,
                 command=" ".join(command),
-                workdir=str(Path(output_dir).parent.parent),
+                workdir=str(Path(caller_config[VariantCallingKeys.WORKDIR]).absolute()),
             )
 
         if caller_config[VariantCallingKeys.OUTPUT_TYPE] == "VCF":
@@ -365,7 +371,7 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
             docker_runner.run(
                 DockerImages.GATK,
                 " ".join(cnnscorevariants_command),
-                workdir=str(output_dir.parent.parent),
+                workdir=str(Path(caller_config[VariantCallingKeys.WORKDIR]).absolute()),
             )
 
             run(create_vcfs_index_command, cwd=workdir)

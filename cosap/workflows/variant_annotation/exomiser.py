@@ -59,6 +59,7 @@ class ExomiserPrioritizer:
         df["variant_id"] = (
             df[["CONTIG", "START", "REF", "ALT"]].astype(str).agg("_".join, axis=1)
         )
+        df.drop_duplicates(subset=["variant_id"], inplace=True)
 
         # Lowercase all columns
         df.columns = [c.lower() for c in df.columns]

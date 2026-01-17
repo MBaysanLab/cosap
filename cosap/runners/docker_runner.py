@@ -74,6 +74,24 @@ class DockerRunner:
 
         user = None if run_as_root else os.getuid()
         # Run and return the log generator
+        docker_run_command = self._container_run_to_cmd(
+            image=image,
+            command=command,
+            working_dir=workdir,
+            volumes=volumes,
+            volumes_from=volumes_from,
+            detach=True,
+            init=True,
+            restart_policy={"Name": "no"},
+            device_requests=device_requests,
+            labels=[self.container_label],
+            remove=remove,
+            user=user,
+        )
+        print(
+            f"Here is the full docker run command:\n{docker_run_command}"
+        )
+
         container = self.docker_client.containers.run(
             image=image,
             command=command,
@@ -142,3 +160,95 @@ class DockerRunner:
 
             for container in cosap_containers:
                 container.stop()
+
+    @classmethod
+    def _container_run_to_cmd(
+        cls,
+        image,
+        command=None,
+        working_dir=None,
+        volumes=None,
+        volumes_from=None,
+        detach=True,
+        init=True,
+        restart_policy=None,
+        device_requests=None,
+        labels=None,
+        remove=False,
+        user=None,
+    ):
+        """Convert container.run() parameters to docker run command"""
+        cmd_parts = ["docker", "run"]
+
+        # Detach mode
+        if detach:
+            cmd_parts.append("-d")
+
+        # Init process
+        if init:
+            cmd_parts.append("--init")
+
+        # Remove container after exit
+        if remove:
+            cmd_parts.append("--rm")
+
+        # Working directory
+        if working_dir:
+            cmd_parts.extend(["-w", working_dir])
+
+        # User
+        if user is not None:
+            cmd_parts.extend(["-u", str(user)])
+
+        # Volumes
+        if volumes:
+            for host_path, container_info in volumes.items():
+                bind = container_info["bind"]
+                mode = container_info.get("mode", "rw")
+                cmd_parts.extend(["-v", f"{host_path}:{bind}:{mode}"])
+
+        # Volumes from
+        if volumes_from:
+            if isinstance(volumes_from, list):
+                for vol in volumes_from:
+                    cmd_parts.extend(["--volumes-from", vol])
+            else:
+                cmd_parts.extend(["--volumes-from", volumes_from])
+
+        # Restart policy
+        if restart_policy:
+            policy_name = restart_policy.get("Name", "no")
+            cmd_parts.extend(["--restart", policy_name])
+
+        # Device requests (GPU support)
+        if device_requests:
+            for device_req in device_requests:
+                if device_req.get("driver") == "nvidia":
+                    # Use --gpus flag for NVIDIA GPUs
+                    capabilities = device_req.get("capabilities", [])
+                    if capabilities:
+                        caps = ",".join(capabilities[0]) if capabilities else "all"
+                        cmd_parts.extend(["--gpus", f"all,capabilities={caps}"])
+                    else:
+                        cmd_parts.extend(["--gpus", "all"])
+
+        # Labels
+        if labels:
+            if isinstance(labels, list):
+                for label in labels:
+                    cmd_parts.extend(["--label", label])
+            elif isinstance(labels, dict):
+                for key, value in labels.items():
+                    cmd_parts.extend(["--label", f"{key}={value}"])
+
+        # Image
+        cmd_parts.append(image)
+
+        # Command
+        if command:
+            if isinstance(command, list):
+                cmd_parts.extend(command)
+            else:
+                cmd_parts.append(command)
+
+        return " ".join(cmd_parts)

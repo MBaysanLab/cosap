@@ -225,7 +225,7 @@ class VarNetVariantCaller(_Callable, _VariantCaller):
             docker_runner.run(
                 DockerImages.VARNET,
                 " ".join(varnet_filter_command),
-                workdir=str(output_dir.parent.parent),
+                workdir=str(Path(caller_config[VariantCallingKeys.WORKDIR]).absolute()),
                 paths_to_bind=[
                     {"source": input_dir, "target": input_dir},
                 ],
@@ -234,7 +234,7 @@ class VarNetVariantCaller(_Callable, _VariantCaller):
             docker_runner.run(
                 DockerImages.VARNET,
                 " ".join(varnet_predict_command),
-                workdir=str(output_dir.parent.parent),
+                workdir=str(Path(caller_config[VariantCallingKeys.WORKDIR]).absolute()),
                 paths_to_bind=[
                     {"source": input_dir, "target": input_dir},
                 ],
@@ -243,7 +243,7 @@ class VarNetVariantCaller(_Callable, _VariantCaller):
             docker_runner.run(
                 DockerImages.VARNET,
                 " ".join(varnet_output_rename_command),
-                workdir=str(output_dir.parent.parent),
+                workdir=str(Path(caller_config[VariantCallingKeys.WORKDIR]).absolute()),
                 paths_to_bind=[
                     {"source": input_dir, "target": input_dir},
                 ],

@@ -308,12 +308,25 @@ def mapper(fastqs, mapper, output_dir, sample_name, read_groups, output_name, de
     help="Name of the tumor sample",
     required=False,
 )
+@click.option(
+    "--bed_file",
+    help="Path to the BED file for targeted regions",
+    required=False,
+)
+@click.option(
+    "--device",
+    help="Device to run the variant calling on. Options = ['cpu', 'gpu']",
+    required=False,
+    default="cpu",
+)
 def variant_caller(
     variant_caller,
     tumor_sample,
     normal_sample,
     output_dir,
     tumor_sample_name,
+    bed_file,
+    device,
 ):
     # Check if tumor_sample is provided
     if not tumor_sample and not normal_sample:
@@ -339,11 +352,13 @@ def variant_caller(
             "tumor_sample_name": tumor_sample_name,
         },
         output_dir=output_dir,
+        bed_file=bed_file,
     )
     variant_caller_config = variant_caller_builder.get_config()
     cosap_variant_caller = VariantCallerFactory.create(variant_caller)
     cosap_variant_caller.call_variants(
-        variant_caller_config[variant_caller_builder.key][variant_caller_builder.name]
+        variant_caller_config[variant_caller_builder.key][variant_caller_builder.name],
+        device=device,
     )
 
 

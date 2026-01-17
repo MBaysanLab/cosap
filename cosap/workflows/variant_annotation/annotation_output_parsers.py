@@ -52,6 +52,7 @@ class VEPResultsProcessor:
         df = self._process_boolean_columns(df)
         df = self._process_consequence_column(df)
         df = self._process_prediction_scores(df)
+        df = self._process_clinical_significance(df)
         return df
 
     def _load_and_map_vep_data(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -355,6 +356,17 @@ class VEPResultsProcessor:
     def _create_empty_dataframe(self) -> pd.DataFrame:
         """Create empty DataFrame with expected columns."""
         return pd.DataFrame(columns=self.config.VEP_COLUMN_MAPPING.keys())
+    
+    def _process_clinical_significance(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Split clinical_significance into array-compatible values."""
+        if "clinical_significance" in df.columns:
+            df["clinical_significance"] = (
+                df["clinical_significance"]
+                .astype(str)
+                .str.strip()
+                .str.split(r"\s*,\s*", regex=True)
+            )
+        return df
 
 
 class AnnovarResultsProcessor:
@@ -430,6 +442,7 @@ class AnnovarResultsProcessor:
         """Apply all data transformations."""
         df = self._process_variant_identifiers(df)
         df = self._apply_column_mapping(df, subtype)
+        df = self._normalize_intervar_classification(df, subtype)
         df = self._select_output_columns(df, subtype)
         return df
 
@@ -475,6 +488,18 @@ class AnnovarResultsProcessor:
         # Only select columns that exist in the dataframe
         available_columns = [col for col in output_columns if col in df.columns]
         return df[available_columns]
+
+    def _normalize_intervar_classification(self, df: pd.DataFrame, subtype: str) -> pd.DataFrame:
+        """Normalize InterVar classification values."""
+        if subtype == "intervar" and "intervar_classification" in df.columns:
+            df["intervar_classification"] = (
+                df["intervar_classification"]
+                .astype(str)
+                .str.strip()
+                .str.lower()
+                .str.replace(r"\s+", "_", regex=True)
+            )
+        return df
 
     def _create_empty_dataframe(self, subtype: str) -> pd.DataFrame:
         """Create empty DataFrame with expected columns."""

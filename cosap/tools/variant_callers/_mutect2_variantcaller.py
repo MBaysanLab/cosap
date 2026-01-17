@@ -325,7 +325,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             runner.run(
                 image=DockerImages.PARABRICKS,
                 command=" ".join(command),
-                workdir=str(Path(output_dir).parent.parent),
+                workdir=str(Path(caller_config[VariantCallingKeys.WORKDIR]).absolute()),
             )
 
         filter_command = cls._filter_mutect_calls(

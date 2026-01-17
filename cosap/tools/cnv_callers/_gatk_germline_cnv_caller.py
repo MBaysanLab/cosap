@@ -755,7 +755,7 @@ class GATKGermlineCNVCaller(_CNVCaller):
             os.makedirs(d, exist_ok=True)
         
         docker_runner = DockerRunner(device=device)
-        workdir = str(Path(output_dir).absolute().parent.parent)
+        workdir = str(Path(caller_config[GermlineCNVCallingKeys.WORKDIR]).absolute())
         
         # Step 1: PreprocessIntervals
         print("Step 1/8: PreprocessIntervals...")

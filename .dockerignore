@@ -1,0 +1,44 @@
+# VCS
+.git
+.gitignore
+
+# Editor/IDE
+.vscode
+
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Test / lint caches
+.pytest_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.pyre/
+.mypy_cache/
+
+# Build / packaging artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+*.whl
+
+# Local environments
+.venv/
+venv/
+env/
+
+# Project runtime outputs / temp
+workdir/
+cosap_data/
+*.log
+
+# Optional: dev-only folders (not needed to run inside container)
+examples/
+makefiles/
+cosap/tests/
+cosap/**/__pycache__/

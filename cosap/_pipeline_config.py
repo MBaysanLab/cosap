@@ -31,6 +31,7 @@ class PipelineKeys:
 
 @dataclass
 class PipelineBaseKeys:
+    WORKDIR: str = "workdir"
     LIBRARY: str = "library"
     PARAMS: str = "params"
     INPUT: str = "input"

@@ -62,6 +62,9 @@ class Pipeline:
             step_config = step.get_config()
             for key, values in step_config.items():
                 for k, v in values.items():
+                    # Add workdir to each step config
+                    if isinstance(v, dict):
+                        v[PipelineKeys.WORKDIR] = workdir
                     pipeline_config[key][k] = v
 
         # TODO: insert validation here
