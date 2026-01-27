@@ -16,7 +16,6 @@ class VariantAnnotationConfig:
         "cds_position": "CDS_position",
         "rs_id": "Existing_variation",
         "impact": "IMPACT",
-        "hgvsg": "HGVSg",
         "hgvsc": "HGVSc",
         "hgvsp": "HGVSp",
         "vep_pick": "PICK",

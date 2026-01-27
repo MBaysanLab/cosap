@@ -388,7 +388,7 @@ class VCFUtils:
         filter: str = "PASS",
     ) -> str:
         """
-        Returns list of variants as json objects using cyvcf2 for faster parsing.
+        Returns list of variants as json objects using cyvcf2 for fast parsing.
         If no sample information is available, returns only CHROM, POS, REF, ALT, and INFO fields.
         """
         
@@ -449,6 +449,7 @@ class VCFUtils:
             # Extract basic fields (always available)
             chrom = str(variant.CHROM)
             pos = int(variant.POS)
+            qual = float(variant.QUAL) if variant.QUAL is not None else None
             ref = str(variant.REF)
             alt = ",".join(variant.ALT) if variant.ALT else "."
             
@@ -534,6 +535,7 @@ class VCFUtils:
                 "POS": pos,
                 "REF": ref,
                 "ALT": alt,
+                "QUAL": qual,
                 "AF": float(af) if af is not None else None,
                 "AD": int(ad) if ad is not None else None,
                 "DP": dp,

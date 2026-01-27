@@ -11,6 +11,7 @@ from celery import Celery, shared_task
 from .._config import AppConfig
 from .._utils import convert_vcf_to_json_fast
 from ..parsers import ProjectResultsParser
+from ..parsers.annotated_cnv_vcf_parser import AnnotatedCnvVcfParser
 from ..workflows import (
     DNAPipeline,
     DNAPipelineInput,
@@ -116,7 +117,9 @@ def parse_project_data(path):
 
 
 @shared_task(name="annotation_task")
-def annotate_variants(variants_file_path: str, workdir: str) -> str:
+def annotate_variants(
+    variants_file_path: str, workdir: str, variant_type: str = None
+) -> str:
     try:
         logger.info(
             f"Received request to annotate variants file: {variants_file_path}, workdir: {workdir}"
@@ -125,15 +128,14 @@ def annotate_variants(variants_file_path: str, workdir: str) -> str:
         if not os.path.exists(variants_file_path):
             raise FileNotFoundError(f"Variants file not found: {variants_file_path}")
 
-        with open(variants_file_path) as f:
-            variants = json.load(f)
-
         if workdir is None:
             workdir = Path(variants_file_path).parent
         elif not os.path.exists(workdir):
             raise FileNotFoundError(f"Working directory not found: {workdir}")
 
-        variant_annotator = VariantMultipleAnnotator(variants, workdir)
+        variant_annotator = VariantMultipleAnnotator(
+            variants_file_path, workdir, variant_type=variant_type
+        )
         variant_annotator.annotate()
 
         with NamedTemporaryFile(
@@ -235,3 +237,30 @@ def exomiser_task(vcf_path: str, hpo_terms: list, workdir: str) -> str:
         exomiser_variants_file_path = f.name
 
     return exomiser_variants_file_path
+
+
+@shared_task(name="parse_annotated_cnv_task")
+def parse_annotated_cnv_task(vcf_path: str, workdir: str = None) -> str:
+    """
+    Parse a VEP-annotated CNV VCF into a JSON list using AnnotatedCnvVcfParser.
+    Returns the path to the written JSON file.
+    """
+    try:
+        if not os.path.exists(vcf_path):
+            raise FileNotFoundError(f"VCF file not found: {vcf_path}")
+
+        if workdir is None:
+            workdir = str(Path(vcf_path).parent)
+        elif not os.path.exists(workdir):
+            raise FileNotFoundError(f"Working directory not found: {workdir}")
+
+        parser = AnnotatedCnvVcfParser()
+        parsed = parser.parse(vcf_path)
+
+        with NamedTemporaryFile(mode="w", dir=workdir, suffix=".json", delete=False) as f:
+            json.dump(parsed, f)
+            return f.name
+
+    except Exception as e:
+        logger.error(f"parse_annotated_cnv_task failed: {e}")
+        raise

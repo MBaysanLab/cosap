@@ -9,7 +9,6 @@ from ._config import VariantAnnotationConfig
 
 logger = getLogger(__name__)
 
-
 class VEPResultsProcessor:
     """Dedicated class for processing VEP results."""
 
