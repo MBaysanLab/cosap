@@ -274,7 +274,9 @@ def mapper(fastqs, mapper, output_dir, sample_name, read_groups, output_name, de
     )
     mapper_config = mapper_builder.get_config()
     cosap_mapper = MapperFactory.create(mapper)
-    cosap_mapper.map(mapper_config[mapper_builder.key][mapper_builder.name], device=device)
+    cosap_mapper.map(
+        mapper_config[mapper_builder.key][mapper_builder.name], device=device
+    )
 
     print(
         f"Output file: {join_paths(output_dir, FileFormats.MAPPING_OUTPUT.format(identification=output_name))}"
@@ -425,7 +427,7 @@ def bam_preprocessor(
     "--bam",
     "bam_files",
     help="Path to a BAM file. Can be specified multiple times for cohort analysis. "
-         "Minimum 3 samples recommended for cohort mode.",
+    "Minimum 3 samples recommended for cohort mode.",
     required=True,
     multiple=True,
     type=click.Path(exists=True),
@@ -561,8 +563,11 @@ def germline_cnv_cohort(
     """
     # Validate inputs
     if len(bam_files) < 2:
-        click.echo("Warning: Cohort mode works best with at least 3 samples. "
-                   "Consider using more samples for better model training.", err=True)
+        click.echo(
+            "Warning: Cohort mode works best with at least 3 samples. "
+            "Consider using more samples for better model training.",
+            err=True,
+        )
 
     if data_type == "exome" and not intervals:
         click.echo("Error: --intervals is required for exome/panel data.", err=True)
@@ -572,7 +577,7 @@ def germline_cnv_cohort(
     if not output_dir:
         output_dir = os.getcwd()
         click.echo(f"Using current directory as output: {output_dir}")
-    
+
     output_dir = os.path.abspath(output_dir)
     os.makedirs(output_dir, exist_ok=True)
 
@@ -594,14 +599,16 @@ def germline_cnv_cohort(
 
     # Add sensitive parameters if requested (for WGS)
     if sensitive:
-        params.update({
-            "class_coherence_length": 1000.0,
-            "cnv_coherence_length": 1000.0,
-            "enable_bias_factors": False,
-            "interval_psi_scale": 1.0e-6,
-            "log_mean_bias_standard_deviation": 0.01,
-            "sample_psi_scale": 1.0e-6,
-        })
+        params.update(
+            {
+                "class_coherence_length": 1000.0,
+                "cnv_coherence_length": 1000.0,
+                "enable_bias_factors": False,
+                "interval_psi_scale": 1.0e-6,
+                "log_mean_bias_standard_deviation": 0.01,
+                "sample_psi_scale": 1.0e-6,
+            }
+        )
         click.echo("Using increased sensitivity parameters for WGS data.")
 
     # For exome, ensure bias factors are enabled
@@ -631,13 +638,13 @@ def germline_cnv_cohort(
 
     # Get config and run
     config = germline_cnv_builder.get_config()
-    
+
     click.echo(f"\nStarting GATK GermlineCNVCaller pipeline...")
     click.echo(f"  Data type: {data_type.upper()}")
     click.echo(f"  Bin length: {bin_length}")
     click.echo(f"  Padding: {padding}")
     click.echo(f"  Output directory: {output_dir}")
-    
+
     if intervals:
         click.echo(f"  Intervals: {intervals}")
     if contig_ploidy_priors:
@@ -649,4 +656,3 @@ def germline_cnv_cohort(
 
     click.echo(f"\nPipeline completed successfully!")
     click.echo(f"Results are in: {output_dir}")
-

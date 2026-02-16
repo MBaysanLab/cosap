@@ -5,8 +5,8 @@ from ._cancervar_annotatator import CancervarAnnotator
 from ._ensembl_vep_annotator import VepAnnotator
 from ._exomiser import Exomiser
 from ._intervar_annotator import IntervarAnnotator
-from ._pharmcat_annotator import PharmcatAnnotator
 from ._metarnn_annotator import MetaRnnAnnotator
+from ._pharmcat_annotator import PharmcatAnnotator
 
 
 class AnnotatorFactory:

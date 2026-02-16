@@ -47,7 +47,8 @@ class DeepVariantVariantCaller(_Callable, _VariantCaller):
         input_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
         output_vcf = join_paths(
             caller_config[VariantCallingKeys.OUTPUT_DIR],
-            caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT])
+            caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT],
+        )
         output_gvcf = caller_config[VariantCallingKeys.GVCF_OUTPUT]
 
         command = [

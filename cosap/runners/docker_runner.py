@@ -88,9 +88,7 @@ class DockerRunner:
             remove=remove,
             user=user,
         )
-        print(
-            f"Here is the full docker run command:\n{docker_run_command}"
-        )
+        print(f"Here is the full docker run command:\n{docker_run_command}")
 
         container = self.docker_client.containers.run(
             image=image,

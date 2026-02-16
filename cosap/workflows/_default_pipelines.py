@@ -144,7 +144,7 @@ class DNAPipeline:
                         },
                     )
                     mdup_normal = MDUP(input_step=mapper_normal)
-                    
+
                     if not self.input.SKIP_RECALIBRATION:
                         bqsr_normal = Recalibrator(
                             input_step=mdup_normal, bed_file=self.input.BED_FILE
@@ -205,7 +205,9 @@ class DNAPipeline:
                 for variant_caller in variant_callers:
                     vc = VariantCaller(
                         library=variant_caller,
-                        normal_sample=normal_final_step if self.input.NORMAL_SAMPLE else None,
+                        normal_sample=normal_final_step
+                        if self.input.NORMAL_SAMPLE
+                        else None,
                         tumor_sample=tumor_final_step,
                         bed_file=self.input.BED_FILE,
                         params={
@@ -258,7 +260,7 @@ class DNAPipeline:
                 },
             )
             mdup_normal = MDUP(input_step=mapper_normal)
-            
+
             if not self.input.SKIP_RECALIBRATION:
                 bqsr_normal = Recalibrator(
                     input_step=mdup_normal, bed_file=self.input.BED_FILE
@@ -280,7 +282,9 @@ class DNAPipeline:
             for variant_caller in variant_callers:
                 vc = VariantCaller(
                     library=variant_caller,
-                    normal_sample=normal_final_step if self.input.NORMAL_SAMPLE else None,
+                    normal_sample=normal_final_step
+                    if self.input.NORMAL_SAMPLE
+                    else None,
                     tumor_sample=None,
                     bed_file=self.input.BED_FILE,
                     gvcf=self.input.GVCF,

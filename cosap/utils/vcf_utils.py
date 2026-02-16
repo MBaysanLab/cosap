@@ -4,10 +4,10 @@ from logging import getLogger
 from subprocess import run
 from typing import Optional
 
+import orjson
 import pandas as pd
 import pysam
 from cyvcf2 import VCF
-import orjson
 from pandas.api.types import is_numeric_dtype
 
 logger = getLogger(__name__)
@@ -62,7 +62,7 @@ class VCFUtils:
     @staticmethod
     def convert_vcf_to_tsv(path: str, caller_type: str = "gatk") -> str:
         # Gatk VariantsToTable gives error when ref and alt alleles are same, so remove those lines
-        
+
         path = VCFUtils.remove_same_ref_alt_alleles(path)
         output_filename = path.replace(".vcf", ".tsv")
 
@@ -391,28 +391,30 @@ class VCFUtils:
         Returns list of variants as json objects using cyvcf2 for fast parsing.
         If no sample information is available, returns only CHROM, POS, REF, ALT, and INFO fields.
         """
-        
+
         if not os.path.exists(path):
             raise FileNotFoundError(f"File not found: {path}")
 
         vcf = VCF(path)
-        
+
         # Check if VCF has sample information
         sample_names = vcf.samples
         has_samples = bool(sample_names)
         sample_idx = None
-        
+
         if has_samples:
             # Extract sample name if not provided
             if sample_name is None:
                 if len(sample_names) == 1:
                     sample_name = sample_names[0]
-                elif len(sample_names) > 1 and "tumor" in [s.lower() for s in sample_names]:
+                elif len(sample_names) > 1 and "tumor" in [
+                    s.lower() for s in sample_names
+                ]:
                     sample_name = next(s for s in sample_names if s.lower() == "tumor")
                 elif len(sample_names) > 1:
                     # Use first sample if multiple exist and no tumor
                     sample_name = sample_names[0]
-            
+
             # Get sample index
             if sample_name:
                 try:
@@ -421,16 +423,16 @@ class VCFUtils:
                     # Sample not found, proceed without sample info
                     has_samples = False
                     sample_idx = None
-        
+
         # Extract caller type if not provided and we have samples
         if caller_type is None and has_samples:
             caller_type = VCFUtils.extract_variantcaller_from_vcf(path)
             if caller_type is None:
                 caller_type = "haplotypecaller"
-        
+
         if caller_type:
             caller_type = caller_type.lower()
-        
+
         # Parse variants
         variants = []
         for variant in vcf:
@@ -445,14 +447,14 @@ class VCFUtils:
                     continue
                 elif variant_filter != filter:
                     continue
-            
+
             # Extract basic fields (always available)
             chrom = str(variant.CHROM)
             pos = int(variant.POS)
             qual = float(variant.QUAL) if variant.QUAL is not None else None
             ref = str(variant.REF)
             alt = ",".join(variant.ALT) if variant.ALT else "."
-            
+
             # If no sample information, return basic variant info only
             if not has_samples or sample_idx is None:
                 variant_data = {
@@ -461,12 +463,12 @@ class VCFUtils:
                     "REF": ref,
                     "ALT": alt,
                 }
-                
+
                 # Try to extract some INFO fields if available
                 qual = variant.QUAL
                 if qual is not None:
                     variant_data["QUAL"] = float(qual)
-                
+
                 # Extract common INFO fields
                 info_fields_to_extract = ["AF", "DP", "AC", "AN", "STATUS"]
                 for field in info_fields_to_extract:
@@ -474,127 +476,197 @@ class VCFUtils:
                         value = variant.INFO.get(field)
                         if value is not None:
                             if isinstance(value, tuple):
-                                variant_data[field] = value[0] if len(value) == 1 else list(value)
+                                variant_data[field] = (
+                                    value[0] if len(value) == 1 else list(value)
+                                )
                             else:
                                 variant_data[field] = value
                     except (KeyError, TypeError):
                         pass
-                
+
                 variants.append(variant_data)
                 continue
-            
+
             # Extract sample-specific fields
-            status = str(variant.INFO.get("STATUS", ".")) if variant.INFO.get("STATUS") is not None else "."
-            
-            gt = variant.gt_types[sample_idx] if hasattr(variant, 'gt_types') else None
-            
-            dp_val = variant.format('DP')[sample_idx][0] if 'DP' in variant.FORMAT else None
+            status = (
+                str(variant.INFO.get("STATUS", "."))
+                if variant.INFO.get("STATUS") is not None
+                else "."
+            )
+
+            gt = variant.gt_types[sample_idx] if hasattr(variant, "gt_types") else None
+
+            dp_val = (
+                variant.format("DP")[sample_idx][0] if "DP" in variant.FORMAT else None
+            )
             dp = int(dp_val) if dp_val is not None else None
-            
+
             # Calculate AF and AD based on caller type
             af = None
             ad = None
-            
+
             if caller_type == "strelka":
-                af, ad = VCFUtils._extract_strelka_af_ad_cyvcf2(variant, sample_idx, ref, alt)
+                af, ad = VCFUtils._extract_strelka_af_ad_cyvcf2(
+                    variant, sample_idx, ref, alt
+                )
             elif caller_type == "somaticsniper":
-                af, ad = VCFUtils._extract_somaticsniper_af_ad_cyvcf2(variant, sample_idx)
+                af, ad = VCFUtils._extract_somaticsniper_af_ad_cyvcf2(
+                    variant, sample_idx
+                )
             elif caller_type == "varscan":
-                freq = variant.format('FREQ')[sample_idx][0] if 'FREQ' in variant.FORMAT else None
+                freq = (
+                    variant.format("FREQ")[sample_idx][0]
+                    if "FREQ" in variant.FORMAT
+                    else None
+                )
                 if freq:
-                    af = float(str(freq).replace('%', '')) / 100.0
-                ad_values = variant.format('AD')[sample_idx] if 'AD' in variant.FORMAT else None
-                ad = int(ad_values[-1]) if ad_values is not None and len(ad_values) > 1 else None
+                    af = float(str(freq).replace("%", "")) / 100.0
+                ad_values = (
+                    variant.format("AD")[sample_idx] if "AD" in variant.FORMAT else None
+                )
+                ad = (
+                    int(ad_values[-1])
+                    if ad_values is not None and len(ad_values) > 1
+                    else None
+                )
             elif caller_type == "varnet":
-                af_values = variant.format('AF')[sample_idx] if 'AF' in variant.FORMAT else None
+                af_values = (
+                    variant.format("AF")[sample_idx] if "AF" in variant.FORMAT else None
+                )
                 af = float(af_values[0]) if af_values is not None else None
-                ad_values = variant.format('AO')[sample_idx] if 'AO' in variant.FORMAT else None
+                ad_values = (
+                    variant.format("AO")[sample_idx] if "AO" in variant.FORMAT else None
+                )
                 ad = int(ad_values[0]) if ad_values is not None else None
             elif caller_type == "haplotypecaller":
-                ad_values = variant.format('AD')[sample_idx] if 'AD' in variant.FORMAT else None
-                ad = int(ad_values[-1]) if ad_values is not None and len(ad_values) > 1 else None
+                ad_values = (
+                    variant.format("AD")[sample_idx] if "AD" in variant.FORMAT else None
+                )
+                ad = (
+                    int(ad_values[-1])
+                    if ad_values is not None and len(ad_values) > 1
+                    else None
+                )
                 # Calculate AF from AD
                 if ad_values is not None and len(ad_values) > 1:
                     total = sum(ad_values)
                     af = float(ad_values[-1]) / total if total > 0 else 0.0
             else:  # Default extraction for mutect, vardict, etc.
-                af_values = variant.format('AF')[sample_idx] if 'AF' in variant.FORMAT else None
+                af_values = (
+                    variant.format("AF")[sample_idx] if "AF" in variant.FORMAT else None
+                )
                 af = float(af_values[0]) if af_values is not None else None
-                ad_values = variant.format('AD')[sample_idx] if 'AD' in variant.FORMAT else None
-                ad = int(ad_values[-1]) if ad_values is not None and len(ad_values) > 1 else None
-            
+                ad_values = (
+                    variant.format("AD")[sample_idx] if "AD" in variant.FORMAT else None
+                )
+                ad = (
+                    int(ad_values[-1])
+                    if ad_values is not None and len(ad_values) > 1
+                    else None
+                )
+
             # Format GT - explicitly convert to string
             gt_str = None
             if gt is not None:
-                gt_bases = variant.gt_bases[sample_idx] if hasattr(variant, 'gt_bases') else None
+                gt_bases = (
+                    variant.gt_bases[sample_idx]
+                    if hasattr(variant, "gt_bases")
+                    else None
+                )
                 gt_str = str(gt_bases) if gt_bases else str(gt)
-            
+
             # Ensure all numeric values are Python native types
-            variants.append({
-                "CHROM": chrom,
-                "POS": pos,
-                "REF": ref,
-                "ALT": alt,
-                "QUAL": qual,
-                "AF": float(af) if af is not None else None,
-                "AD": int(ad) if ad is not None else None,
-                "DP": dp,
-                "GT": gt_str,
-                "STATUS": status
-            })
-        
+            variants.append(
+                {
+                    "CHROM": chrom,
+                    "POS": pos,
+                    "REF": ref,
+                    "ALT": alt,
+                    "QUAL": qual,
+                    "AF": float(af) if af is not None else None,
+                    "AD": int(ad) if ad is not None else None,
+                    "DP": dp,
+                    "GT": gt_str,
+                    "STATUS": status,
+                }
+            )
+
         vcf.close()
-        
+
         # Use orjson to serialize
-        return orjson.dumps(variants).decode('utf-8')
-    
+        return orjson.dumps(variants).decode("utf-8")
+
     @staticmethod
     def _extract_strelka_af_ad_cyvcf2(variant, sample_idx, ref, alt):
         """Extract AF and AD for Strelka from cyvcf2 variant."""
         try:
             ref_u = f"{ref}U"
             alt_u = f"{alt.split(',')[0]}U"  # Take first ALT allele
-            
-            ref_counts = variant.format(ref_u)[sample_idx] if ref_u in variant.FORMAT else None
-            alt_counts = variant.format(alt_u)[sample_idx] if alt_u in variant.FORMAT else None
-            
+
+            ref_counts = (
+                variant.format(ref_u)[sample_idx] if ref_u in variant.FORMAT else None
+            )
+            alt_counts = (
+                variant.format(alt_u)[sample_idx] if alt_u in variant.FORMAT else None
+            )
+
             if ref_counts is not None and alt_counts is not None:
                 # Strelka uses tier1,tier2 format
                 tier1_ref = int(ref_counts[0]) if len(ref_counts) > 0 else 0
                 tier1_alt = int(alt_counts[1]) if len(alt_counts) > 1 else 0
-                
-                af = float(tier1_alt) / (tier1_alt + tier1_ref) if (tier1_alt + tier1_ref) > 0 else 0.0
-                
+
+                af = (
+                    float(tier1_alt) / (tier1_alt + tier1_ref)
+                    if (tier1_alt + tier1_ref) > 0
+                    else 0.0
+                )
+
                 # Calculate AD as sum of all nucleotide counts (tier1 only)
-                au = int(variant.format('AU')[sample_idx][0]) if 'AU' in variant.FORMAT else 0
-                cu = int(variant.format('CU')[sample_idx][0]) if 'CU' in variant.FORMAT else 0
-                gu = int(variant.format('GU')[sample_idx][0]) if 'GU' in variant.FORMAT else 0
-                tu = int(variant.format('TU')[sample_idx][0]) if 'TU' in variant.FORMAT else 0
+                au = (
+                    int(variant.format("AU")[sample_idx][0])
+                    if "AU" in variant.FORMAT
+                    else 0
+                )
+                cu = (
+                    int(variant.format("CU")[sample_idx][0])
+                    if "CU" in variant.FORMAT
+                    else 0
+                )
+                gu = (
+                    int(variant.format("GU")[sample_idx][0])
+                    if "GU" in variant.FORMAT
+                    else 0
+                )
+                tu = (
+                    int(variant.format("TU")[sample_idx][0])
+                    if "TU" in variant.FORMAT
+                    else 0
+                )
                 ad = int(au + cu + gu + tu)
-                
+
                 return af, ad
         except (IndexError, TypeError):
             pass
-        
+
         return None, None
-    
+
     @staticmethod
     def _extract_somaticsniper_af_ad_cyvcf2(variant, sample_idx):
         """Extract AF and AD for SomaticSniper from cyvcf2 variant."""
         try:
-            dp4 = variant.format('DP4')[sample_idx] if 'DP4' in variant.FORMAT else None
-            
+            dp4 = variant.format("DP4")[sample_idx] if "DP4" in variant.FORMAT else None
+
             if dp4 is not None and len(dp4) == 4:
                 ref_counts = int(dp4[0]) + int(dp4[1])
                 alt_counts = int(dp4[2]) + int(dp4[3])
-                
+
                 total = ref_counts + alt_counts
                 af = float(alt_counts) / total if total > 0 else 0.0
-                
+
                 return af, int(alt_counts)
         except (IndexError, TypeError):
             pass
-        
+
         return None, None
 
     @staticmethod
@@ -617,11 +689,11 @@ class VCFUtils:
         """
         if not os.path.exists(vcf_path):
             raise FileNotFoundError(f"File not found: {vcf_path}")
-        
+
         vcf = VCF(vcf_path)
         sample_names = vcf.samples
         vcf.close()
-        
+
         return list(sample_names) if sample_names else []
 
     @staticmethod

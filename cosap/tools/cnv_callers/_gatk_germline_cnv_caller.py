@@ -21,8 +21,8 @@ Parallelization Strategy:
 - Step 8 (PostprocessGermlineCNVCalls): Parallel across samples
 """
 
-import os
 import glob
+import os
 import shutil
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
@@ -40,6 +40,7 @@ from ._cnv_callers import _CNVCaller
 @dataclass
 class ParallelTaskResult:
     """Result of a parallel task execution."""
+
     task_id: str
     output_path: str
     success: bool
@@ -49,11 +50,11 @@ class ParallelTaskResult:
 class GATKGermlineCNVCaller(_CNVCaller):
     """
     GATK GermlineCNVCaller - Complete pipeline for germline CNV calling.
-    
+
     This class orchestrates the entire GATK GermlineCNVCaller workflow,
     executing all steps in sequence to produce final VCF outputs.
     All GATK commands are executed inside Docker containers.
-    
+
     Parallelization:
     - CollectReadCounts runs in parallel across samples
     - GermlineCNVCaller runs in parallel across interval shards
@@ -69,7 +70,7 @@ class GATKGermlineCNVCaller(_CNVCaller):
         include_contigs = params.get("include_contigs", None)
         if include_contigs:
             return include_contigs
-        
+
         use_chr_prefix = params.get("use_chr_prefix", True)
         if use_chr_prefix:
             return [f"chr{i}" for i in range(1, 23)] + ["chrX", "chrY"]
@@ -87,23 +88,29 @@ class GATKGermlineCNVCaller(_CNVCaller):
         params = caller_config.get(GermlineCNVCallingKeys.PARAMS, {})
         bin_length = params.get("bin_length", 1000)
         padding = params.get("padding", 0)
-        
+
         command = [
-            "gatk", "PreprocessIntervals",
-            "-R", library_paths.REF_FASTA,
-            "--bin-length", str(bin_length),
-            "--padding", str(padding),
-            "--interval-merging-rule", "OVERLAPPING_ONLY",
-            "-O", caller_config[GermlineCNVCallingKeys.PREPROCESSED_INTERVALS],
+            "gatk",
+            "PreprocessIntervals",
+            "-R",
+            library_paths.REF_FASTA,
+            "--bin-length",
+            str(bin_length),
+            "--padding",
+            str(padding),
+            "--interval-merging-rule",
+            "OVERLAPPING_ONLY",
+            "-O",
+            caller_config[GermlineCNVCallingKeys.PREPROCESSED_INTERVALS],
         ]
-        
+
         if GermlineCNVCallingKeys.INTERVALS in caller_config:
             command.extend(["-L", caller_config[GermlineCNVCallingKeys.INTERVALS]])
-        
+
         standard_contigs = cls._get_standard_contigs(params)
         for contig in standard_contigs:
             command.extend(["-L", contig])
-        
+
         if params.get("exclude_intervals"):
             exclude = params["exclude_intervals"]
             if isinstance(exclude, list):
@@ -111,7 +118,7 @@ class GATKGermlineCNVCaller(_CNVCaller):
                     command.extend(["-XL", interval])
             else:
                 command.extend(["-XL", exclude])
-        
+
         return command
 
     @classmethod
@@ -123,20 +130,27 @@ class GATKGermlineCNVCaller(_CNVCaller):
     ) -> List[str]:
         """Create command for GATK AnnotateIntervals."""
         params = caller_config.get(GermlineCNVCallingKeys.PARAMS, {})
-        
+
         command = [
-            "gatk", "AnnotateIntervals",
-            "-R", library_paths.REF_FASTA,
-            "-L", caller_config[GermlineCNVCallingKeys.PREPROCESSED_INTERVALS],
-            "--interval-merging-rule", "OVERLAPPING_ONLY",
-            "-O", caller_config[GermlineCNVCallingKeys.ANNOTATED_INTERVALS],
+            "gatk",
+            "AnnotateIntervals",
+            "-R",
+            library_paths.REF_FASTA,
+            "-L",
+            caller_config[GermlineCNVCallingKeys.PREPROCESSED_INTERVALS],
+            "--interval-merging-rule",
+            "OVERLAPPING_ONLY",
+            "-O",
+            caller_config[GermlineCNVCallingKeys.ANNOTATED_INTERVALS],
         ]
-        
+
         if params.get("mappability_track"):
             command.extend(["--mappability-track", params["mappability_track"]])
         if params.get("segmental_duplication_track"):
-            command.extend(["--segmental-duplication-track", params["segmental_duplication_track"]])
-        
+            command.extend(
+                ["--segmental-duplication-track", params["segmental_duplication_track"]]
+            )
+
         return command
 
     @classmethod
@@ -150,19 +164,25 @@ class GATKGermlineCNVCaller(_CNVCaller):
     ) -> List[str]:
         """Create command for GATK CollectReadCounts."""
         params = params or {}
-        
+
         command = [
-            "gatk", "CollectReadCounts",
-            "-I", bam_file,
-            "-L", intervals,
-            "-R", library_paths.REF_FASTA,
-            "--interval-merging-rule", "OVERLAPPING_ONLY",
-            "-O", output_file,
+            "gatk",
+            "CollectReadCounts",
+            "-I",
+            bam_file,
+            "-L",
+            intervals,
+            "-R",
+            library_paths.REF_FASTA,
+            "--interval-merging-rule",
+            "OVERLAPPING_ONLY",
+            "-O",
+            output_file,
         ]
-        
+
         if params.get("format") == "TSV":
             command.extend(["--format", "TSV"])
-        
+
         return command
 
     @classmethod
@@ -174,16 +194,21 @@ class GATKGermlineCNVCaller(_CNVCaller):
     ) -> List[str]:
         """
         Create command for Picard IntervalListTools to scatter intervals.
-        
+
         This splits the filtered intervals into shards for parallel GermlineCNVCaller execution.
         Each shard should have ~5000 intervals (~5Mbp for 1kb bins) as recommended by GATK.
         """
         command = [
-            "gatk", "IntervalListTools",
-            "--INPUT", input_intervals,
-            "--SUBDIVISION_MODE", "INTERVAL_COUNT",
-            "--SCATTER_CONTENT", str(intervals_per_shard),
-            "--OUTPUT", output_dir,
+            "gatk",
+            "IntervalListTools",
+            "--INPUT",
+            input_intervals,
+            "--SUBDIVISION_MODE",
+            "INTERVAL_COUNT",
+            "--SCATTER_CONTENT",
+            str(intervals_per_shard),
+            "--OUTPUT",
+            output_dir,
         ]
         return command
 
@@ -196,15 +221,20 @@ class GATKGermlineCNVCaller(_CNVCaller):
     ) -> List[str]:
         """Create command for GATK FilterIntervals."""
         params = caller_config.get(GermlineCNVCallingKeys.PARAMS, {})
-        
+
         command = [
-            "gatk", "FilterIntervals",
-            "-L", caller_config[GermlineCNVCallingKeys.PREPROCESSED_INTERVALS],
-            "--annotated-intervals", caller_config[GermlineCNVCallingKeys.ANNOTATED_INTERVALS],
-            "--interval-merging-rule", "OVERLAPPING_ONLY",
-            "-O", caller_config[GermlineCNVCallingKeys.FILTERED_INTERVALS],
+            "gatk",
+            "FilterIntervals",
+            "-L",
+            caller_config[GermlineCNVCallingKeys.PREPROCESSED_INTERVALS],
+            "--annotated-intervals",
+            caller_config[GermlineCNVCallingKeys.ANNOTATED_INTERVALS],
+            "--interval-merging-rule",
+            "OVERLAPPING_ONLY",
+            "-O",
+            caller_config[GermlineCNVCallingKeys.FILTERED_INTERVALS],
         ]
-        
+
         read_counts = caller_config[GermlineCNVCallingKeys.READ_COUNTS]
         if isinstance(read_counts, dict):
             for rc_file in read_counts.values():
@@ -212,7 +242,7 @@ class GATKGermlineCNVCaller(_CNVCaller):
         else:
             for rc_file in read_counts:
                 command.extend(["-I", rc_file])
-        
+
         # Filter thresholds
         threshold_params = [
             ("minimum_gc_content", "--minimum-gc-content"),
@@ -220,19 +250,31 @@ class GATKGermlineCNVCaller(_CNVCaller):
             ("minimum_mappability", "--minimum-mappability"),
             ("maximum_mappability", "--maximum-mappability"),
             ("low_count_filter_count_threshold", "--low-count-filter-count-threshold"),
-            ("low_count_filter_percentage_of_samples", "--low-count-filter-percentage-of-samples"),
-            ("extreme_count_filter_minimum_percentile", "--extreme-count-filter-minimum-percentile"),
-            ("extreme_count_filter_maximum_percentile", "--extreme-count-filter-maximum-percentile"),
-            ("extreme_count_filter_percentage_of_samples", "--extreme-count-filter-percentage-of-samples"),
+            (
+                "low_count_filter_percentage_of_samples",
+                "--low-count-filter-percentage-of-samples",
+            ),
+            (
+                "extreme_count_filter_minimum_percentile",
+                "--extreme-count-filter-minimum-percentile",
+            ),
+            (
+                "extreme_count_filter_maximum_percentile",
+                "--extreme-count-filter-maximum-percentile",
+            ),
+            (
+                "extreme_count_filter_percentage_of_samples",
+                "--extreme-count-filter-percentage-of-samples",
+            ),
         ]
-        
+
         for param_key, flag in threshold_params:
             if params.get(param_key):
                 command.extend([flag, str(params[param_key])])
-        
+
         if params.get("exclude_intervals"):
             command.extend(["-XL", params["exclude_intervals"]])
-        
+
         return command
 
     @classmethod
@@ -245,15 +287,20 @@ class GATKGermlineCNVCaller(_CNVCaller):
         """Create command for GATK DetermineGermlineContigPloidy."""
         params = caller_config.get(GermlineCNVCallingKeys.PARAMS, {})
         run_mode = caller_config.get(GermlineCNVCallingKeys.RUN_MODE, "COHORT")
-        
+
         command = [
-            "gatk", "DetermineGermlineContigPloidy",
-            "-L", caller_config[GermlineCNVCallingKeys.FILTERED_INTERVALS],
-            "--interval-merging-rule", "OVERLAPPING_ONLY",
-            "--output", caller_config[GermlineCNVCallingKeys.OUTPUT_DIR],
-            "--output-prefix", "ploidy",
+            "gatk",
+            "DetermineGermlineContigPloidy",
+            "-L",
+            caller_config[GermlineCNVCallingKeys.FILTERED_INTERVALS],
+            "--interval-merging-rule",
+            "OVERLAPPING_ONLY",
+            "--output",
+            caller_config[GermlineCNVCallingKeys.OUTPUT_DIR],
+            "--output-prefix",
+            "ploidy",
         ]
-        
+
         read_counts = caller_config[GermlineCNVCallingKeys.READ_COUNTS]
         if isinstance(read_counts, dict):
             for rc_file in read_counts.values():
@@ -261,16 +308,23 @@ class GATKGermlineCNVCaller(_CNVCaller):
         else:
             for rc_file in read_counts:
                 command.extend(["-I", rc_file])
-        
+
         if run_mode == "COHORT":
             if GermlineCNVCallingKeys.CONTIG_PLOIDY_PRIORS in caller_config:
-                command.extend(["--contig-ploidy-priors", caller_config[GermlineCNVCallingKeys.CONTIG_PLOIDY_PRIORS]])
-            elif hasattr(library_paths, 'CONTIG_PLOIDY_PRIORS'):
-                command.extend(["--contig-ploidy-priors", library_paths.CONTIG_PLOIDY_PRIORS])
+                command.extend(
+                    [
+                        "--contig-ploidy-priors",
+                        caller_config[GermlineCNVCallingKeys.CONTIG_PLOIDY_PRIORS],
+                    ]
+                )
+            elif hasattr(library_paths, "CONTIG_PLOIDY_PRIORS"):
+                command.extend(
+                    ["--contig-ploidy-priors", library_paths.CONTIG_PLOIDY_PRIORS]
+                )
         else:
             if params.get("ploidy_model"):
                 command.extend(["--model", params["ploidy_model"]])
-        
+
         command.extend(["--verbosity", params.get("verbosity", "INFO")])
         return command
 
@@ -285,22 +339,29 @@ class GATKGermlineCNVCaller(_CNVCaller):
     ) -> List[str]:
         """
         Create command for GATK GermlineCNVCaller for a single shard.
-        
+
         Each shard processes a subset of intervals independently.
         """
         params = caller_config.get(GermlineCNVCallingKeys.PARAMS, {})
         run_mode = caller_config.get(GermlineCNVCallingKeys.RUN_MODE, "COHORT")
-        
+
         command = [
-            "gatk", "GermlineCNVCaller",
-            "--run-mode", run_mode,
-            "-L", shard_intervals,
-            "--contig-ploidy-calls", caller_config[GermlineCNVCallingKeys.PLOIDY_CALLS],
-            "--interval-merging-rule", "OVERLAPPING_ONLY",
-            "--output", caller_config[GermlineCNVCallingKeys.OUTPUT_DIR],
-            "--output-prefix", output_prefix,
+            "gatk",
+            "GermlineCNVCaller",
+            "--run-mode",
+            run_mode,
+            "-L",
+            shard_intervals,
+            "--contig-ploidy-calls",
+            caller_config[GermlineCNVCallingKeys.PLOIDY_CALLS],
+            "--interval-merging-rule",
+            "OVERLAPPING_ONLY",
+            "--output",
+            caller_config[GermlineCNVCallingKeys.OUTPUT_DIR],
+            "--output-prefix",
+            output_prefix,
         ]
-        
+
         read_counts = caller_config[GermlineCNVCallingKeys.READ_COUNTS]
         if isinstance(read_counts, dict):
             for rc_file in read_counts.values():
@@ -308,13 +369,18 @@ class GATKGermlineCNVCaller(_CNVCaller):
         else:
             for rc_file in read_counts:
                 command.extend(["-I", rc_file])
-        
+
         if GermlineCNVCallingKeys.ANNOTATED_INTERVALS in caller_config:
-            command.extend(["--annotated-intervals", caller_config[GermlineCNVCallingKeys.ANNOTATED_INTERVALS]])
-        
+            command.extend(
+                [
+                    "--annotated-intervals",
+                    caller_config[GermlineCNVCallingKeys.ANNOTATED_INTERVALS],
+                ]
+            )
+
         if run_mode == "CASE" and params.get("cnv_model"):
             command.extend(["--model", params["cnv_model"]])
-        
+
         # Sensitivity tuning parameters
         sensitivity_params = [
             ("class_coherence_length", "--class-coherence-length"),
@@ -327,14 +393,16 @@ class GATKGermlineCNVCaller(_CNVCaller):
             ("p_alt", "--p-alt"),
             ("max_copy_number", "--max-copy-number"),
         ]
-        
+
         for param_key, flag in sensitivity_params:
             if params.get(param_key):
                 command.extend([flag, str(params[param_key])])
-        
+
         if params.get("enable_bias_factors") is not None:
-            command.extend(["--enable-bias-factors", str(params["enable_bias_factors"]).lower()])
-        
+            command.extend(
+                ["--enable-bias-factors", str(params["enable_bias_factors"]).lower()]
+            )
+
         command.extend(["--verbosity", params.get("verbosity", "INFO")])
         return command
 
@@ -353,42 +421,60 @@ class GATKGermlineCNVCaller(_CNVCaller):
     ) -> List[str]:
         """
         Create command for GATK PostprocessGermlineCNVCalls.
-        
+
         Consolidates results from all shards for a single sample.
         """
         params = caller_config.get(GermlineCNVCallingKeys.PARAMS, {})
-        
-        if hasattr(library_paths, 'REF_DICT'):
+
+        if hasattr(library_paths, "REF_DICT"):
             sequence_dict = library_paths.REF_DICT
         else:
-            sequence_dict = library_paths.REF_FASTA.replace(".fasta", ".dict").replace(".fa", ".dict")
-        
+            sequence_dict = library_paths.REF_FASTA.replace(".fasta", ".dict").replace(
+                ".fa", ".dict"
+            )
+
         command = [
-            "gatk", "PostprocessGermlineCNVCalls",
-            "--sample-index", str(sample_index),
-            "--output-genotyped-intervals", intervals_output,
-            "--output-genotyped-segments", segments_output,
-            "--output-denoised-copy-ratios", denoised_output,
-            "--sequence-dictionary", sequence_dict,
+            "gatk",
+            "PostprocessGermlineCNVCalls",
+            "--sample-index",
+            str(sample_index),
+            "--output-genotyped-intervals",
+            intervals_output,
+            "--output-genotyped-segments",
+            segments_output,
+            "--output-denoised-copy-ratios",
+            denoised_output,
+            "--sequence-dictionary",
+            sequence_dict,
         ]
-        
+
         # Add all model shards (order matters!)
         for shard in sorted(model_shards):
             command.extend(["--model-shard-path", shard])
-        
+
         # Add all calls shards (order matters!)
         for shard in sorted(calls_shards):
             command.extend(["--calls-shard-path", shard])
-        
-        command.extend(["--contig-ploidy-calls", caller_config[GermlineCNVCallingKeys.PLOIDY_CALLS]])
-        
+
+        command.extend(
+            [
+                "--contig-ploidy-calls",
+                caller_config[GermlineCNVCallingKeys.PLOIDY_CALLS],
+            ]
+        )
+
         allosomal_contigs = params.get("allosomal_contigs", ["chrX", "chrY"])
         for contig in allosomal_contigs:
             command.extend(["--allosomal-contig", contig])
-        
+
         if params.get("autosomal_ref_copy_number"):
-            command.extend(["--autosomal-ref-copy-number", str(params["autosomal_ref_copy_number"])])
-        
+            command.extend(
+                [
+                    "--autosomal-ref-copy-number",
+                    str(params["autosomal_ref_copy_number"]),
+                ]
+            )
+
         return command
 
     # ==================== PARALLEL EXECUTION METHODS ====================
@@ -412,7 +498,7 @@ class GATKGermlineCNVCaller(_CNVCaller):
                 workdir=workdir,
                 run_as_root=run_as_root,
             )
-            
+
             if return_code not in (0, None):
                 return ParallelTaskResult(
                     task_id=task_id,
@@ -420,7 +506,7 @@ class GATKGermlineCNVCaller(_CNVCaller):
                     success=False,
                     error_message=f"Command failed with return code {return_code}",
                 )
-            
+
             return ParallelTaskResult(
                 task_id=task_id,
                 output_path=output_path,
@@ -451,7 +537,7 @@ class GATKGermlineCNVCaller(_CNVCaller):
         for bam_file in sample_inputs:
             sample_name = os.path.basename(bam_file).replace(".bam", "")
             rc_output = os.path.join(read_counts_dir, f"read_counts_{sample_name}.hdf5")
-            
+
             if os.path.exists(rc_output):
                 tasks.append((sample_name, rc_output, None))  # Already exists
             else:
@@ -459,23 +545,27 @@ class GATKGermlineCNVCaller(_CNVCaller):
                     bam_file, preprocessed_intervals, rc_output, library_paths, params
                 )
                 tasks.append((sample_name, rc_output, command))
-        
+
         if max_workers is None:
             max_workers = min(len(tasks), os.cpu_count() or 4)
-        
+
         read_counts = {}
         failed = []
-        
+
         # Separate existing from needing processing
-        to_process = [(name, output, cmd) for name, output, cmd in tasks if cmd is not None]
+        to_process = [
+            (name, output, cmd) for name, output, cmd in tasks if cmd is not None
+        ]
         for name, output, _ in tasks:
             if os.path.exists(output):
                 read_counts[name] = output
                 print(f"    ✓ {name} (cached)")
-        
+
         if to_process:
-            print(f"  Processing {len(to_process)} samples with {max_workers} workers...")
-            
+            print(
+                f"  Processing {len(to_process)} samples with {max_workers} workers..."
+            )
+
             with ThreadPoolExecutor(max_workers=max_workers) as executor:
                 futures = {
                     executor.submit(
@@ -483,7 +573,7 @@ class GATKGermlineCNVCaller(_CNVCaller):
                     ): name
                     for name, output, cmd in to_process
                 }
-                
+
                 for future in as_completed(futures):
                     result = future.result()
                     if result.success:
@@ -494,10 +584,12 @@ class GATKGermlineCNVCaller(_CNVCaller):
                         print(f"    ✗ {result.task_id}: {result.error_message}")
                         if os.path.exists(result.output_path):
                             os.remove(result.output_path)
-        
+
         if failed:
-            raise RuntimeError(f"CollectReadCounts failed for: {[f[0] for f in failed]}")
-        
+            raise RuntimeError(
+                f"CollectReadCounts failed for: {[f[0] for f in failed]}"
+            )
+
         return read_counts
 
     @classmethod
@@ -511,37 +603,43 @@ class GATKGermlineCNVCaller(_CNVCaller):
     ) -> List[str]:
         """
         Scatter intervals into shards using IntervalListTools.
-        
+
         Returns list of paths to scattered interval files.
         """
         os.makedirs(scatter_dir, exist_ok=True)
-        
+
         # Check if already scattered
-        existing_shards = glob.glob(os.path.join(scatter_dir, "*/scattered.interval_list"))
+        existing_shards = glob.glob(
+            os.path.join(scatter_dir, "*/scattered.interval_list")
+        )
         if existing_shards:
             print(f"  Using {len(existing_shards)} existing shards")
             return sorted(existing_shards)
-        
+
         command = cls._create_scatter_intervals_command(
             filtered_intervals, scatter_dir, intervals_per_shard
         )
-        
+
         docker_runner = DockerRunner(device=device)
         return_code = docker_runner.run(
             DockerImages.GATK,
             " ".join(command),
             workdir=workdir,
         )
-        
+
         if return_code not in (0, None):
-            raise RuntimeError(f"IntervalListTools scatter failed with return code {return_code}")
-        
+            raise RuntimeError(
+                f"IntervalListTools scatter failed with return code {return_code}"
+            )
+
         # Find scattered intervals (IntervalListTools creates temp_XXXX_of_N directories)
-        shards = sorted(glob.glob(os.path.join(scatter_dir, "*/scattered.interval_list")))
-        
+        shards = sorted(
+            glob.glob(os.path.join(scatter_dir, "*/scattered.interval_list"))
+        )
+
         if not shards:
             raise RuntimeError(f"No scattered intervals found in {scatter_dir}")
-        
+
         print(f"  Created {len(shards)} interval shards")
         return shards
 
@@ -559,38 +657,41 @@ class GATKGermlineCNVCaller(_CNVCaller):
     ) -> Tuple[List[str], List[str]]:
         """
         Run GermlineCNVCaller in parallel across interval shards.
-        
+
         Returns:
             Tuple of (model_shard_paths, calls_shard_paths)
         """
         tasks = []
-        
+
         for i, shard_interval in enumerate(shard_intervals):
             shard_name = f"shard_{i:04d}"
             output_prefix = shard_name
-            
+
             model_output = os.path.join(model_dir, f"{output_prefix}-model")
             calls_output = os.path.join(model_dir, f"{output_prefix}-calls")
-            
+
             if os.path.exists(model_output) and os.path.exists(calls_output):
                 tasks.append((shard_name, model_output, calls_output, None))
             else:
                 shard_config = caller_config.copy()
                 shard_config[GermlineCNVCallingKeys.OUTPUT_DIR] = model_dir
-                
+
                 command = cls._create_germline_cnv_caller_command(
-                    shard_config, library_paths, app_config,
-                    shard_interval, output_prefix
+                    shard_config,
+                    library_paths,
+                    app_config,
+                    shard_interval,
+                    output_prefix,
                 )
                 tasks.append((shard_name, model_output, calls_output, command))
-        
+
         if max_workers is None:
             max_workers = min(len(tasks), os.cpu_count() or 4)
-        
+
         model_shards = []
         calls_shards = []
         failed = []
-        
+
         # Collect cached results
         to_process = []
         for shard_name, model_out, calls_out, cmd in tasks:
@@ -600,22 +701,30 @@ class GATKGermlineCNVCaller(_CNVCaller):
                 print(f"    ✓ {shard_name} (cached)")
             else:
                 to_process.append((shard_name, model_out, calls_out, cmd))
-        
+
         if to_process:
-            print(f"  Processing {len(to_process)} shards with {max_workers} workers...")
-            
+            print(
+                f"  Processing {len(to_process)} shards with {max_workers} workers..."
+            )
+
             with ThreadPoolExecutor(max_workers=max_workers) as executor:
                 futures = {
                     executor.submit(
-                        cls._run_docker_task, cmd, shard_name, model_out, workdir, device, True
+                        cls._run_docker_task,
+                        cmd,
+                        shard_name,
+                        model_out,
+                        workdir,
+                        device,
+                        True,
                     ): (shard_name, model_out, calls_out)
                     for shard_name, model_out, calls_out, cmd in to_process
                 }
-                
+
                 for future in as_completed(futures):
                     shard_name, model_out, calls_out = futures[future]
                     result = future.result()
-                    
+
                     if result.success:
                         model_shards.append(model_out)
                         calls_shards.append(calls_out)
@@ -628,10 +737,12 @@ class GATKGermlineCNVCaller(_CNVCaller):
                             shutil.rmtree(model_out)
                         if os.path.exists(calls_out):
                             shutil.rmtree(calls_out)
-        
+
         if failed:
-            raise RuntimeError(f"GermlineCNVCaller failed for shards: {[f[0] for f in failed]}")
-        
+            raise RuntimeError(
+                f"GermlineCNVCaller failed for shards: {[f[0] for f in failed]}"
+            )
+
         return sorted(model_shards), sorted(calls_shards)
 
     @classmethod
@@ -650,17 +761,37 @@ class GATKGermlineCNVCaller(_CNVCaller):
     ) -> List[Tuple[str, str, str]]:
         """Postprocess CNV calls for all samples in parallel."""
         tasks = []
-        
+
         for i, sample_name in enumerate(sample_names):
-            intervals_output = os.path.join(results_dir, f"genotyped_intervals_{sample_name}.vcf.gz")
-            segments_output = os.path.join(results_dir, f"genotyped_segments_{sample_name}.vcf.gz")
-            denoised_output = os.path.join(results_dir, f"denoised_copy_ratios_{sample_name}.tsv")
-            
-            if all(os.path.exists(f) for f in [intervals_output, segments_output, denoised_output]):
-                tasks.append((sample_name, i, intervals_output, segments_output, denoised_output, None))
+            intervals_output = os.path.join(
+                results_dir, f"genotyped_intervals_{sample_name}.vcf.gz"
+            )
+            segments_output = os.path.join(
+                results_dir, f"genotyped_segments_{sample_name}.vcf.gz"
+            )
+            denoised_output = os.path.join(
+                results_dir, f"denoised_copy_ratios_{sample_name}.tsv"
+            )
+
+            if all(
+                os.path.exists(f)
+                for f in [intervals_output, segments_output, denoised_output]
+            ):
+                tasks.append(
+                    (
+                        sample_name,
+                        i,
+                        intervals_output,
+                        segments_output,
+                        denoised_output,
+                        None,
+                    )
+                )
             else:
                 command = cls._create_postprocess_calls_command(
-                    caller_config, library_paths, app_config,
+                    caller_config,
+                    library_paths,
+                    app_config,
                     sample_index=i,
                     intervals_output=intervals_output,
                     segments_output=segments_output,
@@ -668,14 +799,23 @@ class GATKGermlineCNVCaller(_CNVCaller):
                     model_shards=model_shards,
                     calls_shards=calls_shards,
                 )
-                tasks.append((sample_name, i, intervals_output, segments_output, denoised_output, command))
-        
+                tasks.append(
+                    (
+                        sample_name,
+                        i,
+                        intervals_output,
+                        segments_output,
+                        denoised_output,
+                        command,
+                    )
+                )
+
         if max_workers is None:
             max_workers = min(len(tasks), os.cpu_count() or 4)
-        
+
         results = []
         failed = []
-        
+
         to_process = []
         for sample_name, idx, int_out, seg_out, den_out, cmd in tasks:
             if cmd is None:
@@ -683,22 +823,30 @@ class GATKGermlineCNVCaller(_CNVCaller):
                 print(f"    ✓ {sample_name} (cached)")
             else:
                 to_process.append((sample_name, idx, int_out, seg_out, den_out, cmd))
-        
+
         if to_process:
-            print(f"  Processing {len(to_process)} samples with {max_workers} workers...")
-            
+            print(
+                f"  Processing {len(to_process)} samples with {max_workers} workers..."
+            )
+
             with ThreadPoolExecutor(max_workers=max_workers) as executor:
                 futures = {
                     executor.submit(
-                        cls._run_docker_task, cmd, sample_name, seg_out, workdir, device, True
+                        cls._run_docker_task,
+                        cmd,
+                        sample_name,
+                        seg_out,
+                        workdir,
+                        device,
+                        True,
                     ): (sample_name, int_out, seg_out, den_out)
                     for sample_name, _, int_out, seg_out, den_out, cmd in to_process
                 }
-                
+
                 for future in as_completed(futures):
                     sample_name, int_out, seg_out, den_out = futures[future]
                     result = future.result()
-                    
+
                     if result.success:
                         results.append((sample_name, int_out, seg_out))
                         print(f"    ✓ {sample_name}")
@@ -708,19 +856,23 @@ class GATKGermlineCNVCaller(_CNVCaller):
                         for f in [int_out, seg_out, den_out]:
                             if os.path.exists(f):
                                 os.remove(f)
-        
+
         if failed:
-            raise RuntimeError(f"PostprocessGermlineCNVCalls failed for: {[f[0] for f in failed]}")
-        
+            raise RuntimeError(
+                f"PostprocessGermlineCNVCalls failed for: {[f[0] for f in failed]}"
+            )
+
         return results
 
     # ==================== MAIN PIPELINE ====================
 
     @classmethod
-    def call(cls, caller_config: Dict, device: str = "cpu", max_workers: Optional[int] = None):
+    def call(
+        cls, caller_config: Dict, device: str = "cpu", max_workers: Optional[int] = None
+    ):
         """
         Execute the complete GATK GermlineCNVCaller pipeline with parallelization.
-        
+
         Pipeline steps:
         1. PreprocessIntervals - Prepare analysis intervals
         2. AnnotateIntervals - Add GC content annotations
@@ -730,7 +882,7 @@ class GATKGermlineCNVCaller(_CNVCaller):
         6. DetermineGermlineContigPloidy - Determine contig ploidies
         7. GermlineCNVCaller - Call CNVs (PARALLEL across shards)
         8. PostprocessGermlineCNVCalls - Generate final VCFs (PARALLEL)
-        
+
         Args:
             caller_config: Configuration dictionary
             device: "cpu" or "gpu"
@@ -739,10 +891,10 @@ class GATKGermlineCNVCaller(_CNVCaller):
         library_paths = LibraryPaths()
         app_config = AppConfig()
         params = caller_config.get(GermlineCNVCallingKeys.PARAMS, {})
-        
+
         output_dir = caller_config[GermlineCNVCallingKeys.OUTPUT_DIR]
         os.makedirs(output_dir, exist_ok=True)
-        
+
         # Create subdirectories
         intervals_dir = os.path.join(output_dir, "intervals")
         scatter_dir = os.path.join(output_dir, "scatter")
@@ -750,108 +902,156 @@ class GATKGermlineCNVCaller(_CNVCaller):
         ploidy_dir = os.path.join(output_dir, "ploidy")
         model_dir = os.path.join(output_dir, "model")
         results_dir = os.path.join(output_dir, "results")
-        
-        for d in [intervals_dir, scatter_dir, read_counts_dir, ploidy_dir, model_dir, results_dir]:
+
+        for d in [
+            intervals_dir,
+            scatter_dir,
+            read_counts_dir,
+            ploidy_dir,
+            model_dir,
+            results_dir,
+        ]:
             os.makedirs(d, exist_ok=True)
-        
+
         docker_runner = DockerRunner(device=device)
         workdir = str(Path(caller_config[GermlineCNVCallingKeys.WORKDIR]).absolute())
-        
+
         # Step 1: PreprocessIntervals
         print("Step 1/8: PreprocessIntervals...")
-        preprocessed_intervals = os.path.join(intervals_dir, "preprocessed.interval_list")
-        caller_config[GermlineCNVCallingKeys.PREPROCESSED_INTERVALS] = preprocessed_intervals
-        
+        preprocessed_intervals = os.path.join(
+            intervals_dir, "preprocessed.interval_list"
+        )
+        caller_config[GermlineCNVCallingKeys.PREPROCESSED_INTERVALS] = (
+            preprocessed_intervals
+        )
+
         if not os.path.exists(preprocessed_intervals):
-            cmd = cls._create_preprocess_intervals_command(caller_config, library_paths, app_config)
-            return_code = docker_runner.run(DockerImages.GATK, " ".join(cmd), workdir=workdir)
+            cmd = cls._create_preprocess_intervals_command(
+                caller_config, library_paths, app_config
+            )
+            return_code = docker_runner.run(
+                DockerImages.GATK, " ".join(cmd), workdir=workdir
+            )
             if return_code not in (0, None):
                 raise RuntimeError(f"PreprocessIntervals failed: {return_code}")
         else:
             print(f"  Cached: {preprocessed_intervals}")
-        
+
         # Step 2: AnnotateIntervals
         print("Step 2/8: AnnotateIntervals...")
         annotated_intervals = os.path.join(intervals_dir, "annotated.tsv")
         caller_config[GermlineCNVCallingKeys.ANNOTATED_INTERVALS] = annotated_intervals
-        
+
         if not os.path.exists(annotated_intervals):
-            cmd = cls._create_annotate_intervals_command(caller_config, library_paths, app_config)
-            return_code = docker_runner.run(DockerImages.GATK, " ".join(cmd), workdir=workdir)
+            cmd = cls._create_annotate_intervals_command(
+                caller_config, library_paths, app_config
+            )
+            return_code = docker_runner.run(
+                DockerImages.GATK, " ".join(cmd), workdir=workdir
+            )
             if return_code not in (0, None):
                 raise RuntimeError(f"AnnotateIntervals failed: {return_code}")
         else:
             print(f"  Cached: {annotated_intervals}")
-        
+
         # Step 3: CollectReadCounts (PARALLEL)
         print("Step 3/8: CollectReadCounts (parallel)...")
         sample_inputs = caller_config[GermlineCNVCallingKeys.SAMPLE_INPUTS]
         read_counts = cls._collect_read_counts_parallel(
-            sample_inputs, preprocessed_intervals, read_counts_dir,
-            library_paths, params, workdir, device, max_workers
+            sample_inputs,
+            preprocessed_intervals,
+            read_counts_dir,
+            library_paths,
+            params,
+            workdir,
+            device,
+            max_workers,
         )
         caller_config[GermlineCNVCallingKeys.READ_COUNTS] = read_counts
-        
+
         # Step 4: FilterIntervals
         print("Step 4/8: FilterIntervals...")
         filtered_intervals = os.path.join(intervals_dir, "filtered.interval_list")
         caller_config[GermlineCNVCallingKeys.FILTERED_INTERVALS] = filtered_intervals
-        
+
         if not os.path.exists(filtered_intervals):
-            cmd = cls._create_filter_intervals_command(caller_config, library_paths, app_config)
-            return_code = docker_runner.run(DockerImages.GATK, " ".join(cmd), workdir=workdir)
+            cmd = cls._create_filter_intervals_command(
+                caller_config, library_paths, app_config
+            )
+            return_code = docker_runner.run(
+                DockerImages.GATK, " ".join(cmd), workdir=workdir
+            )
             if return_code not in (0, None):
                 raise RuntimeError(f"FilterIntervals failed: {return_code}")
         else:
             print(f"  Cached: {filtered_intervals}")
-        
+
         # Step 5: ScatterIntervals
         print("Step 5/8: ScatterIntervals...")
-        intervals_per_shard = params.get("intervals_per_shard", cls.DEFAULT_INTERVALS_PER_SHARD)
+        intervals_per_shard = params.get(
+            "intervals_per_shard", cls.DEFAULT_INTERVALS_PER_SHARD
+        )
         shard_intervals = cls._scatter_intervals(
             filtered_intervals, scatter_dir, intervals_per_shard, workdir, device
         )
-        
+
         # Step 6: DetermineGermlineContigPloidy
         print("Step 6/8: DetermineGermlineContigPloidy...")
         caller_config[GermlineCNVCallingKeys.OUTPUT_DIR] = ploidy_dir
-        
+
         ploidy_model_dir = os.path.join(ploidy_dir, "ploidy-model")
         ploidy_calls_dir = os.path.join(ploidy_dir, "ploidy-calls")
-        
+
         if not (os.path.exists(ploidy_model_dir) and os.path.exists(ploidy_calls_dir)):
-            cmd = cls._create_determine_ploidy_command(caller_config, library_paths, app_config)
+            cmd = cls._create_determine_ploidy_command(
+                caller_config, library_paths, app_config
+            )
             return_code = docker_runner.run(
                 DockerImages.GATK, " ".join(cmd), workdir=workdir, run_as_root=True
             )
             if return_code not in (0, None):
-                raise RuntimeError(f"DetermineGermlineContigPloidy failed: {return_code}")
+                raise RuntimeError(
+                    f"DetermineGermlineContigPloidy failed: {return_code}"
+                )
         else:
             print(f"  Cached: {ploidy_model_dir}")
-        
+
         caller_config[GermlineCNVCallingKeys.PLOIDY_MODEL] = ploidy_model_dir
         caller_config[GermlineCNVCallingKeys.PLOIDY_CALLS] = ploidy_calls_dir
-        
+
         # Step 7: GermlineCNVCaller (PARALLEL across shards)
         print("Step 7/8: GermlineCNVCaller (parallel shards)...")
         model_shards, calls_shards = cls._run_gcnv_caller_parallel(
-            shard_intervals, caller_config, library_paths, app_config,
-            model_dir, workdir, device, max_workers
+            shard_intervals,
+            caller_config,
+            library_paths,
+            app_config,
+            model_dir,
+            workdir,
+            device,
+            max_workers,
         )
-        
+
         caller_config[GermlineCNVCallingKeys.CNV_MODEL] = model_shards
         caller_config[GermlineCNVCallingKeys.CNV_CALLS] = calls_shards
-        
+
         # Step 8: PostprocessGermlineCNVCalls (PARALLEL)
         print("Step 8/8: PostprocessGermlineCNVCalls (parallel)...")
         sample_names = list(read_counts.keys())
-        
+
         cls._postprocess_calls_parallel(
-            sample_names, model_shards, calls_shards,
-            caller_config, library_paths, app_config,
-            results_dir, workdir, device, max_workers
+            sample_names,
+            model_shards,
+            calls_shards,
+            caller_config,
+            library_paths,
+            app_config,
+            results_dir,
+            workdir,
+            device,
+            max_workers,
         )
-        
+
         print("=" * 60)
         print("GermlineCNVCaller pipeline completed successfully!")
         print(f"  Samples processed: {len(sample_names)}")

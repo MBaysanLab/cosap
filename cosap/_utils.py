@@ -65,10 +65,12 @@ def convert_vcf_to_json(
 ) -> list:
     return VCFUtils.convert_vcf_to_json(path, caller_type, sample_name, filter)
 
+
 def convert_vcf_to_json_fast(
     path: str, caller_type: str = None, sample_name: str = None, filter: str = "PASS"
 ) -> list:
     return VCFUtils.convert_vcf_to_json_fast(path, caller_type, sample_name, filter)
+
 
 def is_valid_path(path: str) -> bool:
     """

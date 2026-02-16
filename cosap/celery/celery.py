@@ -257,7 +257,9 @@ def parse_annotated_cnv_task(vcf_path: str, workdir: str = None) -> str:
         parser = AnnotatedCnvVcfParser()
         parsed = parser.parse(vcf_path)
 
-        with NamedTemporaryFile(mode="w", dir=workdir, suffix=".json", delete=False) as f:
+        with NamedTemporaryFile(
+            mode="w", dir=workdir, suffix=".json", delete=False
+        ) as f:
             json.dump(parsed, f)
             return f.name
 

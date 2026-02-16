@@ -1,13 +1,14 @@
+import io
 import os
 from logging import getLogger
 
 import numpy as np
 import pandas as pd
-import io
 
 from ._config import VariantAnnotationConfig
 
 logger = getLogger(__name__)
+
 
 class VEPResultsProcessor:
     """Dedicated class for processing VEP results."""
@@ -289,7 +290,9 @@ class VEPResultsProcessor:
             logger.error(f"Error processing record: {e}")
             return None
 
-    def _process_multiple_records(self, records: list, header_lines: list = None) -> list:
+    def _process_multiple_records(
+        self, records: list, header_lines: list = None
+    ) -> list:
         """
         Process multiple pysam.VariantFile records at once for better efficiency.
 
@@ -355,7 +358,7 @@ class VEPResultsProcessor:
     def _create_empty_dataframe(self) -> pd.DataFrame:
         """Create empty DataFrame with expected columns."""
         return pd.DataFrame(columns=self.config.VEP_COLUMN_MAPPING.keys())
-    
+
     def _process_clinical_significance(self, df: pd.DataFrame) -> pd.DataFrame:
         """Split clinical_significance into array-compatible values."""
         if "clinical_significance" in df.columns:
@@ -488,7 +491,9 @@ class AnnovarResultsProcessor:
         available_columns = [col for col in output_columns if col in df.columns]
         return df[available_columns]
 
-    def _normalize_intervar_classification(self, df: pd.DataFrame, subtype: str) -> pd.DataFrame:
+    def _normalize_intervar_classification(
+        self, df: pd.DataFrame, subtype: str
+    ) -> pd.DataFrame:
         """Normalize InterVar classification values."""
         if subtype == "intervar" and "intervar_classification" in df.columns:
             df["intervar_classification"] = (
@@ -524,10 +529,8 @@ class MetaRnnResultsProcessor:
 
             df = df.assign(
                 TRANSCRIPT=df["TRANSCRIPT"].str.split(";"),
-                MetaRNN_score=df["MetaRNN_score"].str.split(";")
-            ).explode(
-                ["TRANSCRIPT", "MetaRNN_score"]
-            )
+                MetaRNN_score=df["MetaRNN_score"].str.split(";"),
+            ).explode(["TRANSCRIPT", "MetaRNN_score"])
             return self._apply_transformations(df)
 
         except Exception as e:
@@ -551,13 +554,14 @@ class MetaRnnResultsProcessor:
 
             # Handle transcript and score expansion if needed
             if "TRANSCRIPT" in df.columns and "MetaRNN_score" in df.columns:
-                if df["TRANSCRIPT"].dtype == "object" and df["TRANSCRIPT"].str.contains(";", na=False).any():
+                if (
+                    df["TRANSCRIPT"].dtype == "object"
+                    and df["TRANSCRIPT"].str.contains(";", na=False).any()
+                ):
                     df = df.assign(
                         TRANSCRIPT=df["TRANSCRIPT"].str.split(";"),
-                        MetaRNN_score=df["MetaRNN_score"].str.split(";")
-                    ).explode(
-                        ["TRANSCRIPT", "MetaRNN_score"]
-                    )
+                        MetaRNN_score=df["MetaRNN_score"].str.split(";"),
+                    ).explode(["TRANSCRIPT", "MetaRNN_score"])
 
             return self._apply_transformations(df)
 
@@ -581,7 +585,9 @@ class MetaRnnResultsProcessor:
 
     def _process_variant_identifiers(self, df: pd.DataFrame) -> pd.DataFrame:
         """Process variant ID formatting."""
-        df["variant_id"] = df[["#CHROM", "POS", "REF", "ALT"]].astype(str).agg("_".join, axis=1)
+        df["variant_id"] = (
+            df[["#CHROM", "POS", "REF", "ALT"]].astype(str).agg("_".join, axis=1)
+        )
         df["variant_id"] = np.where(
             df["variant_id"].str.startswith("chr"),
             df["variant_id"],
@@ -600,4 +606,6 @@ class MetaRnnResultsProcessor:
 
     def _create_empty_dataframe(self) -> pd.DataFrame:
         """Create empty DataFrame with expected columns."""
-        return pd.DataFrame(columns=["variant_id", "metarnn_score", "metarnn_interpretation"])
+        return pd.DataFrame(
+            columns=["variant_id", "metarnn_score", "metarnn_interpretation"]
+        )

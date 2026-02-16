@@ -4,9 +4,9 @@ from typing import Dict, List
 from ..._docker_images import DockerImages
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import AnnotatorKeys
+from ..._utils import join_paths
 from ...runners.docker_runner import DockerRunner
 from ._annotators import _Annotatable, _Annotator
-from ..._utils import join_paths
 
 
 class MetaRnnAnnotator(_Annotatable, _Annotator):

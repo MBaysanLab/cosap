@@ -31,7 +31,9 @@ class AnnotatedCnvVcfParser(_Parser):
         meta_lines = [l for l in all_lines if l.startswith("##")]
         non_meta_lines = [l for l in all_lines if not l.startswith("##")]
 
-        header_line = next((line for line in non_meta_lines if line.startswith("#CHROM")), None)
+        header_line = next(
+            (line for line in non_meta_lines if line.startswith("#CHROM")), None
+        )
         if not header_line:
             raise ValueError("No header line found in VCF")
 
@@ -100,13 +102,19 @@ class AnnotatedCnvVcfParser(_Parser):
             gene_symbol = _csq_get("SYMBOL")
 
             # Backward-compatible fallback only when we don't have CSQ header names
-            if csq_value and (not consequence or not impact or not gene_symbol) and not csq_fields:
+            if (
+                csq_value
+                and (not consequence or not impact or not gene_symbol)
+                and not csq_fields
+            ):
                 parts = str(csq_value).split(",")[0].split("|")
                 consequence = consequence or (parts[1] if len(parts) > 1 else "")
                 impact = impact or (parts[2] if len(parts) > 2 else "")
                 gene_symbol = gene_symbol or (parts[3] if len(parts) > 3 else "")
 
-            clinical_significance = _csq_get("CLIN_SIG", "Clinical_significance", "clin_sig")
+            clinical_significance = _csq_get(
+                "CLIN_SIG", "Clinical_significance", "clin_sig"
+            )
             cadd = self._safe_float(
                 _csq_get("CADD", "CADD_PHRED", "CADD_PHRED_score", "CADD_score"),
                 default=None,
@@ -136,7 +144,11 @@ class AnnotatedCnvVcfParser(_Parser):
                     cnv_type = "Deletion"
                 elif alt == "<DUP>":
                     cnv_type = "Duplication"
-            if cnv_type == "Duplication" and copy_number is not None and copy_number >= 5:
+            if (
+                cnv_type == "Duplication"
+                and copy_number is not None
+                and copy_number >= 5
+            ):
                 cnv_type = "Amplification"
 
             # ---- exon labeling ----
@@ -193,7 +205,11 @@ class AnnotatedCnvVcfParser(_Parser):
 
             # Human-friendly description derived from consequence
             consequence_for_desc = annotations.get("Consequence") or consequence or ""
-            annotations["description"] = str(consequence_for_desc).replace("_", " ") if consequence_for_desc else "N/A"
+            annotations["description"] = (
+                str(consequence_for_desc).replace("_", " ")
+                if consequence_for_desc
+                else "N/A"
+            )
 
             # Keep pHaplo/pTriplo as explicit annotation values (not typically present in CSQ headers)
             annotations["pHaplo"] = p_haplo

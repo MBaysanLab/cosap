@@ -18,7 +18,9 @@ class _Annotatable:
         Only get chromosomes 1-22, M, X, Y from given vcf and returns path of filtered vcf.
         """
 
-        chromosomes = ",".join([f"chr{i}" for i in list(range(1, 23))] + ["chrM", "chrX", "chrY"])
+        chromosomes = ",".join(
+            [f"chr{i}" for i in list(range(1, 23))] + ["chrM", "chrX", "chrY"]
+        )
         input_without_ext = "".join(vcf_path.split(".")[:-1])
         input_extension = vcf_path.split(".")[-1]
         output_file = f"{input_without_ext}_chr1_22.{input_extension}"

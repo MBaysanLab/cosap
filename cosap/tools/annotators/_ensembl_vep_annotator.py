@@ -64,12 +64,12 @@ class VepAnnotator(_Annotatable, _Annotator):
                 "file": "PrimateAI_scores_v0.2_GRCh38_sorted.tsv.bgz",
                 "params": None,
                 "use_file_prefix": False,  # PrimateAI doesn't use file= prefix
-            }
+            },
         ]
 
         for plugin in plugins:
             use_file_prefix = plugin.get("use_file_prefix", True)
-            
+
             # Handle single file plugins
             if "file" in plugin:
                 plugin_file = join_paths(
@@ -81,7 +81,7 @@ class VepAnnotator(_Annotatable, _Annotator):
                         plugin_config = f"{plugin['name']},file={plugin_file}"
                     else:
                         plugin_config = f"{plugin['name']},{plugin_file}"
-                    
+
                     if plugin["params"]:
                         plugin_config += f",{plugin['params']}"
                     command.extend(["--plugin", plugin_config])
@@ -113,7 +113,7 @@ class VepAnnotator(_Annotatable, _Annotator):
                     else:
                         # If no file prefix needed, just join the paths
                         file_params = ",".join(file_paths.values())
-                    
+
                     plugin_config = f"{plugin['name']},{file_params}"
 
                     if plugin["params"]:
@@ -122,10 +122,13 @@ class VepAnnotator(_Annotatable, _Annotator):
                     command.extend(["--plugin", plugin_config])
                 else:
                     missing_files = [
-                        name for key, name in plugin["files"].items()
+                        name
+                        for key, name in plugin["files"].items()
                         if key not in file_paths
                     ]
-                    print(f"Plugin files not found for {plugin['name']}: {', '.join(missing_files)}")
+                    print(
+                        f"Plugin files not found for {plugin['name']}: {', '.join(missing_files)}"
+                    )
 
     @classmethod
     def create_command(

@@ -1,10 +1,10 @@
-import os
+import gzip
 import json
+import os
+import subprocess
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from logging import getLogger
 from typing import Tuple
-import subprocess
-import gzip
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import numpy as np
 import pandas as pd
@@ -21,9 +21,9 @@ from ...pipeline_builder.builders import Annotator, VCFReader
 from ...tools.annotators import AnnotatorFactory
 from ._config import VariantAnnotationConfig
 from .annotation_output_parsers import (
-    VEPResultsProcessor,
     AnnovarResultsProcessor,
     MetaRnnResultsProcessor,
+    VEPResultsProcessor,
 )
 
 logger = getLogger(__name__)
@@ -346,42 +346,43 @@ class VariantMultipleAnnotator:
 
     def _execute_annotations(self, tasks: list):
         """Execute annotation tasks in parallel using ThreadPoolExecutor."""
-        logger.info(f"Running {len(tasks)} annotation tasks with {self.max_workers} workers")
-        
+        logger.info(
+            f"Running {len(tasks)} annotation tasks with {self.max_workers} workers"
+        )
+
         results = {}
-        
+
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             # Submit all tasks
             future_to_task = {
-                executor.submit(self._run_annotation_task, task): task 
-                for task in tasks
+                executor.submit(self._run_annotation_task, task): task for task in tasks
             }
-            
+
             # Create progress bar
             pbar = tqdm(total=len(tasks), desc="Annotation progress", unit="task")
-            
+
             # Process completed tasks
             for future in as_completed(future_to_task):
                 task = future_to_task[future]
                 task_name = task["name"]
-                
+
                 try:
                     output_file = future.result()
                     results[task_name] = output_file
                     logger.info(f"{task_name} annotation completed: {output_file}")
-                    
+
                     # Store output file paths
                     self._store_output_path(task_name, output_file)
-                    
+
                 except Exception as e:
                     logger.error(f"Error during {task_name} annotation: {e}")
                     pbar.close()
                     raise
                 finally:
                     pbar.update(1)
-            
+
             pbar.close()
-        
+
         logger.info(f"All {len(tasks)} annotation tasks completed successfully")
         return results
 
@@ -504,26 +505,26 @@ class VariantMultipleAnnotator:
             list: List of all fetched records from all chromosomes in the batch
         """
         records = []
-        
+
         # Group records by chromosome
         chrom_ranges = {}
         for record in record_batch:
             chrom = record.chrom
             pos = record.pos
-            
+
             if chrom not in chrom_ranges:
-                chrom_ranges[chrom] = {'min': pos, 'max': pos}
+                chrom_ranges[chrom] = {"min": pos, "max": pos}
             else:
-                chrom_ranges[chrom]['min'] = min(chrom_ranges[chrom]['min'], pos)
-                chrom_ranges[chrom]['max'] = max(chrom_ranges[chrom]['max'], pos)
-        
+                chrom_ranges[chrom]["min"] = min(chrom_ranges[chrom]["min"], pos)
+                chrom_ranges[chrom]["max"] = max(chrom_ranges[chrom]["max"], pos)
+
         # Fetch records for each chromosome range
         for chrom, pos_range in chrom_ranges.items():
             chrom_records = self._fetch_tabix_region(
-                tbx, chrom, pos_range['min'], pos_range['max'] + 1
+                tbx, chrom, pos_range["min"], pos_range["max"] + 1
             )
             records.extend(chrom_records)
-        
+
         return records
 
     def _parse_annovar_tabix_by_batch(
@@ -578,7 +579,7 @@ class VariantMultipleAnnotator:
 
         # Fetch records for all chromosomes in the batch
         records = self._fetch_all_regions_in_batch(tbx, record_batch)
-        
+
         tbx.close()
 
         if not records:
@@ -640,7 +641,7 @@ class VariantMultipleAnnotator:
 
             # Fetch records for all chromosomes in the batch
             records = self._fetch_all_regions_in_batch(tbx, record_batch)
-            
+
             tbx.close()
 
             if not records:
@@ -739,7 +740,7 @@ class VariantMultipleAnnotator:
                 chroms = set(r.chrom for r in record_batch)
                 first_record = record_batch[0]
                 last_record = record_batch[-1]
-                
+
                 if len(chroms) == 1:
                     logger.info(
                         f"Processing batch: {first_record.chrom}:{first_record.pos}-{last_record.pos} "
@@ -753,8 +754,8 @@ class VariantMultipleAnnotator:
                     )
 
                 # Parse this batch
-                vep_results, intervar_results, cancervar_results, metarnn_results = self._parse_batch(
-                    record_batch
+                vep_results, intervar_results, cancervar_results, metarnn_results = (
+                    self._parse_batch(record_batch)
                 )
 
                 # If any results are empty, warn the user with details
@@ -764,7 +765,7 @@ class VariantMultipleAnnotator:
                         f"VEP: {len(vep_results)}, Intervar: {len(intervar_results)}, "
                         f"Cancervar: {len(cancervar_results)}, MetaRNN: {len(metarnn_results)}"
                     )
-                
+
                 yield vep_results, intervar_results, cancervar_results, metarnn_results
 
                 # Clear memory
@@ -775,7 +776,7 @@ class VariantMultipleAnnotator:
             chroms = set(r.chrom for r in record_batch)
             first_record = record_batch[0]
             last_record = record_batch[-1]
-            
+
             if len(chroms) == 1:
                 logger.info(
                     f"Processing final batch: {first_record.chrom}:{first_record.pos}-{last_record.pos} "
@@ -788,8 +789,8 @@ class VariantMultipleAnnotator:
                     f"({len(record_batch)} variants)"
                 )
 
-            vep_results, intervar_results, cancervar_results, metarnn_results = self._parse_batch(
-                record_batch
+            vep_results, intervar_results, cancervar_results, metarnn_results = (
+                self._parse_batch(record_batch)
             )
 
             yield vep_results, intervar_results, cancervar_results, metarnn_results
@@ -863,7 +864,13 @@ class VariantMultipleAnnotator:
             )
 
             # Clear memory
-            del vep_results, intervar_results, cancervar_results, metarnn_results, batch_results
+            del (
+                vep_results,
+                intervar_results,
+                cancervar_results,
+                metarnn_results,
+                batch_results,
+            )
 
         if not all_results:
             logger.warning("No results found in any batch")
@@ -922,7 +929,10 @@ class VariantMultipleAnnotator:
 
                     # Merge results for this batch
                     batch_results = self._merge_annotation_results(
-                        vep_results, intervar_results, cancervar_results, metarnn_results
+                        vep_results,
+                        intervar_results,
+                        cancervar_results,
+                        metarnn_results,
                     )
 
                     # Post-process results
@@ -1161,7 +1171,7 @@ class VariantMultipleAnnotator:
                 "omim_cancervar",
                 "interpro_domain_intervar",
                 "interpro_domain_cancervar",
-                "transcript" # From Metarnn merge, redundant with "feature"
+                "transcript",  # From Metarnn merge, redundant with "feature"
             ],
             inplace=True,
         )
@@ -1195,17 +1205,17 @@ class VariantMultipleAnnotator:
     def _normalize_chromosome(self, chrom: str) -> Tuple[str, str]:
         """
         Normalize chromosome name and return both normalized and alternative versions.
-        
+
         Args:
             chrom: Chromosome name (e.g., "chr1", "1", "chrX", "X")
-        
+
         Returns:
             Tuple of (normalized_chrom, alternative_chrom)
             - normalized_chrom: chromosome with 'chr' prefix
             - alternative_chrom: chromosome without 'chr' prefix
         """
         chrom_str = str(chrom)
-        
+
         if chrom_str.startswith("chr"):
             # If it starts with 'chr', normalized is as-is, alternative is without 'chr'
             normalized = chrom_str
@@ -1214,5 +1224,5 @@ class VariantMultipleAnnotator:
             # If it doesn't start with 'chr', normalized has 'chr', alternative is as-is
             normalized = f"chr{chrom_str}"
             alternative = chrom_str
-        
+
         return normalized, alternative

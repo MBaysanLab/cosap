@@ -26,3 +26,15 @@ cosap = "cosap._cli:cli"
 
 [tool.setuptools.dynamic]
 version = {attr = "cosap._version.version"}
+
+[tool.ruff]
+# Set line length (Black's default is 88)
+line-length = 88
+
+# Enable import sorting (replaces isort)
+[tool.ruff.lint]
+select = ["I"]  # Enable isort rules
+
+# Optional: Configure import sorting behavior
+[tool.ruff.lint.isort]
+known-first-party = ["your_package_name"]
