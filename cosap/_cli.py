@@ -656,3 +656,178 @@ def germline_cnv_cohort(
 
     click.echo(f"\nPipeline completed successfully!")
     click.echo(f"Results are in: {output_dir}")
+
+
+@cli.command()
+@click.option(
+    "--bam",
+    "bam_files",
+    help="Path to a BAM file. Can be specified multiple times for batch case calling.",
+    required=True,
+    multiple=True,
+    type=click.Path(exists=True),
+)
+@click.option(
+    "--ploidy-model",
+    "ploidy_model",
+    help="Path to cohort ploidy model directory (e.g., ploidy-model).",
+    required=True,
+    type=click.Path(exists=True),
+)
+@click.option(
+    "--cnv-model",
+    "cnv_models",
+    help="Path to cohort CNV model shard directory or a parent directory containing *-model shards. Can be specified multiple times.",
+    required=True,
+    multiple=True,
+    type=click.Path(exists=True),
+)
+@click.option(
+    "--intervals",
+    help="Path to the same intervals file used for cohort model training.",
+    required=False,
+    type=click.Path(exists=True),
+)
+@click.option(
+    "--output-dir",
+    "output_dir",
+    help="Output directory for results. Defaults to current directory.",
+    required=False,
+    type=click.Path(),
+)
+@click.option(
+    "--name",
+    help="Name for this analysis run. Used in output file naming.",
+    required=False,
+    default="germline_cnv_case",
+)
+@click.option(
+    "--data-type",
+    "data_type",
+    help="Type of sequencing data.",
+    type=click.Choice(["wgs", "exome"], case_sensitive=False),
+    default="wgs",
+)
+@click.option(
+    "--bin-length",
+    "bin_length",
+    help="Bin length for WGS data (default 1000). Set to 0 for exome data.",
+    type=int,
+    default=None,
+)
+@click.option(
+    "--padding",
+    help="Padding for intervals in bp (default 0 for WGS, 250 for exome).",
+    type=int,
+    default=None,
+)
+@click.option(
+    "--allosomal-contig",
+    "allosomal_contigs",
+    help="Allosomal contig name (e.g., chrX, chrY). Can be specified multiple times.",
+    multiple=True,
+    default=["chrX", "chrY"],
+)
+@click.option(
+    "--mappability-track",
+    "mappability_track",
+    help="Path to mappability track BED file for interval annotation/filtering.",
+    required=False,
+    type=click.Path(exists=True),
+)
+@click.option(
+    "--max-copy-number",
+    "max_copy_number",
+    help="Maximum copy number to report (default 5).",
+    type=int,
+    default=5,
+)
+@click.option(
+    "--verbosity",
+    help="Logging verbosity level.",
+    type=click.Choice(["INFO", "DEBUG", "WARNING", "ERROR"], case_sensitive=False),
+    default="INFO",
+)
+def germline_cnv_case(
+    bam_files,
+    ploidy_model,
+    cnv_models,
+    intervals,
+    output_dir,
+    name,
+    data_type,
+    bin_length,
+    padding,
+    allosomal_contigs,
+    mappability_track,
+    max_copy_number,
+    verbosity,
+):
+    """Run GATK GermlineCNVCaller in CASE mode against existing cohort models."""
+
+    if data_type == "exome" and not intervals:
+        click.echo("Error: --intervals is required for exome/panel case calling.", err=True)
+        raise SystemExit(1)
+
+    if not output_dir:
+        output_dir = os.getcwd()
+        click.echo(f"Using current directory as output: {output_dir}")
+
+    output_dir = os.path.abspath(output_dir)
+    os.makedirs(output_dir, exist_ok=True)
+
+    if bin_length is None:
+        bin_length = 0 if data_type == "exome" else 1000
+    if padding is None:
+        padding = 250 if data_type == "exome" else 0
+
+    params = {
+        "max_copy_number": max_copy_number,
+        "verbosity": verbosity.upper(),
+        "allosomal_contigs": list(allosomal_contigs),
+        "ploidy_model": ploidy_model,
+        "cnv_model_shards": list(cnv_models),
+    }
+    if mappability_track:
+        params["mappability_track"] = mappability_track
+    if data_type == "exome":
+        params["enable_bias_factors"] = True
+
+    click.echo(f"Processing {len(bam_files)} BAM files:")
+    bam_readers = []
+    for bam_path in bam_files:
+        bam_name = os.path.basename(bam_path).replace(".bam", "")
+        click.echo(f"  - {bam_name}: {bam_path}")
+        bam_readers.append(BamReader(bam_path, name=bam_name))
+
+    germline_cnv_builder = GermlineCNVCaller(
+        input_steps=bam_readers,
+        intervals=intervals,
+        name=name,
+        run_mode="CASE",
+        ploidy_model=ploidy_model,
+        cnv_model_shards=list(cnv_models),
+        bin_length=bin_length,
+        padding=padding,
+        allosomal_contigs=list(allosomal_contigs),
+        params=params,
+        output_dir=output_dir,
+    )
+
+    config = germline_cnv_builder.get_config()
+
+    click.echo("\nStarting GATK GermlineCNVCaller CASE pipeline...")
+    click.echo(f"  Data type: {data_type.upper()}")
+    click.echo(f"  Bin length: {bin_length}")
+    click.echo(f"  Padding: {padding}")
+    click.echo(f"  Output directory: {output_dir}")
+    click.echo(f"  Ploidy model: {ploidy_model}")
+    click.echo(f"  CNV model inputs: {len(cnv_models)} path(s)")
+    if intervals:
+        click.echo(f"  Intervals: {intervals}")
+
+    cnv_caller = CNVCallerFactory.create("gatk_germline_cnv")
+    cnv_caller.call(config[germline_cnv_builder.key][germline_cnv_builder.name])
+
+    click.echo("\nCASE pipeline completed successfully!")
+    click.echo(f"Results are in: {output_dir}")

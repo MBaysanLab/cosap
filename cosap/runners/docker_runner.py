@@ -25,7 +25,7 @@ class DockerRunner:
         paths_to_bind: List[Dict[str, str]] = None,
         remove: bool = True,
         run_as_root: bool = False,
-    ) -> None:
+    ) -> int:
         """
         image: Docker image to use
         command: Command to run in the Docker container
@@ -109,6 +109,10 @@ class DockerRunner:
 
         for log in logs:
             print(log.decode("utf-8").strip())
+
+        wait_result = container.wait()
+        status_code = int(wait_result.get("StatusCode", 1))
+        return status_code
 
     def _check_if_running_in_docker(self) -> bool:
         """

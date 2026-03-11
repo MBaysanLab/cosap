@@ -6,7 +6,7 @@ the GATK GermlineCNVCaller pipeline in COSAP.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from ..._formats import FileFormats, OutputFolders
 from ..._pipeline_config import GermlineCNVCallingKeys, PipelineKeys
@@ -62,6 +62,8 @@ class GermlineCNVCaller(_IPipelineStep, _PipelineStep):
     name: str = None
     contig_ploidy_priors: str = None
     run_mode: str = "COHORT"
+    ploidy_model: Optional[str] = None
+    cnv_model_shards: Optional[Union[str, List[str]]] = None
     bin_length: int = 1000  # For WGS; set to 0 for exomes
     padding: int = 0  # For WGS; set to 250 for exomes
     allosomal_contigs: List[str] = field(default_factory=lambda: ["chrX", "chrY"])
@@ -72,6 +74,10 @@ class GermlineCNVCaller(_IPipelineStep, _PipelineStep):
     library: str = "gatk_germline_cnv"
 
     def __post_init__(self):
+        self.run_mode = self.run_mode.upper()
+        if self.run_mode not in {"COHORT", "CASE"}:
+            raise ValueError("run_mode must be either 'COHORT' or 'CASE'.")
+
         if self.name is None:
             # Generate name from input sample names
             name_parts = [
@@ -94,13 +100,24 @@ class GermlineCNVCaller(_IPipelineStep, _PipelineStep):
         # Collect input BAMs
         sample_inputs = [step.get_output() for step in self.input_steps]
 
-        # Define output paths
-        genotyped_intervals = FileFormats.GCNV_GENOTYPED_INTERVALS.format(
-            identification=self.name
-        )
-        genotyped_segments = FileFormats.GCNV_GENOTYPED_SEGMENTS.format(
-            identification=self.name
-        )
+        # Define per-sample output paths
+        sample_names = [step.name for step in self.input_steps]
+        genotyped_intervals = {
+            sample_name: join_paths(
+                self.output_dir,
+                "results",
+                FileFormats.GCNV_GENOTYPED_INTERVALS.format(identification=sample_name),
+            )
+            for sample_name in sample_names
+        }
+        genotyped_segments = {
+            sample_name: join_paths(
+                self.output_dir,
+                "results",
+                FileFormats.GCNV_GENOTYPED_SEGMENTS.format(identification=sample_name),
+            )
+            for sample_name in sample_names
+        }
 
         # Build params dict with all parameters
         all_params = {
@@ -116,12 +133,8 @@ class GermlineCNVCaller(_IPipelineStep, _PipelineStep):
                 GermlineCNVCallingKeys.SAMPLE_INPUTS: sample_inputs,
                 GermlineCNVCallingKeys.OUTPUT_DIR: self.output_dir,
                 GermlineCNVCallingKeys.RUN_MODE: self.run_mode,
-                GermlineCNVCallingKeys.GENOTYPED_INTERVALS: join_paths(
-                    self.output_dir, "results", genotyped_intervals
-                ),
-                GermlineCNVCallingKeys.GENOTYPED_SEGMENTS: join_paths(
-                    self.output_dir, "results", genotyped_segments
-                ),
+                GermlineCNVCallingKeys.GENOTYPED_INTERVALS: genotyped_intervals,
+                GermlineCNVCallingKeys.GENOTYPED_SEGMENTS: genotyped_segments,
                 GermlineCNVCallingKeys.PARAMS: all_params,
                 GermlineCNVCallingKeys.LOG_FILE: self.log_file,
             }
@@ -137,15 +150,27 @@ class GermlineCNVCaller(_IPipelineStep, _PipelineStep):
                 self.contig_ploidy_priors
             )
 
+        # CASE-mode model inputs
+        if self.ploidy_model:
+            config[self.name][GermlineCNVCallingKeys.PLOIDY_MODEL] = self.ploidy_model
+            config[self.name][GermlineCNVCallingKeys.PARAMS]["ploidy_model"] = (
+                self.ploidy_model
+            )
+        if self.cnv_model_shards:
+            config[self.name][GermlineCNVCallingKeys.CNV_MODEL] = self.cnv_model_shards
+            config[self.name][GermlineCNVCallingKeys.PARAMS]["cnv_model_shards"] = (
+                self.cnv_model_shards
+            )
+
         return config
 
-    def get_output(self) -> str:
-        """Return the path to the genotyped intervals VCF output."""
+    def get_output(self) -> Dict[str, str]:
+        """Return sample->path mapping for genotyped intervals VCF outputs."""
         config = self.get_config()
         return config[self.key][self.name][GermlineCNVCallingKeys.GENOTYPED_INTERVALS]
 
-    def get_segments_output(self) -> str:
-        """Return the path to the genotyped segments VCF output."""
+    def get_segments_output(self) -> Dict[str, str]:
+        """Return sample->path mapping for genotyped segments VCF outputs."""
         config = self.get_config()
         return config[self.key][self.name][GermlineCNVCallingKeys.GENOTYPED_SEGMENTS]
 

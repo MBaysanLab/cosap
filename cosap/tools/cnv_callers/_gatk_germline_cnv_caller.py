@@ -65,6 +65,10 @@ class GATKGermlineCNVCaller(_CNVCaller):
     DEFAULT_INTERVALS_PER_SHARD = 5000
 
     @classmethod
+    def _normalize_run_mode(cls, caller_config: Dict) -> str:
+        return caller_config.get(GermlineCNVCallingKeys.RUN_MODE, "COHORT").upper()
+
+    @classmethod
     def _get_standard_contigs(cls, params: Dict) -> List[str]:
         """Get list of standard contigs (chr1-22, chrX, chrY) based on reference style."""
         include_contigs = params.get("include_contigs", None)
@@ -106,10 +110,13 @@ class GATKGermlineCNVCaller(_CNVCaller):
 
         if GermlineCNVCallingKeys.INTERVALS in caller_config:
             command.extend(["-L", caller_config[GermlineCNVCallingKeys.INTERVALS]])
-
-        standard_contigs = cls._get_standard_contigs(params)
-        for contig in standard_contigs:
-            command.extend(["-L", contig])
+        elif params.get("include_contigs"):
+            for contig in params["include_contigs"]:
+                command.extend(["-L", contig])
+        elif params.get("restrict_to_standard_contigs", False):
+            standard_contigs = cls._get_standard_contigs(params)
+            for contig in standard_contigs:
+                command.extend(["-L", contig])
 
         if params.get("exclude_intervals"):
             exclude = params["exclude_intervals"]
@@ -269,11 +276,16 @@ class GATKGermlineCNVCaller(_CNVCaller):
         ]
 
         for param_key, flag in threshold_params:
-            if params.get(param_key):
+            if param_key in params and params[param_key] is not None:
                 command.extend([flag, str(params[param_key])])
 
         if params.get("exclude_intervals"):
-            command.extend(["-XL", params["exclude_intervals"]])
+            exclude = params["exclude_intervals"]
+            if isinstance(exclude, list):
+                for interval in exclude:
+                    command.extend(["-XL", interval])
+            else:
+                command.extend(["-XL", exclude])
 
         return command
 
@@ -286,20 +298,33 @@ class GATKGermlineCNVCaller(_CNVCaller):
     ) -> List[str]:
         """Create command for GATK DetermineGermlineContigPloidy."""
         params = caller_config.get(GermlineCNVCallingKeys.PARAMS, {})
-        run_mode = caller_config.get(GermlineCNVCallingKeys.RUN_MODE, "COHORT")
+        run_mode = cls._normalize_run_mode(caller_config)
+        case_ploidy_model = (
+            caller_config.get(GermlineCNVCallingKeys.PLOIDY_MODEL)
+            or params.get("ploidy_model")
+        )
 
         command = [
             "gatk",
             "DetermineGermlineContigPloidy",
-            "-L",
-            caller_config[GermlineCNVCallingKeys.FILTERED_INTERVALS],
-            "--interval-merging-rule",
-            "OVERLAPPING_ONLY",
             "--output",
             caller_config[GermlineCNVCallingKeys.OUTPUT_DIR],
             "--output-prefix",
             "ploidy",
         ]
+
+        # In COHORT mode, provide intervals explicitly.
+        # In CASE mode, the model provides intervals — do NOT pass -L.
+        if run_mode == "COHORT":
+            if GermlineCNVCallingKeys.FILTERED_INTERVALS in caller_config:
+                command.extend(
+                    [
+                        "-L",
+                        caller_config[GermlineCNVCallingKeys.FILTERED_INTERVALS],
+                        "--interval-merging-rule",
+                        "OVERLAPPING_ONLY",
+                    ]
+                )
 
         read_counts = caller_config[GermlineCNVCallingKeys.READ_COUNTS]
         if isinstance(read_counts, dict):
@@ -322,8 +347,11 @@ class GATKGermlineCNVCaller(_CNVCaller):
                     ["--contig-ploidy-priors", library_paths.CONTIG_PLOIDY_PRIORS]
                 )
         else:
-            if params.get("ploidy_model"):
-                command.extend(["--model", params["ploidy_model"]])
+            if not case_ploidy_model:
+                raise ValueError(
+                    "CASE mode requires a ploidy model via `ploidy_model` or `PLOIDY_MODEL`."
+                )
+            command.extend(["--model", case_ploidy_model])
 
         command.extend(["--verbosity", params.get("verbosity", "INFO")])
         return command
@@ -334,8 +362,9 @@ class GATKGermlineCNVCaller(_CNVCaller):
         caller_config: Dict,
         library_paths: LibraryPaths,
         app_config: AppConfig,
-        shard_intervals: str,
+        shard_intervals: Optional[str],
         output_prefix: str,
+        case_model_path: Optional[str] = None,
     ) -> List[str]:
         """
         Create command for GATK GermlineCNVCaller for a single shard.
@@ -343,24 +372,33 @@ class GATKGermlineCNVCaller(_CNVCaller):
         Each shard processes a subset of intervals independently.
         """
         params = caller_config.get(GermlineCNVCallingKeys.PARAMS, {})
-        run_mode = caller_config.get(GermlineCNVCallingKeys.RUN_MODE, "COHORT")
+        run_mode = cls._normalize_run_mode(caller_config)
 
         command = [
             "gatk",
             "GermlineCNVCaller",
             "--run-mode",
             run_mode,
-            "-L",
-            shard_intervals,
             "--contig-ploidy-calls",
             caller_config[GermlineCNVCallingKeys.PLOIDY_CALLS],
-            "--interval-merging-rule",
-            "OVERLAPPING_ONLY",
             "--output",
             caller_config[GermlineCNVCallingKeys.OUTPUT_DIR],
             "--output-prefix",
             output_prefix,
         ]
+
+        # In COHORT mode, provide scatter intervals and annotated intervals explicitly.
+        # In CASE mode, the --model provides both — do NOT pass -L or --annotated-intervals.
+        if run_mode == "COHORT":
+            if shard_intervals:
+                command.extend(
+                    [
+                        "-L",
+                        shard_intervals,
+                        "--interval-merging-rule",
+                        "OVERLAPPING_ONLY",
+                    ]
+                )
 
         read_counts = caller_config[GermlineCNVCallingKeys.READ_COUNTS]
         if isinstance(read_counts, dict):
@@ -370,16 +408,26 @@ class GATKGermlineCNVCaller(_CNVCaller):
             for rc_file in read_counts:
                 command.extend(["-I", rc_file])
 
-        if GermlineCNVCallingKeys.ANNOTATED_INTERVALS in caller_config:
-            command.extend(
-                [
-                    "--annotated-intervals",
-                    caller_config[GermlineCNVCallingKeys.ANNOTATED_INTERVALS],
-                ]
-            )
+        if run_mode == "COHORT":
+            if GermlineCNVCallingKeys.ANNOTATED_INTERVALS in caller_config:
+                command.extend(
+                    [
+                        "--annotated-intervals",
+                        caller_config[GermlineCNVCallingKeys.ANNOTATED_INTERVALS],
+                    ]
+                )
 
-        if run_mode == "CASE" and params.get("cnv_model"):
-            command.extend(["--model", params["cnv_model"]])
+        if run_mode == "CASE":
+            if not case_model_path:
+                case_model_path = (
+                    caller_config.get(GermlineCNVCallingKeys.CNV_MODEL)
+                    or params.get("cnv_model")
+                )
+            if not case_model_path:
+                raise ValueError(
+                    "CASE mode requires a CNV model shard path for each shard."
+                )
+            command.extend(["--model", case_model_path])
 
         # Sensitivity tuning parameters
         sensitivity_params = [
@@ -395,7 +443,7 @@ class GATKGermlineCNVCaller(_CNVCaller):
         ]
 
         for param_key, flag in sensitivity_params:
-            if params.get(param_key):
+            if param_key in params and params[param_key] is not None:
                 command.extend([flag, str(params[param_key])])
 
         if params.get("enable_bias_factors") is not None:
@@ -477,6 +525,46 @@ class GATKGermlineCNVCaller(_CNVCaller):
 
         return command
 
+    @classmethod
+    def _resolve_case_model_shards(cls, caller_config: Dict) -> List[str]:
+        """Resolve CASE-mode CNV model shard paths from config or params."""
+        params = caller_config.get(GermlineCNVCallingKeys.PARAMS, {})
+        raw_models = (
+            caller_config.get(GermlineCNVCallingKeys.CNV_MODEL)
+            or params.get("cnv_model_shards")
+            or params.get("cnv_model")
+        )
+        if not raw_models:
+            raise ValueError(
+                "CASE mode requires CNV model shard(s). Provide `cnv_model_shards` "
+                "or `cnv_model`."
+            )
+
+        if isinstance(raw_models, str):
+            model_paths = [raw_models]
+        elif isinstance(raw_models, (tuple, list)):
+            model_paths = list(raw_models)
+        else:
+            raise TypeError("CNV model shards must be a path or list of paths.")
+
+        resolved = []
+        for model_path in model_paths:
+            if os.path.isdir(model_path) and model_path.endswith("-model"):
+                resolved.append(model_path)
+                continue
+            if os.path.isdir(model_path):
+                resolved.extend(sorted(glob.glob(os.path.join(model_path, "*-model"))))
+                continue
+            if os.path.exists(model_path):
+                resolved.append(model_path)
+
+        shards = sorted(set(resolved))
+        if not shards:
+            raise ValueError(
+                "No CASE CNV model shards found. Expected `*-model` directories."
+            )
+        return shards
+
     # ==================== PARALLEL EXECUTION METHODS ====================
 
     @classmethod
@@ -488,6 +576,7 @@ class GATKGermlineCNVCaller(_CNVCaller):
         workdir: str,
         device: str,
         run_as_root: bool = False,
+        paths_to_bind: List[Dict[str, str]] = None,
     ) -> ParallelTaskResult:
         """Execute a single Docker task. Thread-safe by creating its own DockerRunner."""
         try:
@@ -497,6 +586,7 @@ class GATKGermlineCNVCaller(_CNVCaller):
                 " ".join(command),
                 workdir=workdir,
                 run_as_root=run_as_root,
+                paths_to_bind=paths_to_bind,
             )
 
             if return_code not in (0, None):
@@ -521,6 +611,12 @@ class GATKGermlineCNVCaller(_CNVCaller):
             )
 
     @classmethod
+    def _get_bam_bind_mounts(cls, bam_file: str) -> List[Dict[str, str]]:
+        """Get bind mount entries for a BAM file and its index."""
+        bam_dir = str(Path(bam_file).resolve().parent)
+        return [{"source": bam_dir, "target": bam_dir, "mode": "ro"}]
+
+    @classmethod
     def _collect_read_counts_parallel(
         cls,
         sample_inputs: List[str],
@@ -539,12 +635,13 @@ class GATKGermlineCNVCaller(_CNVCaller):
             rc_output = os.path.join(read_counts_dir, f"read_counts_{sample_name}.hdf5")
 
             if os.path.exists(rc_output):
-                tasks.append((sample_name, rc_output, None))  # Already exists
+                tasks.append((sample_name, rc_output, None, None))  # Already exists
             else:
                 command = cls._create_collect_read_counts_command(
                     bam_file, preprocessed_intervals, rc_output, library_paths, params
                 )
-                tasks.append((sample_name, rc_output, command))
+                bam_binds = cls._get_bam_bind_mounts(bam_file)
+                tasks.append((sample_name, rc_output, command, bam_binds))
 
         if max_workers is None:
             max_workers = min(len(tasks), os.cpu_count() or 4)
@@ -554,9 +651,11 @@ class GATKGermlineCNVCaller(_CNVCaller):
 
         # Separate existing from needing processing
         to_process = [
-            (name, output, cmd) for name, output, cmd in tasks if cmd is not None
+            (name, output, cmd, binds)
+            for name, output, cmd, binds in tasks
+            if cmd is not None
         ]
-        for name, output, _ in tasks:
+        for name, output, _, _ in tasks:
             if os.path.exists(output):
                 read_counts[name] = output
                 print(f"    ✓ {name} (cached)")
@@ -569,9 +668,16 @@ class GATKGermlineCNVCaller(_CNVCaller):
             with ThreadPoolExecutor(max_workers=max_workers) as executor:
                 futures = {
                     executor.submit(
-                        cls._run_docker_task, cmd, name, output, workdir, device
+                        cls._run_docker_task,
+                        cmd,
+                        name,
+                        output,
+                        workdir,
+                        device,
+                        False,
+                        binds,
                     ): name
-                    for name, output, cmd in to_process
+                    for name, output, cmd, binds in to_process
                 }
 
                 for future in as_completed(futures):
@@ -646,7 +752,7 @@ class GATKGermlineCNVCaller(_CNVCaller):
     @classmethod
     def _run_gcnv_caller_parallel(
         cls,
-        shard_intervals: List[str],
+        shard_intervals: List[Optional[str]],
         caller_config: Dict,
         library_paths: LibraryPaths,
         app_config: AppConfig,
@@ -661,7 +767,17 @@ class GATKGermlineCNVCaller(_CNVCaller):
         Returns:
             Tuple of (model_shard_paths, calls_shard_paths)
         """
+        run_mode = cls._normalize_run_mode(caller_config)
         tasks = []
+        case_model_shards = []
+        if run_mode == "CASE":
+            case_model_shards = cls._resolve_case_model_shards(caller_config)
+            if len(case_model_shards) != len(shard_intervals):
+                raise ValueError(
+                    "CASE mode requires one model shard per interval shard. "
+                    f"Found {len(case_model_shards)} model shards and "
+                    f"{len(shard_intervals)} interval shards."
+                )
 
         for i, shard_interval in enumerate(shard_intervals):
             shard_name = f"shard_{i:04d}"
@@ -669,8 +785,16 @@ class GATKGermlineCNVCaller(_CNVCaller):
 
             model_output = os.path.join(model_dir, f"{output_prefix}-model")
             calls_output = os.path.join(model_dir, f"{output_prefix}-calls")
+            case_model_path = None
+            if run_mode == "CASE":
+                case_model_path = case_model_shards[i]
+                model_output = case_model_path
 
-            if os.path.exists(model_output) and os.path.exists(calls_output):
+            outputs_ready = os.path.exists(calls_output)
+            if run_mode == "COHORT":
+                outputs_ready = outputs_ready and os.path.exists(model_output)
+
+            if outputs_ready:
                 tasks.append((shard_name, model_output, calls_output, None))
             else:
                 shard_config = caller_config.copy()
@@ -682,6 +806,7 @@ class GATKGermlineCNVCaller(_CNVCaller):
                     app_config,
                     shard_interval,
                     output_prefix,
+                    case_model_path=case_model_path,
                 )
                 tasks.append((shard_name, model_output, calls_output, command))
 
@@ -733,7 +858,7 @@ class GATKGermlineCNVCaller(_CNVCaller):
                         failed.append((shard_name, result.error_message))
                         print(f"    ✗ {shard_name}: {result.error_message}")
                         # Cleanup partial outputs
-                        if os.path.exists(model_out):
+                        if run_mode == "COHORT" and os.path.exists(model_out):
                             shutil.rmtree(model_out)
                         if os.path.exists(calls_out):
                             shutil.rmtree(calls_out)
@@ -758,7 +883,7 @@ class GATKGermlineCNVCaller(_CNVCaller):
         workdir: str,
         device: str,
         max_workers: Optional[int] = None,
-    ) -> List[Tuple[str, str, str]]:
+    ) -> List[Tuple[str, str, str, str]]:
         """Postprocess CNV calls for all samples in parallel."""
         tasks = []
 
@@ -819,7 +944,7 @@ class GATKGermlineCNVCaller(_CNVCaller):
         to_process = []
         for sample_name, idx, int_out, seg_out, den_out, cmd in tasks:
             if cmd is None:
-                results.append((sample_name, int_out, seg_out))
+                results.append((sample_name, int_out, seg_out, den_out))
                 print(f"    ✓ {sample_name} (cached)")
             else:
                 to_process.append((sample_name, idx, int_out, seg_out, den_out, cmd))
@@ -848,7 +973,7 @@ class GATKGermlineCNVCaller(_CNVCaller):
                     result = future.result()
 
                     if result.success:
-                        results.append((sample_name, int_out, seg_out))
+                        results.append((sample_name, int_out, seg_out, den_out))
                         print(f"    ✓ {sample_name}")
                     else:
                         failed.append((sample_name, result.error_message))
@@ -891,6 +1016,8 @@ class GATKGermlineCNVCaller(_CNVCaller):
         library_paths = LibraryPaths()
         app_config = AppConfig()
         params = caller_config.get(GermlineCNVCallingKeys.PARAMS, {})
+        run_mode = cls._normalize_run_mode(caller_config)
+        caller_config[GermlineCNVCallingKeys.RUN_MODE] = run_mode
 
         output_dir = caller_config[GermlineCNVCallingKeys.OUTPUT_DIR]
         os.makedirs(output_dir, exist_ok=True)
@@ -914,7 +1041,41 @@ class GATKGermlineCNVCaller(_CNVCaller):
             os.makedirs(d, exist_ok=True)
 
         docker_runner = DockerRunner(device=device)
-        workdir = str(Path(caller_config[GermlineCNVCallingKeys.WORKDIR]).absolute())
+        workdir = str(Path(caller_config[GermlineCNVCallingKeys.OUTPUT_DIR]).absolute())
+
+        # Copy external files into workdir so they are accessible inside Docker
+        if GermlineCNVCallingKeys.INTERVALS in caller_config:
+            original_intervals = caller_config[GermlineCNVCallingKeys.INTERVALS]
+            if os.path.isfile(original_intervals):
+                local_intervals = os.path.join(
+                    intervals_dir, os.path.basename(original_intervals)
+                )
+                if not os.path.exists(local_intervals):
+                    shutil.copy2(original_intervals, local_intervals)
+                    print(f"  Copied intervals file to: {local_intervals}")
+                caller_config[GermlineCNVCallingKeys.INTERVALS] = local_intervals
+
+        if GermlineCNVCallingKeys.CONTIG_PLOIDY_PRIORS in caller_config:
+            original_priors = caller_config[GermlineCNVCallingKeys.CONTIG_PLOIDY_PRIORS]
+            if os.path.isfile(original_priors):
+                local_priors = os.path.join(
+                    intervals_dir, os.path.basename(original_priors)
+                )
+                if not os.path.exists(local_priors):
+                    shutil.copy2(original_priors, local_priors)
+                    print(f"  Copied contig ploidy priors to: {local_priors}")
+                caller_config[GermlineCNVCallingKeys.CONTIG_PLOIDY_PRIORS] = local_priors
+
+        if params.get("mappability_track"):
+            original_mappability = params["mappability_track"]
+            if os.path.isfile(original_mappability):
+                local_mappability = os.path.join(
+                    intervals_dir, os.path.basename(original_mappability)
+                )
+                if not os.path.exists(local_mappability):
+                    shutil.copy2(original_mappability, local_mappability)
+                    print(f"  Copied mappability track to: {local_mappability}")
+                params["mappability_track"] = local_mappability
 
         # Step 1: PreprocessIntervals
         print("Step 1/8: PreprocessIntervals...")
@@ -972,37 +1133,57 @@ class GATKGermlineCNVCaller(_CNVCaller):
         # Step 4: FilterIntervals
         print("Step 4/8: FilterIntervals...")
         filtered_intervals = os.path.join(intervals_dir, "filtered.interval_list")
-        caller_config[GermlineCNVCallingKeys.FILTERED_INTERVALS] = filtered_intervals
+        if run_mode == "COHORT":
+            caller_config[GermlineCNVCallingKeys.FILTERED_INTERVALS] = filtered_intervals
 
-        if not os.path.exists(filtered_intervals):
-            cmd = cls._create_filter_intervals_command(
-                caller_config, library_paths, app_config
-            )
-            return_code = docker_runner.run(
-                DockerImages.GATK, " ".join(cmd), workdir=workdir
-            )
-            if return_code not in (0, None):
-                raise RuntimeError(f"FilterIntervals failed: {return_code}")
+            if not os.path.exists(filtered_intervals):
+                cmd = cls._create_filter_intervals_command(
+                    caller_config, library_paths, app_config
+                )
+                return_code = docker_runner.run(
+                    DockerImages.GATK, " ".join(cmd), workdir=workdir
+                )
+                if return_code not in (0, None):
+                    raise RuntimeError(f"FilterIntervals failed: {return_code}")
+            else:
+                print(f"  Cached: {filtered_intervals}")
         else:
-            print(f"  Cached: {filtered_intervals}")
+            caller_config.pop(GermlineCNVCallingKeys.FILTERED_INTERVALS, None)
+            print("  CASE mode: skipping FilterIntervals; using cohort model intervals.")
 
         # Step 5: ScatterIntervals
         print("Step 5/8: ScatterIntervals...")
-        intervals_per_shard = params.get(
-            "intervals_per_shard", cls.DEFAULT_INTERVALS_PER_SHARD
-        )
-        shard_intervals = cls._scatter_intervals(
-            filtered_intervals, scatter_dir, intervals_per_shard, workdir, device
-        )
+        if run_mode == "CASE":
+            case_model_shards = cls._resolve_case_model_shards(caller_config)
+            shard_intervals = [None] * len(case_model_shards)
+            print(
+                f"  CASE mode: using {len(case_model_shards)} provided model shards."
+            )
+        else:
+            intervals_per_shard = params.get(
+                "intervals_per_shard", cls.DEFAULT_INTERVALS_PER_SHARD
+            )
+            shard_intervals = cls._scatter_intervals(
+                filtered_intervals, scatter_dir, intervals_per_shard, workdir, device
+            )
 
         # Step 6: DetermineGermlineContigPloidy
         print("Step 6/8: DetermineGermlineContigPloidy...")
+        # Save original output_dir and temporarily override for ploidy step
+        original_output_dir = caller_config[GermlineCNVCallingKeys.OUTPUT_DIR]
         caller_config[GermlineCNVCallingKeys.OUTPUT_DIR] = ploidy_dir
 
         ploidy_model_dir = os.path.join(ploidy_dir, "ploidy-model")
         ploidy_calls_dir = os.path.join(ploidy_dir, "ploidy-calls")
+        case_input_ploidy_model = caller_config.get(
+            GermlineCNVCallingKeys.PLOIDY_MODEL
+        ) or params.get("ploidy_model")
 
-        if not (os.path.exists(ploidy_model_dir) and os.path.exists(ploidy_calls_dir)):
+        has_ploidy_outputs = os.path.exists(ploidy_calls_dir)
+        if run_mode == "COHORT":
+            has_ploidy_outputs = has_ploidy_outputs and os.path.exists(ploidy_model_dir)
+
+        if not has_ploidy_outputs:
             cmd = cls._create_determine_ploidy_command(
                 caller_config, library_paths, app_config
             )
@@ -1014,9 +1195,16 @@ class GATKGermlineCNVCaller(_CNVCaller):
                     f"DetermineGermlineContigPloidy failed: {return_code}"
                 )
         else:
-            print(f"  Cached: {ploidy_model_dir}")
+            cached_target = ploidy_model_dir if run_mode == "COHORT" else ploidy_calls_dir
+            print(f"  Cached: {cached_target}")
 
-        caller_config[GermlineCNVCallingKeys.PLOIDY_MODEL] = ploidy_model_dir
+        # Restore original output_dir
+        caller_config[GermlineCNVCallingKeys.OUTPUT_DIR] = original_output_dir
+
+        if run_mode == "COHORT":
+            caller_config[GermlineCNVCallingKeys.PLOIDY_MODEL] = ploidy_model_dir
+        elif case_input_ploidy_model:
+            caller_config[GermlineCNVCallingKeys.PLOIDY_MODEL] = case_input_ploidy_model
         caller_config[GermlineCNVCallingKeys.PLOIDY_CALLS] = ploidy_calls_dir
 
         # Step 7: GermlineCNVCaller (PARALLEL across shards)
@@ -1039,7 +1227,7 @@ class GATKGermlineCNVCaller(_CNVCaller):
         print("Step 8/8: PostprocessGermlineCNVCalls (parallel)...")
         sample_names = list(read_counts.keys())
 
-        cls._postprocess_calls_parallel(
+        sample_outputs = cls._postprocess_calls_parallel(
             sample_names,
             model_shards,
             calls_shards,
@@ -1051,6 +1239,17 @@ class GATKGermlineCNVCaller(_CNVCaller):
             device,
             max_workers,
         )
+
+        caller_config[GermlineCNVCallingKeys.GENOTYPED_INTERVALS] = {
+            sample_name: int_vcf for sample_name, int_vcf, _, _ in sample_outputs
+        }
+        caller_config[GermlineCNVCallingKeys.GENOTYPED_SEGMENTS] = {
+            sample_name: seg_vcf for sample_name, _, seg_vcf, _ in sample_outputs
+        }
+        caller_config[GermlineCNVCallingKeys.DENOISED_COPY_RATIOS] = {
+            sample_name: denoised_tsv
+            for sample_name, _, _, denoised_tsv in sample_outputs
+        }
 
         print("=" * 60)
         print("GermlineCNVCaller pipeline completed successfully!")
