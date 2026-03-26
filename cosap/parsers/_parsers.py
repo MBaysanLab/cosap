@@ -64,9 +64,7 @@ class ProjectResultsParser:
         )
 
     def _parse_vcf(self, vcf, caller_type, sample_name):
-        return convert_vcf_to_json(
-            join_paths(self.pipeline_workdir, vcf), caller_type, sample_name
-        )
+        return convert_vcf_to_json(vcf, caller_type, sample_name)
 
     def _get_variants(self):
         # If there is variant caller in the pipeline config, parse the VCF

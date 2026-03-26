@@ -146,7 +146,7 @@ class BWAMapper(_Mapper, _Mappable):
             #     app_config=app_config, input_path=mapper_config[MappingKeys.OUTPUT]
             # )
 
-            bwa = run(bwa_command, stdout=PIPE, cwd=workdir, check=False)
+            bwa = run(bwa_command, stdout=PIPE, stderr=PIPE, cwd=workdir, check=False)
             samtools = run(
                 sort_command,
                 input=bwa.stdout,

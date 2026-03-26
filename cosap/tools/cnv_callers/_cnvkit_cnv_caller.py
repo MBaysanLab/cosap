@@ -28,18 +28,23 @@ class CNVKit(_CNVCaller):
             *tumor_input,
             "--normal",
             *normal_input,
-            "--targets" if bed_file is None else f"--targets {bed_file}",
-            "--annotate",
-            library_paths.CNVKIT_ANNOTATION,
-            "--fasta",
-            library_paths.REF_FASTA,
-            "--access",
-            library_paths.CNVKIT_ACCESS,
-            "--output-reference",
-            library_paths.CNVKIT_REFERENCE,
-            "--output-dir",
-            output_dir,
         ]
+        if bed_file is not None:
+            command.extend(["--targets", bed_file])
+        command.extend(
+            [
+                "--annotate",
+                library_paths.CNVKIT_ANNOTATION,
+                "--fasta",
+                library_paths.REF_FASTA,
+                "--access",
+                library_paths.CNVKIT_ACCESS,
+                "--output-reference",
+                library_paths.CNVKIT_REFERENCE,
+                "--output-dir",
+                output_dir,
+            ]
+        )
         return command
 
     @classmethod
@@ -51,9 +56,9 @@ class CNVKit(_CNVCaller):
         )
         output = caller_config[CNVCallingKeys.OUTPUT]
 
-        command = ["cnvkit.py", "genemetrics", *input_cnr, ">", output]
+        command = ["cnvkit.py", "genemetrics", *input_cnr]
 
-        return command
+        return command, output
 
     @classmethod
     def call(cls, caller_config: dict):
@@ -64,7 +69,12 @@ class CNVKit(_CNVCaller):
             caller_config, library_paths, app_config
         )
         run(batch_command)
-        genemetrics_command = cls._create_cnvkit_genemetrics_command(
+        genemetrics_command, output_path = cls._create_cnvkit_genemetrics_command(
             caller_config, library_paths, app_config
         )
-        run(genemetrics_command, cwd=caller_config[CNVCallingKeys.OUTPUT_DIR])
+        with open(output_path, "w") as outfile:
+            run(
+                genemetrics_command,
+                stdout=outfile,
+                cwd=caller_config[CNVCallingKeys.OUTPUT_DIR],
+            )

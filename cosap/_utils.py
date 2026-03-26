@@ -34,26 +34,6 @@ def calculate_strelka_ad(row: pd.Series) -> float:
     return VCFUtils.calculate_strelka_ad(row)
 
 
-def rename_columns_strelka(vcf_df, sample_name):
-    return VCFUtils.get_column_mappings_strelka(vcf_df, sample_name)
-
-
-def rename_columns_haplotypecaller(vcf_df, sample_name):
-    return VCFUtils.get_column_mappings_haplotypecaller(vcf_df, sample_name)
-
-
-def rename_columns_varscan(vcf_df, sample_name):
-    return VCFUtils.get_column_mappings_varscan(vcf_df, sample_name)
-
-
-def rename_columns_generic(vcf_df, sample_name):
-    return VCFUtils.get_column_mappings_generic(vcf_df, sample_name)
-
-
-def rename_columns_varnet(vcf_df, sample_name):
-    return VCFUtils.get_column_mappings_varnet(vcf_df, sample_name)
-
-
 def convert_vcf_to_dict(
     path: str, caller_type: str = None, sample_name: str = None, filter: str = "PASS"
 ) -> list:

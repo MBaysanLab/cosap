@@ -36,7 +36,7 @@ class Pipeline:
             PipelineKeys.CNV: dict(),
             PipelineKeys.GERMLINE_CNV: dict(),
             PipelineKeys.FINAL_OUTPUT: list(),
-            PipelineKeys.WORKDIR: str,
+            PipelineKeys.WORKDIR: "",
         }
         return config
 

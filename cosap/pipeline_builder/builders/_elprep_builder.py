@@ -23,7 +23,7 @@ class Elprep(_IPipelineStep, _PipelineStep):
         self.input_step.next_step = self
 
         if self.output_dir is None:
-            self.output_dir = join_paths(OutputFolders.ELPREP, self.key)
+            self.output_dir = join_paths(OutputFolders.PREPROCESSOR, self.key)
 
     def _create_config(self) -> Dict:
         output_filename = FileFormats.ELPREP_CALIBRATION_OUTPUT.format(

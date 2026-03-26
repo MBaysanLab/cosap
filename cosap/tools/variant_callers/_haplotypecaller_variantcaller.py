@@ -303,11 +303,13 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
                 # Check if any of the commands failed
                 # If respective region of bam file is empty, results will be None, ignore it
                 if any(
-                    (result.returncode != 0 and result is not None)
+                    (result is not None and result.returncode != 0)
                     for result in results
                 ):
                     non_zero_results = [
-                        result for result in results if result.returncode != 0
+                        result
+                        for result in results
+                        if result is not None and result.returncode != 0
                     ]
                     raise RuntimeError(
                         f"Error running Haplotypecaller: {non_zero_results[0].stderr}, {non_zero_results[0].stdout}, {non_zero_results[0].returncode}"

@@ -19,10 +19,9 @@ class SplitbyCHR:
             "samtools",
             "view",
             "-bh",
-            bam_filename,
+            "-o", output_filename,
+            str(bam_filename),
             f"chr{chromosome}",
-            ">",
-            output_filename,
         ]
         return command
 

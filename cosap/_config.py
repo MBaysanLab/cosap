@@ -6,7 +6,6 @@ import multiprocessing
 import os
 from contextlib import ExitStack
 from dataclasses import dataclass
-from distutils.util import strtobool
 from threading import Lock
 
 import psutil
@@ -40,6 +39,17 @@ def get_cosap_dotenv():
             f.write("")
 
     return dotenv_path
+
+
+def _strtobool(value: str) -> bool:
+    value = value.strip().lower()
+    if value in ("y", "yes", "t", "true", "on", "1"):
+        return True
+    elif value in ("n", "no", "f", "false", "off", "0"):
+        return False
+    else:
+        raise ValueError(f"Invalid truth value: {value}")
+    
 
 class _AppConfigMeta(type):
     _instances = {}
@@ -90,7 +100,9 @@ class AppConfig(metaclass=_AppConfigMeta):
     # Set this to True if you are running COSAP on a Slurm cluster.
     # SLURM_CLUSTER = strtobool(os.getenv("COSAP_SLURM_CLUSTER_MODE", "False"))
 
-    IN_MEMORY_MODE = strtobool(os.getenv("COSAP_IN_MEMORY_MODE", "False"))
+    IN_MEMORY_MODE = _strtobool(os.getenv("COSAP_IN_MEMORY_MODE", "False"))
 
     DEVICE = os.getenv("COSAP_DEVICE", "cpu")
     VEP_CACHE_VERSION = os.getenv("COSAP_VEP_CACHE_VERSION", "115")
+
+

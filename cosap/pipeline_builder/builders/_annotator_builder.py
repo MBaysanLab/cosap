@@ -31,14 +31,14 @@ class Annotator(_IPipelineStep, _PipelineStep):
             if self.input_step.__class__ == VariantCaller:
                 self.sample_name = (
                     self.input_step.params[VariantCallingKeys.TUMOR_SAMPLE_NAME]
-                    if self.input_step.tumor is not None
+                    if self.input_step.tumor_sample is not None
                     else self.input_step.params[VariantCallingKeys.GERMLINE_SAMPLE_NAME]
                 )
             elif self.input_step.__class__ == Annotator:
                 self.sample_name = self.input_step.sample_name
             else:
                 raise Exception(
-                    "Sample name cannot be read from input, please specify it by setting"
+                    "Sample name cannot be read from input, please specify it by setting "
                     "sample_name argument."
                 )
 

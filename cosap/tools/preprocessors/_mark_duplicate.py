@@ -25,7 +25,9 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
         input_bam = convert_to_absolute_path(
             memory_handler.get_path(mdup_config[MDUPKeys.INPUT])
         )
-        tmp_dir = memory_handler.get_temp_dir(dir=os.path.dirname(MDUPKeys.OUTPUT_DIR))
+        tmp_dir = memory_handler.get_temp_dir(
+            dir=os.path.dirname(mdup_config[MDUPKeys.OUTPUT_DIR])
+        )
 
         command = [
             "gatk",
@@ -60,7 +62,9 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
         input_bam = convert_to_absolute_path(
             memory_handler.get_path(mdup_config[MDUPKeys.INPUT])
         )
-        tmp_dir = memory_handler.get_temp_dir(dir=os.path.dirname(MDUPKeys.OUTPUT_DIR))
+        tmp_dir = memory_handler.get_temp_dir(
+            dir=os.path.dirname(mdup_config[MDUPKeys.OUTPUT_DIR])
+        )
 
         command = [
             "picard",

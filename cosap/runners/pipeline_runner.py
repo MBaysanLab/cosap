@@ -77,13 +77,14 @@ class PipelineRunner:
             return snakemake_runner.run_snakemake_pipeline()
 
         else:
-            self.validate_pipeline_config(pipeline_config)
+            raise NotImplementedError(f"Runner '{runner}' is not implemented.")
+            # self.validate_pipeline_config(pipeline_config)
 
-            # TODO: add trimming
-            self.map(pipeline_config[PipelineKeys.MAPPING])
-            self.sort(pipeline_config[PipelineKeys.SORTING])
-            self.create_index(pipeline_config[PipelineKeys.INDEX])
-            self.merge(pipeline_config[PipelineKeys.MERGE])
-            self.calibrate(pipeline_config[PipelineKeys.CALIBRATE])
+            # # TODO: add trimming
+            # self.map(pipeline_config[PipelineKeys.MAPPING])
+            # self.sort(pipeline_config[PipelineKeys.SORTING])
+            # self.create_index(pipeline_config[PipelineKeys.INDEX])
+            # self.merge(pipeline_config[PipelineKeys.MERGE])
+            # self.calibrate(pipeline_config[PipelineKeys.CALIBRATE])
 
-            self.call_variants(pipeline_config[PipelineKeys.VARIANT_CALLING])
+            # self.call_variants(pipeline_config[PipelineKeys.VARIANT_CALLING])

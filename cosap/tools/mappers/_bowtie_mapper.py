@@ -88,7 +88,7 @@ class Bowtie2Mapper(_Mapper, _Mappable):
             app_config=app_config, input_path=mapper_config[MappingKeys.OUTPUT]
         )
 
-        bowtie = run(bowtie_command, stdout=PIPE, cwd=workdir, check=False)
+        bowtie = run(bowtie_command, stdout=PIPE, stderr=PIPE, cwd=workdir, check=False)
         samtools = run(
             sort_command,
             input=bowtie.stdout,

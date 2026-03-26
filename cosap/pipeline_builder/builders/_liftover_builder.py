@@ -79,11 +79,10 @@ class LiftoverVariant(_IPipelineStep, _PipelineStep):
 
     def get_reject_output(self) -> Optional[str]:
         """Get the reject output file path if specified."""
-        if self.reject_output is not None:
-            config = self.get_config()
-            return join_paths(
-                self.output_dir, config[self.key][self.name][LiftoverKeys.REJECT_OUTPUT]
-            )
+        config = self.get_config()
+        reject_output = config[self.key][self.name].get(LiftoverKeys.REJECT_OUTPUT)
+        if reject_output is not None:
+            return join_paths(self.output_dir, reject_output)
         return None
 
     def get_config(self, core_only: bool = False) -> Dict:

@@ -86,9 +86,10 @@ class ScatterGather:
     def cleanup_on_exit(filepath):
         try:
             yield
-        finally:
+        except BaseException:
             if os.path.exists(filepath):
                 os.remove(filepath)
+            raise
 
     @staticmethod
     def gather_vcfs(configs: list, output_path, mode="vcf", cwd=None):
@@ -115,7 +116,7 @@ class ScatterGather:
                 print(e)
                 raise RuntimeError("Failed to gather VCFs") from e
 
-        # If we reach here, the command was successful, so we exit the context manager without removing the file
+        # If we reach here, the command was successful, output file is preserved
 
     @staticmethod
     def clean_temp_files(path):

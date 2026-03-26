@@ -9,7 +9,7 @@ class PipelineKeys:
     LIBRARY_PATH: str = "library_path"
     CREATION_DATE: str = "creation-date"
     VERSION: str = "cosap_version"
-    MAPPING: str = "sorting"
+    MAPPING: str = "mapping"
     SORTING: str = "sorting"
     INDEX: str = "index"
     MERGE: str = "merge"
