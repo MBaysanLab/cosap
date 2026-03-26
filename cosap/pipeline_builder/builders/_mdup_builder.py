@@ -40,6 +40,7 @@ class MDUP(_IPipelineStep, _PipelineStep):
                 MDUPKeys.DUPLICATE_HANDLING_METHOD: self.duplicate_handling_method,
                 MDUPKeys.OUTPUT_DIR: self.output_dir,
                 MDUPKeys.LOG_FILE: self.log_file,
+                MDUPKeys.WORKDIR: self.output_dir,
             },
         }
         return config

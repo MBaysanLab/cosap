@@ -16,8 +16,14 @@ class DeepVariantVariantCaller(_Callable, _VariantCaller):
         cls, caller_config: Dict, library_paths: LibraryPaths
     ):
         input_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
-        output_vcf = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
-        output_gvcf = caller_config[VariantCallingKeys.GVCF_OUTPUT]
+        output_vcf = join_paths(
+            caller_config[VariantCallingKeys.OUTPUT_DIR],
+            caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT],
+        )
+        output_gvcf = join_paths(
+            caller_config[VariantCallingKeys.OUTPUT_DIR],
+            caller_config[VariantCallingKeys.GVCF_OUTPUT],
+        )
 
         command = [
             "run_deepvariant",
@@ -49,7 +55,10 @@ class DeepVariantVariantCaller(_Callable, _VariantCaller):
             caller_config[VariantCallingKeys.OUTPUT_DIR],
             caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT],
         )
-        output_gvcf = caller_config[VariantCallingKeys.GVCF_OUTPUT]
+        output_gvcf = join_paths(
+            caller_config[VariantCallingKeys.OUTPUT_DIR],
+            caller_config[VariantCallingKeys.GVCF_OUTPUT],
+        )
 
         command = [
             "pbrun",

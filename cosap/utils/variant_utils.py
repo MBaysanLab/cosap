@@ -6,6 +6,46 @@ import pandas as pd
 
 class VariantUtils:
     @staticmethod
+    def _normalize_vcf_alleles_for_vep(
+        pos: int, ref: str, alt: str
+    ) -> tuple[int, int, str, str]:
+        pos = int(pos)
+        ref = str(ref)
+        alt = str(alt)
+
+        # Trim shared prefix (keep at least 1 base)
+        while len(ref) > 1 and len(alt) > 1 and ref[0] == alt[0]:
+            ref = ref[1:]
+            alt = alt[1:]
+            pos += 1
+
+        # Trim shared suffix (keep at least 1 base)
+        while len(ref) > 1 and len(alt) > 1 and ref[-1] == alt[-1]:
+            ref = ref[:-1]
+            alt = alt[:-1]
+
+        # Pure insertion: e.g. REF=A, ALT=ATT → VEP: "-" inserted between pos and pos+1
+        if len(ref) == 1 and len(alt) > 1 and alt[0] == ref[0]:
+            alt = alt[1:]
+            ref = "-"
+            start = pos + 1
+            end = pos        # start > end signals insertion to VEP
+            return start, end, ref, alt
+
+        # Pure deletion: e.g. REF=ATT, ALT=A → VEP: deleted bases with coordinates
+        if len(alt) == 1 and len(ref) > 1 and ref[0] == alt[0]:
+            ref = ref[1:]
+            alt = "-"
+            start = pos + 1
+            end = start + len(ref) - 1
+            return start, end, ref, alt
+
+        # SNV, MNV, or complex replacement (no anchor base removal needed)
+        start = pos
+        end = pos + len(ref) - 1
+        return start, end, ref, alt
+
+    @staticmethod
     def convert_list_to_ensembl_vep_input(variants: list, output_dir: str) -> str:
         """
         Converts list of variants to default vep input format and writes to a temporary file.
@@ -23,10 +63,29 @@ class VariantUtils:
                 mode="w", delete=False, suffix=".txt", dir=output_dir
             ) as f:
                 for variant in variants:
-                    end = variant["POS"] + len(variant["REF"]) - 1
-                    f.write(
-                        f"{variant['CHROM']}\t{variant['POS']}\t{end}\t{variant['REF']}/{variant['ALT']}\t+\n"
-                    )
+                    ref = str(variant["REF"])
+                    alts = str(variant["ALT"]).split(",")
+
+                    for alt in alts:
+                        alt = alt.strip()
+
+                        # Skip unsupported symbolic and placeholder alleles
+                        if not alt or alt in {"<NON_REF>", "*"}:
+                            continue
+                        if alt.startswith("<") and alt.endswith(">"):
+                            continue
+                        if any(symbol in alt for symbol in ["[", "]", "."]):
+                            continue
+
+                        start, end, norm_ref, norm_alt = (
+                            VariantUtils._normalize_vcf_alleles_for_vep(
+                                variant["POS"], ref, alt
+                            )
+                        )
+
+                        f.write(
+                            f"{variant['CHROM']}\t{start}\t{end}\t{norm_ref}/{norm_alt}\t+\n"
+                        )
             return f.name
         except PermissionError:
             print(f"Permission denied to create directory: {output_dir}")

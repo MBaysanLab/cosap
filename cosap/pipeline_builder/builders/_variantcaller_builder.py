@@ -92,6 +92,7 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
                 VariantCallingKeys.OUTPUT_DIR: self.output_dir,
                 VariantCallingKeys.OUTPUT_TYPE: "VCF" if not self.gvcf else "GVCF",
                 VariantCallingKeys.LOG_FILE: self.log_file,
+                VariantCallingKeys.WORKDIR: self.output_dir,
             },
         }
 

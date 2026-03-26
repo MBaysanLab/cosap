@@ -73,6 +73,7 @@ class Mapper(_IPipelineStep, _PipelineStep):
                 MappingKeys.PARAMS: self.params,
                 MappingKeys.POST_PROCESSING: self.post_processing,
                 MappingKeys.LOG_FILE: self.log_file,
+                MappingKeys.WORKDIR: self.output_dir,
             },
         }
         return config

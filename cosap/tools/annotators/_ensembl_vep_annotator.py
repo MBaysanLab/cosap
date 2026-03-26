@@ -65,6 +65,12 @@ class VepAnnotator(_Annotatable, _Annotator):
                 "params": None,
                 "use_file_prefix": False,  # PrimateAI doesn't use file= prefix
             },
+            {
+                "name": "InterVar",
+                "file": "intervar_db",
+                "params": None,
+                "use_file_prefix": True,
+            }
         ]
 
         for plugin in plugins:
@@ -155,6 +161,8 @@ class VepAnnotator(_Annotatable, _Annotator):
             library_paths.ENSEMBL_VEP,
             "--dir_cache",
             join_paths(library_paths.ENSEMBL_VEP, "cache"),
+            "--dir_plugins",
+            join_paths(library_paths.ENSEMBL_VEP, "Plugins"),
             "--cache",
             "--refseq",
             "--offline",
@@ -192,6 +200,6 @@ class VepAnnotator(_Annotatable, _Annotator):
         runner = DockerRunner()
         runner.run(
             DockerImages.ENSEMBL_VEP,
-            " ".join(cls.create_command(library_paths, app_config, annotator_config)),
+            cls.create_command(library_paths, app_config, annotator_config),
             workdir=output_dir,
         )

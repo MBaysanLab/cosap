@@ -13,7 +13,6 @@ from tqdm import tqdm
 
 from ..._pipeline_config import PipelineKeys
 from ..._utils import (
-    convert_list_to_annovar_input,
     convert_list_to_vcf_input,
     join_paths,
 )
@@ -21,7 +20,6 @@ from ...pipeline_builder.builders import Annotator, VCFReader
 from ...tools.annotators import AnnotatorFactory
 from ._config import VariantAnnotationConfig
 from .annotation_output_parsers import (
-    AnnovarResultsProcessor,
     MetaRnnResultsProcessor,
     VEPResultsProcessor,
 )
@@ -38,9 +36,6 @@ class VariantMultipleAnnotator:
         self.max_workers = max_workers
         self.vep_input_file = None
         self.vep_output_file = None
-        self.annovar_input_file = None
-        self.intervar_output_file = None
-        self.cancervar_output_file = None
         self.metarnn_output_file = None
 
         # Initialize processors
@@ -205,54 +200,28 @@ class VariantMultipleAnnotator:
         else:
             logger.warning(f"VEP output file not found: {self.vep_output_file}")
 
-        # Prepare Intervar output file
-        if self.intervar_output_file and os.path.exists(self.intervar_output_file):
-            logger.info("Preparing Intervar output file...")
-            self.intervar_output_file = self._prepare_tabix_indexed_file(
-                self.intervar_output_file, file_type="annovar"
-            )
-        else:
-            logger.warning(
-                f"Intervar output file not found: {self.intervar_output_file}"
-            )
-
-        # Prepare Cancervar output file
-        if self.cancervar_output_file and os.path.exists(self.cancervar_output_file):
-            logger.info("Preparing Cancervar output file...")
-            self.cancervar_output_file = self._prepare_tabix_indexed_file(
-                self.cancervar_output_file, file_type="annovar"
-            )
-        else:
-            logger.warning(
-                f"Cancervar output file not found: {self.cancervar_output_file}"
-            )
-
         # Prepare MetaRNN output file
         if self.metarnn_output_file and os.path.exists(self.metarnn_output_file):
             logger.info("Preparing MetaRNN output file...")
             self.metarnn_output_file = self._prepare_tabix_indexed_file(
-                self.metarnn_output_file, file_type="vcf"
+                self.metarnn_output_file, file_type="annovar"
             )
 
         logger.info("All annotation output files prepared for tabix indexing")
 
     def annotate(self):
         """
-        Annotates the variants using VEP, Intervar, and Cancervar.
+        Annotates the variants using VEP and MetaRNN.
 
         Returns:
             dict: A dictionary containing the annotated variant records.
         """
         vep_input_file = convert_list_to_vcf_input(self.variants, self.workdir)
-        annovar_input_file = convert_list_to_annovar_input(self.variants, self.workdir)
 
         self.vep_input_file = vep_input_file
-        self.annovar_input_file = annovar_input_file
 
         # Prepare annotation tasks
-        annotation_tasks = self._prepare_annotation_tasks(
-            vep_input_file, annovar_input_file
-        )
+        annotation_tasks = self._prepare_annotation_tasks(vep_input_file)
 
         # Execute annotations
         self._execute_annotations(annotation_tasks)
@@ -260,12 +229,9 @@ class VariantMultipleAnnotator:
         # Prepare output files for tabix indexing
         self._prepare_annotation_outputs()
 
-    def _prepare_annotation_tasks(
-        self, vep_input_file: str, annovar_input_file: str
-    ) -> list:
+    def _prepare_annotation_tasks(self, vep_input_file: str) -> list:
         """Prepare annotation task configurations."""
         vep_input = VCFReader(filename=vep_input_file)
-        annovar_input = VCFReader(filename=annovar_input_file)
 
         tasks = []
 
@@ -284,42 +250,6 @@ class VariantMultipleAnnotator:
                 "config": vep_config,
                 "annotator": AnnotatorFactory.create("vep"),
                 "input_file": self.vep_input_file,
-            }
-        )
-
-        # Intervar task
-        intervar_config = Annotator(
-            library="intervar",
-            input_step=annovar_input,
-            sample_name="multiple_anotator",
-            input_type="AVinput",
-            name="multiple_anotator_intervar",
-            output_dir=self.workdir,
-        )
-        tasks.append(
-            {
-                "name": "intervar",
-                "config": intervar_config,
-                "annotator": AnnotatorFactory.create("intervar"),
-                "input_file": self.annovar_input_file,
-            }
-        )
-
-        # Cancervar task
-        cancervar_config = Annotator(
-            library="cancervar",
-            input_step=annovar_input,
-            sample_name="multiple_anotator",
-            input_type="AVinput",
-            name="multiple_anotator_cancervar",
-            output_dir=self.workdir,
-        )
-        tasks.append(
-            {
-                "name": "cancervar",
-                "config": cancervar_config,
-                "annotator": AnnotatorFactory.create("cancervar"),
-                "input_file": self.annovar_input_file,
             }
         )
 
@@ -429,10 +359,6 @@ class VariantMultipleAnnotator:
         """Store the output path for each annotation task."""
         if task_name == "vep":
             self.vep_output_file = output_path
-        elif task_name == "intervar":
-            self.intervar_output_file = output_path
-        elif task_name == "cancervar":
-            self.cancervar_output_file = output_path
         elif task_name == "metarnn":
             self.metarnn_output_file = output_path
 
@@ -527,70 +453,6 @@ class VariantMultipleAnnotator:
 
         return records
 
-    def _parse_annovar_tabix_by_batch(
-        self,
-        tabix_file: str,
-        record_batch: list,
-        subtype: str,
-    ) -> pd.DataFrame:
-        """
-        Parse ANNOVAR tabix-indexed file for all variants in a batch.
-        Handles batches that span multiple chromosomes.
-
-        Args:
-            tabix_file: Path to tabix-indexed file
-            record_batch: List of pysam.VariantRecord objects
-            subtype: Type of annotation ("intervar" or "cancervar")
-
-        Returns:
-            DataFrame with parsed results
-        """
-        # Check if file is tabix-indexed
-        if not os.path.exists(tabix_file + ".tbi"):
-            logger.warning(
-                f"{subtype} output file is not tabix-indexed. Preparing file..."
-            )
-            tabix_file = self._prepare_tabix_indexed_file(
-                tabix_file, file_type="annovar"
-            )
-
-            # Update the stored file path
-            if subtype == "intervar":
-                self.intervar_output_file = tabix_file
-            elif subtype == "cancervar":
-                self.cancervar_output_file = tabix_file
-
-        tbx = pysam.TabixFile(tabix_file, encoding="utf-8")
-
-        # Get header from the file
-        header = None
-        with gzip.open(tabix_file, "rt") as f:
-            for line in f:
-                if line.startswith("#"):
-                    header = line.strip().split("\t")
-                    break
-                else:
-                    break
-
-        if not header:
-            logger.warning(f"No header found in {tabix_file}")
-            tbx.close()
-            return pd.DataFrame()
-
-        # Fetch records for all chromosomes in the batch
-        records = self._fetch_all_regions_in_batch(tbx, record_batch)
-
-        tbx.close()
-
-        if not records:
-            return pd.DataFrame()
-
-        df = pd.DataFrame(records, columns=header)
-
-        # Use AnnovarResultsProcessor to process the dataframe
-        annovar_processor = AnnovarResultsProcessor(self.config)
-        return annovar_processor.process_dataframe(df, subtype)
-
     def _parse_metarnn_tabix_by_batch(
         self,
         tabix_file: str,
@@ -666,7 +528,7 @@ class VariantMultipleAnnotator:
     def _parse_batch(
         self,
         record_batch: list,
-    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
         Parse annotation results for a batch of variants.
         Handles batches that span multiple chromosomes.
@@ -675,7 +537,7 @@ class VariantMultipleAnnotator:
             record_batch: List of pysam.VariantRecord objects from VEP
 
         Returns:
-            Tuple of (vep_df, intervar_df, cancervar_df, metarnn_df)
+            Tuple of (vep_df, metarnn_df)
         """
         # Process VEP records
         header_lines = (
@@ -685,27 +547,13 @@ class VariantMultipleAnnotator:
         vep_results = pd.DataFrame(parsed_vep) if parsed_vep else pd.DataFrame()
         vep_results = vep_results[vep_results["vep_pick"] == True]
 
-        # Parse Intervar for this batch (handles multiple chromosomes)
-        intervar_results = self._parse_annovar_tabix_by_batch(
-            self.intervar_output_file,
-            record_batch,
-            "intervar",
-        )
-
-        # Parse Cancervar for this batch (handles multiple chromosomes)
-        cancervar_results = self._parse_annovar_tabix_by_batch(
-            self.cancervar_output_file,
-            record_batch,
-            "cancervar",
-        )
-
         # Parse MetaRNN for this batch (handles multiple chromosomes)
         metarnn_results = self._parse_metarnn_tabix_by_batch(
             self.metarnn_output_file,
             record_batch,
         )
 
-        return vep_results, intervar_results, cancervar_results, metarnn_results
+        return vep_results, metarnn_results
 
     def _parse_results_in_batches(self, batch_size: int = 1000):
         """
@@ -716,7 +564,7 @@ class VariantMultipleAnnotator:
             batch_size: Number of VEP records to process in each batch
 
         Yields:
-            Tuple of (vep_df, intervar_df, cancervar_df, metarnn_df) for each batch
+            Tuple of (vep_df, metarnn_df) for each batch
         """
         # Check if VEP file is tabix-indexed
         if not os.path.exists(self.vep_output_file + ".tbi"):
@@ -754,19 +602,9 @@ class VariantMultipleAnnotator:
                     )
 
                 # Parse this batch
-                vep_results, intervar_results, cancervar_results, metarnn_results = (
-                    self._parse_batch(record_batch)
-                )
+                vep_results, metarnn_results = self._parse_batch(record_batch)
 
-                # If any results are empty, warn the user with details
-                if intervar_results.empty or cancervar_results.empty:
-                    logger.warning(
-                        f"Some annotation results are empty for batch. "
-                        f"VEP: {len(vep_results)}, Intervar: {len(intervar_results)}, "
-                        f"Cancervar: {len(cancervar_results)}, MetaRNN: {len(metarnn_results)}"
-                    )
-
-                yield vep_results, intervar_results, cancervar_results, metarnn_results
+                yield vep_results, metarnn_results
 
                 # Clear memory
                 record_batch = []
@@ -789,11 +627,9 @@ class VariantMultipleAnnotator:
                     f"({len(record_batch)} variants)"
                 )
 
-            vep_results, intervar_results, cancervar_results, metarnn_results = (
-                self._parse_batch(record_batch)
-            )
+            vep_results, metarnn_results = self._parse_batch(record_batch)
 
-            yield vep_results, intervar_results, cancervar_results, metarnn_results
+            yield vep_results, metarnn_results
 
         vcf.close()
 
@@ -822,34 +658,17 @@ class VariantMultipleAnnotator:
         batch_count = 0
         total_variants = 0
 
-        for (
-            vep_results,
-            intervar_results,
-            cancervar_results,
-            metarnn_results,
-        ) in self._parse_results_in_batches(batch_size):
+        for vep_results, metarnn_results in self._parse_results_in_batches(batch_size):
             batch_count += 1
 
-            # Check if any results are empty
-            if vep_results.empty and intervar_results.empty and cancervar_results.empty:
+            if vep_results.empty:
                 logger.warning(f"Batch {batch_count}: No results found, skipping")
                 continue
 
-            if vep_results.empty:
-                logger.error(f"Batch {batch_count}: VEP results are empty, skipping")
-                raise ValueError("VEP results cannot be empty")
-
-            if intervar_results.empty or cancervar_results.empty:
-                logger.error(
-                    f"Batch {batch_count}: Some annotation results are empty."
-                    f"VEP: {len(vep_results)}, Intervar: {len(intervar_results)}, "
-                    f"Cancervar: {len(cancervar_results)}, MetaRNN: {len(metarnn_results) if metarnn_results is not None else 0}"
-                )
-                raise ValueError("Intervar or Cancervar results cannot be empty")
-
             # Merge results for this batch
             batch_results = self._merge_annotation_results(
-                vep_results, intervar_results, cancervar_results, metarnn_results
+                vep_results,
+                metarnn_results,
             )
 
             # Post-process results
@@ -866,8 +685,6 @@ class VariantMultipleAnnotator:
             # Clear memory
             del (
                 vep_results,
-                intervar_results,
-                cancervar_results,
                 metarnn_results,
                 batch_results,
             )
@@ -894,44 +711,18 @@ class VariantMultipleAnnotator:
             pbar = tqdm(desc="Writing JSON batches", unit="batch", total=None)
 
             try:
-                for (
-                    vep_results,
-                    intervar_results,
-                    cancervar_results,
-                    metarnn_results,
-                ) in self._parse_results_in_batches(batch_size):
+                for vep_results, metarnn_results in self._parse_results_in_batches(
+                    batch_size
+                ):
                     batch_count += 1
 
-                    # Check if any results are empty
-                    if (
-                        vep_results.empty
-                        and intervar_results.empty
-                        and cancervar_results.empty
-                    ):
+                    if vep_results.empty:
                         logger.error(f"Batch {batch_count}: No results found, skipping")
                         raise ValueError("No results found in batch")
-
-                    if vep_results.empty:
-                        logger.error(
-                            f"Batch {batch_count}: VEP results are empty, skipping"
-                        )
-                        raise ValueError("VEP results cannot be empty")
-
-                    if intervar_results.empty or cancervar_results.empty:
-                        logger.error(
-                            f"Batch {batch_count}: Some annotation results are empty. "
-                            f"VEP: {len(vep_results)}, Intervar: {len(intervar_results)}, "
-                            f"Cancervar: {len(cancervar_results)}, MetaRNN: {len(metarnn_results) if metarnn_results is not None else 0}"
-                        )
-                        raise ValueError(
-                            "Intervar or Cancervar results cannot be empty"
-                        )
 
                     # Merge results for this batch
                     batch_results = self._merge_annotation_results(
                         vep_results,
-                        intervar_results,
-                        cancervar_results,
                         metarnn_results,
                     )
 
@@ -965,8 +756,6 @@ class VariantMultipleAnnotator:
                     # Clear memory
                     del (
                         vep_results,
-                        intervar_results,
-                        cancervar_results,
                         metarnn_results,
                         batch_results,
                         records,
@@ -996,38 +785,18 @@ class VariantMultipleAnnotator:
         pbar = tqdm(desc="Writing Arrow IPC batches", unit="batch", total=None)
 
         try:
-            for (
-                vep_results,
-                intervar_results,
-                cancervar_results,
-                metarnn_results,
-            ) in self._parse_results_in_batches(batch_size):
+            for vep_results, metarnn_results in self._parse_results_in_batches(
+                batch_size
+            ):
                 batch_count += 1
 
-                # Check if any results are empty
-                if (
-                    vep_results.empty
-                    and intervar_results.empty
-                    and cancervar_results.empty
-                ):
+                if vep_results.empty:
                     logger.error(f"Batch {batch_count}: No results found, skipping")
                     raise ValueError("No results found in batch")
 
-                if vep_results.empty:
-                    logger.error(f"Batch {batch_count}: VEP results are empty")
-                    raise ValueError("VEP results cannot be empty")
-
-                if intervar_results.empty or cancervar_results.empty:
-                    logger.error(
-                        f"Batch {batch_count}: Some annotation results are empty. "
-                        f"VEP: {len(vep_results)}, Intervar: {len(intervar_results)}, "
-                        f"Cancervar: {len(cancervar_results)}, MetaRNN: {len(metarnn_results) if metarnn_results is not None else 0}"
-                    )
-                    raise ValueError("Intervar or Cancervar results cannot be empty")
-
                 # Merge results for this batch
                 batch_results = self._merge_annotation_results(
-                    vep_results, intervar_results, cancervar_results, metarnn_results
+                    vep_results, metarnn_results
                 )
 
                 # Post-process results
@@ -1061,8 +830,6 @@ class VariantMultipleAnnotator:
                 # Clear memory
                 del (
                     vep_results,
-                    intervar_results,
-                    cancervar_results,
                     metarnn_results,
                     batch_results,
                     arrow_table,
@@ -1123,23 +890,10 @@ class VariantMultipleAnnotator:
     def _merge_annotation_results(
         self,
         vep_results: pd.DataFrame,
-        intervar_results: pd.DataFrame,
-        cancervar_results: pd.DataFrame,
         metarnn_results: pd.DataFrame = None,
     ) -> pd.DataFrame:
-        """Merge annotation results from different sources."""
-        results = pd.merge(
-            intervar_results,
-            cancervar_results,
-            on="variant_id",
-            how="inner",
-            suffixes=("_intervar", "_cancervar"),
-        ).merge(
-            vep_results,
-            on="variant_id",
-            how="right",
-            suffixes=("", "_vep"),
-        )
+        """Merge annotation results from VEP and optional MetaRNN."""
+        results = vep_results.copy()
 
         # Merge MetaRNN results if available
         if metarnn_results is not None and not metarnn_results.empty:
@@ -1151,30 +905,9 @@ class VariantMultipleAnnotator:
                 suffixes=("", "_metarnn"),
             )
 
-        # Merge orpha, omim and interpro columns from intervar and cancervar
-        results["orpha_info"] = results["orpha_info_intervar"].combine_first(
-            results["orpha_info_cancervar"]
-        )
-        results["omim"] = results["omim_intervar"].combine_first(
-            results["omim_cancervar"]
-        )
-        results["interpro_domain"] = results["interpro_domain_intervar"].combine_first(
-            results["interpro_domain_cancervar"]
-        )
-
         # Drop the columns that are not needed
-        results.drop(
-            columns=[
-                "orpha_info_intervar",
-                "orpha_info_cancervar",
-                "omim_intervar",
-                "omim_cancervar",
-                "interpro_domain_intervar",
-                "interpro_domain_cancervar",
-                "transcript",  # From Metarnn merge, redundant with "feature"
-            ],
-            inplace=True,
-        )
+        if "transcript" in results.columns:
+            results.drop(columns=["transcript"], inplace=True)
 
         return results
 

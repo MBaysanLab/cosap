@@ -53,6 +53,7 @@ class VEPResultsProcessor:
         df = self._process_consequence_column(df)
         df = self._process_prediction_scores(df)
         df = self._process_clinical_significance(df)
+        df = self._process_intervar_fields(df)
         return df
 
     def _load_and_map_vep_data(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -369,6 +370,107 @@ class VEPResultsProcessor:
                 .str.split(r"\s*,\s*", regex=True)
             )
         return df
+
+    def _process_intervar_fields(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Process InterVar fields and create evidence_intervar summary column."""
+        intervar_criteria_cols = [
+            "intervar_pvs1",
+            "intervar_ps",
+            "intervar_pm",
+            "intervar_pp",
+            "intervar_ba1",
+            "intervar_bs",
+            "intervar_bp",
+        ]
+
+        # Check if any InterVar columns exist
+        available_cols = [col for col in intervar_criteria_cols if col in df.columns]
+        if not available_cols:
+            return df
+
+        # Normalize classification - keep it as a separate output column
+        if "intervar_classification" in df.columns:
+            df["intervar_classification"] = (
+                df["intervar_classification"]
+                .astype(str)
+                .str.strip()
+                .str.lower()
+            )
+
+        # Build evidence_intervar string from individual criteria columns
+        df["evidence_intervar"] = df.apply(
+            self._build_intervar_evidence_string, axis=1
+        )
+
+        # Drop only the individual InterVar criteria columns (NOT intervar_classification)
+        cols_to_drop = [col for col in intervar_criteria_cols if col in df.columns]
+        df = df.drop(columns=cols_to_drop)
+
+        return df
+
+    def _build_intervar_evidence_string(self, row: pd.Series) -> str:
+        """
+        Build a formatted InterVar evidence string from individual criteria columns.
+
+        Format: PVS1=0 PS=[0, 0, 0, 0, 0] PM=[0, 0, 0, 0, 0, 0, 0] PP=[0, 0, 0, 0, 0, 0] BA1=1 BS=[1, 0, 0, 0, 0] BP=[0, 0, 0, 0, 0, 0, 0, 0]
+        """
+        parts = []
+
+        # PVS1 - single value
+        if "intervar_pvs1" in row.index:
+            val = str(row.get("intervar_pvs1", "0")).strip()
+            val = val if val and val not in ("", ".", "-", "None", "nan") else "0"
+            parts.append(f"PVS1={val}")
+
+        # PS - array of values
+        if "intervar_ps" in row.index:
+            parts.append(f"PS={self._format_criteria_array(row.get('intervar_ps', ''))}")
+
+        # PM - array of values
+        if "intervar_pm" in row.index:
+            parts.append(f"PM={self._format_criteria_array(row.get('intervar_pm', ''))}")
+
+        # PP - array of values
+        if "intervar_pp" in row.index:
+            parts.append(f"PP={self._format_criteria_array(row.get('intervar_pp', ''))}")
+
+        # BA1 - single value
+        if "intervar_ba1" in row.index:
+            val = str(row.get("intervar_ba1", "0")).strip()
+            val = val if val and val not in ("", ".", "-", "None", "nan") else "0"
+            parts.append(f"BA1={val}")
+
+        # BS - array of values
+        if "intervar_bs" in row.index:
+            parts.append(f"BS={self._format_criteria_array(row.get('intervar_bs', ''))}")
+
+        # BP - array of values
+        if "intervar_bp" in row.index:
+            parts.append(f"BP={self._format_criteria_array(row.get('intervar_bp', ''))}")
+
+        return " ".join(parts) if parts else None
+
+    def _format_criteria_array(self, value: str) -> str:
+        """
+        Format a criteria string (e.g., '00000') into array format (e.g., '[0, 0, 0, 0, 0]').
+
+        Args:
+            value: String of digits representing criteria values (e.g., '00100')
+
+        Returns:
+            Formatted array string (e.g., '[0, 0, 1, 0, 0]')
+        """
+        val = str(value).strip() if value is not None else ""
+
+        if not val or val in ("", ".", "-", "None", "nan"):
+            return "[]"
+
+        # Each character is an individual criterion value
+        digits = [c for c in val if c.isdigit()]
+        if not digits:
+            return "[]"
+
+        return "[" + ", ".join(digits) + "]"
 
 
 class AnnovarResultsProcessor:

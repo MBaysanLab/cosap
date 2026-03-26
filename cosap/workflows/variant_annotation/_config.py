@@ -32,6 +32,7 @@ class VariantAnnotationConfig:
         "gnomadg_nfe_af": "gnomADg_NFE_AF",
         "gnomadg_oth_af": "gnomADg_OTH_AF",
         "gnomadg_sas_af": "gnomADg_SAS_AF",
+        "max_af": "MAX_AF",
         "aminoacid_change": "Amino_acids",
         "sift_score": "SIFT",
         "polyphen_score": "PolyPhen",
@@ -53,6 +54,15 @@ class VariantAnnotationConfig:
         "bayesdel_addaf": "BayesDel",
         "primateai": "PrimateAI",
         "pubmed": "PUBMED",
+        # InterVar fields
+        "intervar_classification": "InterVar_classification",
+        "intervar_pvs1": "InterVar_PVS1",
+        "intervar_ps": "InterVar_PS",
+        "intervar_pm": "InterVar_PM",
+        "intervar_pp": "InterVar_PP",
+        "intervar_ba1": "InterVar_BA1",
+        "intervar_bs": "InterVar_BS",
+        "intervar_bp": "InterVar_BP",
     }
 
     SPLICEAI_SCORE_COLUMNS = [
