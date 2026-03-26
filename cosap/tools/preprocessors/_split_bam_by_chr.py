@@ -19,7 +19,8 @@ class SplitbyCHR:
             "samtools",
             "view",
             "-bh",
-            "-o", output_filename,
+            "-o",
+            output_filename,
             str(bam_filename),
             f"chr{chromosome}",
         ]
@@ -39,4 +40,4 @@ class SplitbyCHR:
                     chromosome=chromosome,
                     output_filename=output_filename,
                 )
-                run(command)
+                run(command, check=True)

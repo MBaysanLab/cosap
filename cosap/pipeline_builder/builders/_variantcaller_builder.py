@@ -1,7 +1,8 @@
 import os
 from dataclasses import dataclass, field
-from subprocess import PIPE, STDOUT, Popen
 from typing import Dict
+
+import pysam
 
 from ..._formats import FileFormats, OutputFolders
 from ..._pipeline_config import PipelineKeys, VariantCallingKeys
@@ -58,10 +59,16 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
 
     def _get_sample_name_from_bam(self, bam) -> str:
         abs_bam_path = os.path.abspath(os.path.normpath(bam))
-        cmd = f"samtools view -H {abs_bam_path} | grep '^@RG' | sed 's/.*SM:\([^\t]*\).*/\1/g' | uniq"
-        ps = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT)
-        sample_name = str(ps.communicate()[0])
-        return str(sample_name)
+        sample_names = set()
+        with pysam.AlignmentFile(abs_bam_path, "rb", check_sq=False) as bam_file:
+            header = bam_file.header
+            for rg in header.get("RG", []):
+                sm = rg.get("SM")
+                if sm:
+                    sample_names.add(sm)
+        if sample_names:
+            return sample_names.pop()
+        return ""
 
     def get_config(self, core_only: bool = False) -> Dict:
         unfiltered_variants_output_filename = FileFormats.GATK_UNFILTERED_OUTPUT.format(

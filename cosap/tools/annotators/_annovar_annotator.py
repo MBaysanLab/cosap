@@ -69,6 +69,10 @@ class AnnovarAnnotator(_Annotatable, _Annotator):
             library_paths=library_paths,
             annotator_config=annotator_config,
         )
-        run(create_input_command, cwd=annotator_config[AnnotatorKeys.OUTPUT_DIR])
-        run(annovar_command, cwd=annotator_config[AnnotatorKeys.OUTPUT_DIR])
+        run(
+            create_input_command,
+            cwd=annotator_config[AnnotatorKeys.OUTPUT_DIR],
+            check=True,
+        )
+        run(annovar_command, cwd=annotator_config[AnnotatorKeys.OUTPUT_DIR], check=True)
         cls._rename_annovar_output(annotator_config=annotator_config)

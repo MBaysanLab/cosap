@@ -46,4 +46,4 @@ class GeneFuse(_GeneFusionCaller):
         command = cls._create_gene_fuse_command(
             caller_config, library_paths, app_config
         )
-        run(command, cwd=caller_config[GeneFusionCallingKeys.OUTPUT_DIR])
+        run(command, cwd=caller_config[GeneFusionCallingKeys.OUTPUT_DIR], check=True)

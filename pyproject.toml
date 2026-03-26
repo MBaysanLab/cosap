@@ -8,6 +8,48 @@ description = "COSAP library for NGS data analysis"
 readme = "README.md"
 license = { text = "MIT license" }
 dynamic = ["version"]
+requires-python = ">=3.9,<3.12"
+dependencies = [
+    # CLI framework
+    "click>=8.0,<9.0",
+    "python-dotenv>=1.0,<2.0",
+    # System monitoring
+    "psutil>=5.9,<6.0",
+    # Data handling
+    "pandas>=2.2,<2.3",
+    "numpy>=1.24,<2.0",
+    "PyYAML>=6.0,<7.0",
+    "orjson>=3.9,<4.0",
+    # HTTP client (file downloads)
+    "requests>=2.28,<3.0",
+    # Bioinformatics (pip-installable)
+    "pysam>=0.21,<0.23",
+    "cyvcf2>=0.30,<0.32",
+    # Task queue / distributed computing
+    "celery>=5.3,<6.0",
+    # Docker integration
+    "docker>=6.0,<8.0",
+    # Utilities
+    "tqdm>=4.65,<5.0",
+    "shortuuid>=1.0,<2.0",
+    # Visualization / data science
+    "matplotlib>=3.7,<4.0",
+    "matplotlib-venn>=0.11,<1.0",
+    "seaborn>=0.12,<1.0",
+    "scikit-learn>=1.2,<2.0",
+    "UpSetPlot>=0.8,<1.0",
+]
+
+[project.optional-dependencies]
+# Optional: high-performance IPC serialization
+arrow = ["pyarrow>=12.0,<18.0"]
+# Redis backend for Celery (installs redis Python client)
+redis = ["celery[redis]>=5.3,<6.0"]
+# Development and testing
+dev = [
+    "pytest>=7.0,<9.0",
+    "ruff>=0.1",
+]
 
 [tool.setuptools]
 include-package-data = true
@@ -37,4 +79,4 @@ select = ["I"]  # Enable isort rules
 
 # Optional: Configure import sorting behavior
 [tool.ruff.lint.isort]
-known-first-party = ["your_package_name"]
+known-first-party = ["cosap"]

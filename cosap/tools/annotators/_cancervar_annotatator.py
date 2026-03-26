@@ -56,4 +56,4 @@ class CancervarAnnotator(_Annotatable, _Annotator):
             annotator_config=annotator_config,
         )
         output_dir = cls.create_output_dir(annotator_config)
-        run(cancervar_command, cwd=output_dir)
+        run(cancervar_command, cwd=output_dir, check=True)

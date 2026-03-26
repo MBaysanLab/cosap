@@ -59,7 +59,7 @@ class MetaRnnAnnotator(_Annotatable, _Annotator):
 
         runner.run(
             image=DockerImages.METARNN,
-            command=" ".join(metarnn_command),
+            command=metarnn_command,
             workdir=output_dir,
             paths_to_bind=[
                 {"source": input_dir, "target": input_dir},

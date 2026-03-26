@@ -100,6 +100,10 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
         samtools = Popen(samtools_mpileup, stdout=PIPE, cwd=workdir)
         varscan = check_output(varscan_somatic, stdin=samtools.stdout, cwd=workdir)
         samtools.wait()
+        if samtools.returncode != 0:
+            raise RuntimeError(
+                f"samtools mpileup failed with return code {samtools.returncode}"
+            )
 
         unfiltered_vcfs = [
             caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT],
@@ -110,4 +114,4 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
             process_somatic_command = cls._create_process_somatic_command(
                 vcf=vcf_file,
             )
-            run(process_somatic_command, cwd=workdir)
+            run(process_somatic_command, cwd=workdir, check=True)

@@ -14,7 +14,8 @@ RUN wget https://github.com/wwylab/MuSE/archive/refs/tags/v2.0.1.tar.gz && \
     tar -vxf v2.0.1.tar.gz && \
     cd MuSE-2.0.1 && \
     ./install_muse.sh && \
-    cp MuSE /usr/local/bin/
+    cp MuSE /usr/local/bin/ && \
+    rm -rf /tmp/MuSE-2.0.1 /tmp/v2.0.1.tar.gz
 
 ENV PATH=$PATH:/usr/local/bin/MuSE
 
@@ -36,6 +37,9 @@ RUN conda init
 RUN echo "conda activate cosap" >> ~/.bashrc
 ENV PATH=/opt/conda/envs/cosap/bin:$PATH
 
-# Create working directory
-RUN mkdir /workdir
+# Create non-root user and working directory
+RUN groupadd -r cosap && useradd -r -g cosap -m -s /bin/bash cosap
+RUN mkdir /workdir && chown cosap:cosap /workdir
+
+USER cosap
 WORKDIR /workdir

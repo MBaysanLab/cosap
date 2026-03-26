@@ -7,6 +7,7 @@ from typing import Dict
 from .._config import AppConfig
 from .._pipeline_config import PipelineKeys
 from .._version import version
+from ._validation import validate_pipeline_config
 from .builders import _PipelineStep
 
 
@@ -68,4 +69,5 @@ class Pipeline:
                     pipeline_config[key][k] = v
 
         # TODO: insert validation here
+        validate_pipeline_config(pipeline_config)
         return pipeline_config

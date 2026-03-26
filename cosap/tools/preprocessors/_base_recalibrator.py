@@ -71,14 +71,18 @@ class BaseRecalibrator(_Preprocessor, _PreProcessable):
         command = cls._create_table_command(
             calibration_config=calibration_config, library_paths=library_paths
         )
-        run(command, cwd=calibration_config[BaseRecalibratorKeys.OUTPUT_DIR])
+        run(
+            command, cwd=calibration_config[BaseRecalibratorKeys.OUTPUT_DIR], check=True
+        )
 
     @classmethod
     def _apply_calibration(cls, calibration_config: Dict, library_paths: LibraryPaths):
         command = cls._create_calibration_command(
             calibration_config=calibration_config, library_paths=library_paths
         )
-        run(command, cwd=calibration_config[BaseRecalibratorKeys.OUTPUT_DIR])
+        run(
+            command, cwd=calibration_config[BaseRecalibratorKeys.OUTPUT_DIR], check=True
+        )
 
     @classmethod
     def _create_parabricks_bqsr_command(
@@ -147,13 +151,21 @@ class BaseRecalibrator(_Preprocessor, _PreProcessable):
             os.makedirs(output_dir, exist_ok=True)
 
             runner = DockerRunner(device=device)
-            runner.run(
+            return_code = runner.run(
                 image=DockerImages.PARABRICKS,
-                command=" ".join(bqsr_command),
+                command=bqsr_command,
                 workdir=str(Path(output_dir).parent),
             )
-            runner.run(
+            if return_code not in (0, None):
+                raise RuntimeError(
+                    f"Parabricks BQSR failed with return code {return_code}"
+                )
+            return_code = runner.run(
                 image=DockerImages.PARABRICKS,
-                command=" ".join(applybqsr_command),
+                command=applybqsr_command,
                 workdir=str(Path(output_dir).parent),
             )
+            if return_code not in (0, None):
+                raise RuntimeError(
+                    f"Parabricks ApplyBQSR failed with return code {return_code}"
+                )

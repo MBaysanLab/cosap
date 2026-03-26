@@ -95,7 +95,16 @@ class VarDictVariantCaller(_Callable, _VariantCaller):
         )
         vardict.stdout.close()
         var2vcf = check_output(var2vcf_command, stdin=testsomatic.stdout, cwd=workdir)
+        testsomatic.wait()
         vardict.wait()
+        if vardict.returncode != 0:
+            raise RuntimeError(
+                f"vardict-java failed with return code {vardict.returncode}"
+            )
+        if testsomatic.returncode != 0:
+            raise RuntimeError(
+                f"testsomatic.R failed with return code {testsomatic.returncode}"
+            )
 
         output_name = join_paths(
             caller_config[VariantCallingKeys.OUTPUT_DIR],

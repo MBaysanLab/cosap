@@ -340,11 +340,15 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
             os.makedirs(output_dir, exist_ok=True)
 
             runner = DockerRunner(device=device)
-            runner.run(
+            return_code = runner.run(
                 image=DockerImages.PARABRICKS,
-                command=" ".join(command),
+                command=command,
                 workdir=str(Path(caller_config[VariantCallingKeys.WORKDIR]).absolute()),
             )
+            if return_code not in (0, None):
+                raise RuntimeError(
+                    f"Parabricks HaplotypeCaller failed with return code {return_code}"
+                )
 
         if caller_config[VariantCallingKeys.OUTPUT_TYPE] == "VCF":
             output_dir = Path(workdir).absolute()
@@ -372,12 +376,12 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
             docker_runner = DockerRunner(device=device)
             docker_runner.run(
                 DockerImages.GATK,
-                " ".join(cnnscorevariants_command),
+                cnnscorevariants_command,
                 workdir=str(Path(caller_config[VariantCallingKeys.WORKDIR]).absolute()),
             )
 
-            run(create_vcfs_index_command, cwd=workdir)
-            run(filter_variants_command, cwd=workdir)
-            run(get_snp_command, cwd=workdir)
-            run(get_indel_command, cwd=workdir)
-            run(get_other_variants_command, cwd=workdir)
+            run(create_vcfs_index_command, cwd=workdir, check=True)
+            run(filter_variants_command, cwd=workdir, check=True)
+            run(get_snp_command, cwd=workdir, check=True)
+            run(get_indel_command, cwd=workdir, check=True)
+            run(get_other_variants_command, cwd=workdir, check=True)

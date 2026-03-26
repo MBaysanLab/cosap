@@ -307,7 +307,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
                 splitted_configs, stats_output
             )
             if gather_stats_command is not None:
-                run(gather_stats_command, cwd=workdir)
+                run(gather_stats_command, cwd=workdir, check=True)
 
             ScatterGather.clean_temp_files(caller_config[VariantCallingKeys.OUTPUT_DIR])
 
@@ -324,11 +324,15 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             os.makedirs(output_dir, exist_ok=True)
 
             runner = DockerRunner(device=device)
-            runner.run(
+            return_code = runner.run(
                 image=DockerImages.PARABRICKS,
-                command=" ".join(command),
+                command=command,
                 workdir=str(Path(caller_config[VariantCallingKeys.WORKDIR]).absolute()),
             )
+            if return_code not in (0, None):
+                raise RuntimeError(
+                    f"Parabricks Mutect2 failed with return code {return_code}"
+                )
 
         filter_command = cls._filter_mutect_calls(
             caller_config=caller_config, library_paths=library_paths
@@ -343,7 +347,7 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             caller_config=caller_config, library_paths=library_paths
         )
 
-        run(filter_command, cwd=workdir)
-        run(get_snp_command, cwd=workdir)
-        run(get_indel_command, cwd=workdir)
-        run(get_other_variants_command, cwd=workdir)
+        run(filter_command, cwd=workdir, check=True)
+        run(get_snp_command, cwd=workdir, check=True)
+        run(get_indel_command, cwd=workdir, check=True)
+        run(get_other_variants_command, cwd=workdir, check=True)

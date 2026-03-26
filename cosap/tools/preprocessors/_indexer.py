@@ -21,4 +21,4 @@ class BamIndexer:
     @classmethod
     def run_preprocessor(cls, indexing_config: Dict, *args, **kwargs):
         command = cls._create_command(indexing_config=indexing_config)
-        run(command)
+        run(command, check=True)

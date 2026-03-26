@@ -113,4 +113,4 @@ class Exomiser(_Annotatable, _Annotator):
             app_config=app_config,
             annotator_config=annotator_config,
         )
-        run(command, cwd=annotator_config[AnnotatorKeys.OUTPUT_DIR])
+        run(command, cwd=annotator_config[AnnotatorKeys.OUTPUT_DIR], check=True)

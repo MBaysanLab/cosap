@@ -1,4 +1,5 @@
 import os
+import re
 from logging import getLogger
 from typing import Dict, List, Union
 
@@ -7,6 +8,9 @@ import docker
 from .._config import AppConfig
 
 logger = getLogger(__name__)
+
+# Shell metacharacters that should not appear in paths bound to containers.
+_DANGEROUS_PATH_CHARS = re.compile(r"[;\|`$\(\)\{\}!&<>]")
 
 
 class DockerRunner:
@@ -40,11 +44,19 @@ class DockerRunner:
         if paths_to_bind is None:
             paths_to_bind = []
 
+        # Validate workdir path
+        if workdir:
+            workdir = os.path.realpath(workdir)
+            if _DANGEROUS_PATH_CHARS.search(workdir):
+                raise ValueError(
+                    f"Docker workdir contains invalid characters: {workdir}"
+                )
+
         # Check if the image exists
         if not self._check_if_image_exists(image):
             self._pull_image(image)
 
-        library_path = AppConfig.LIBRARY_PATH
+        library_path = os.path.realpath(AppConfig.LIBRARY_PATH)
         hostname = os.getenv("HOSTNAME") if self._check_if_running_in_docker() else None
 
         # Set volumes
@@ -53,9 +65,15 @@ class DockerRunner:
             workdir: {"bind": workdir, "mode": "rw"},
         }
         for path_binding in paths_to_bind:
-            source = path_binding["source"]
+            source = os.path.realpath(path_binding["source"])
             target = path_binding["target"]
             mode = path_binding.get("mode", "rw")
+
+            if _DANGEROUS_PATH_CHARS.search(source):
+                raise ValueError(
+                    f"Docker bind mount source contains invalid characters: {source}"
+                )
+
             volumes_dict[source] = {"bind": target, "mode": mode}
 
         volumes = None
@@ -73,6 +91,14 @@ class DockerRunner:
             ]
 
         user = None if run_as_root else os.getuid()
+
+        if run_as_root:
+            logger.warning(
+                "Running Docker container as root. "
+                "This is a security risk when combined with host bind mounts. "
+                "Consider running as a non-root user instead."
+            )
+
         # Run and return the log generator
         docker_run_command = self._container_run_to_cmd(
             image=image,
@@ -105,14 +131,26 @@ class DockerRunner:
             user=user,
         )
 
-        logs = container.attach(stdout=True, stderr=True, stream=True, logs=True)
+        try:
+            logs = container.attach(stdout=True, stderr=True, stream=True, logs=True)
 
-        for log in logs:
-            print(log.decode("utf-8").strip())
+            for log in logs:
+                print(log.decode("utf-8").strip())
 
-        wait_result = container.wait()
-        status_code = int(wait_result.get("StatusCode", 1))
-        return status_code
+            wait_result = container.wait()
+            status_code = int(wait_result.get("StatusCode", 1))
+            return status_code
+        except Exception:
+            # Ensure container is stopped and cleaned up on any failure
+            try:
+                container.stop(timeout=10)
+            except Exception:
+                pass
+            try:
+                container.remove(force=True)
+            except Exception:
+                pass
+            raise
 
     def _check_if_running_in_docker(self) -> bool:
         """

@@ -1,6 +1,17 @@
+# =============================================================================
+# Conda environment dependencies for COSAP
+# =============================================================================
+# This file is for conda/mamba install. For pip-only dependencies,
+# see [project.dependencies] in pyproject.toml.
+#
+# Install: conda install --file requirements.txt
+# =============================================================================
+
+# --- Runtime / JVM ---
 openjdk==17.*
 python==3.9.*
-pandas==2.2.*
+
+# --- Bioinformatics CLI tools (conda-only, invoked via subprocess) ---
 bbmap==39.01
 bowtie2==2.5.1
 bwa==0.7.17
@@ -13,33 +24,26 @@ qualimap==2.2.2d
 samtools==1.20.*
 somatic-sniper==1.0.5.0
 bcftools==1.16
-tqdm
 varscan==2.4.4
-yaml
-numpy
-pillow
-pygraphviz
-snakefmt
-snakemake==7.18.*
 elprep==5.1.3
 vardict-java==1.8.3
 snpeff==5.1
+bedtools==2.31.*
+msisensor-pro==1.2.*
+genefuse==0.8.*
+
+# --- Perl dependencies (for annotation tools) ---
 perl-dbi
 perl-lwp-simple
-conda
-msisensor-pro
-genefuse
-shortuuid
-pyranges
-upsetplot
-seaborn
-scikit-learn
-matplotlib-venn
-celery
-redis-py
-docker-py
-python-dotenv
-pysam
-bedtools
-cyvcf2
-orjson
+
+# --- Snakemake (workflow engine, invoked as CLI subprocess) ---
+snakemake==7.18.*
+snakefmt==0.10.*
+
+# --- Python packages also available via conda (pinned) ---
+# These are listed here for conda environments. They are also declared
+# in pyproject.toml [project.dependencies] for pip installs.
+pandas==2.2.*
+numpy>=1.24,<2.0
+pysam>=0.21,<0.23
+cyvcf2>=0.30,<0.32

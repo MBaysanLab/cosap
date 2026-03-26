@@ -149,7 +149,7 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
                     mdup_config=mdup_config,
                     memory_handler=memory_handler,
                 )
-                run(command, cwd=mdup_config[MDUPKeys.OUTPUT_DIR])
+                run(command, cwd=mdup_config[MDUPKeys.OUTPUT_DIR], check=True)
 
         elif device == "gpu":
             output_dir = os.path.abspath(os.path.dirname(mdup_config[MDUPKeys.OUTPUT]))
@@ -160,11 +160,15 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
             query_name_sort_command = cls.create_parabricks_sort_command(
                 mdup_config, library_paths, "queryname"
             )
-            runner.run(
+            return_code = runner.run(
                 image=DockerImages.PARABRICKS,
-                command=" ".join(query_name_sort_command),
+                command=query_name_sort_command,
                 workdir=str(Path(mdup_config[MDUPKeys.WORKDIR]).absolute()),
             )
+            if return_code not in (0, None):
+                raise RuntimeError(
+                    f"Parabricks queryname sort failed with return code {return_code}"
+                )
 
             mdup_command = cls.create_parabricks_markdup_command(
                 library_paths=library_paths,
@@ -173,18 +177,26 @@ class MarkDuplicate(_Preprocessor, _PreProcessable):
                 memory_handler=None,
             )
 
-            runner.run(
+            return_code = runner.run(
                 image=DockerImages.PARABRICKS,
-                command=" ".join(mdup_command),
+                command=mdup_command,
                 workdir=str(Path(mdup_config[MDUPKeys.WORKDIR]).absolute()),
             )
+            if return_code not in (0, None):
+                raise RuntimeError(
+                    f"Parabricks markdup failed with return code {return_code}"
+                )
 
             # Convert output to coordinate sorted bam
             coordinate_sort_command = cls.create_parabricks_sort_command(
                 mdup_config, library_paths, "coordinate"
             )
-            runner.run(
+            return_code = runner.run(
                 image=DockerImages.PARABRICKS,
-                command=" ".join(coordinate_sort_command),
+                command=coordinate_sort_command,
                 workdir=str(Path(mdup_config[MDUPKeys.WORKDIR]).absolute()),
             )
+            if return_code not in (0, None):
+                raise RuntimeError(
+                    f"Parabricks coordinate sort failed with return code {return_code}"
+                )

@@ -39,4 +39,4 @@ class Mosdepth(_QualityController, _QualityControllable):
             qc_config=qc_config, library_paths=library_paths
         )
 
-        run(mosdepth_command)
+        run(mosdepth_command, check=True)

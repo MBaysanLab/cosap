@@ -1,12 +1,14 @@
 import glob
 import json
 import os
+import re
 from logging import getLogger
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 import yaml
 from celery import Celery, shared_task
+from celery.exceptions import SoftTimeLimitExceeded
 
 from .._config import AppConfig
 from .._utils import convert_vcf_to_json_fast
@@ -24,9 +26,78 @@ celery_app.config_from_object("cosap.celery.celeryconfig")
 
 logger = getLogger(__name__)
 
+# Regex for safe identifiers (sample names, caller types, etc.)
+_SAFE_IDENTIFIER_RE = re.compile(r"^[a-zA-Z0-9._-]+$")
 
-@shared_task(name="dna_pipeline_task")
+# Shell metacharacters that must never appear in paths
+_DANGEROUS_PATH_CHARS = re.compile(r"[;\|`$\(\)\{\}!&<>]")
+
+
+def _validate_path(path: str, field_name: str) -> str:
+    """Validate and resolve a filesystem path.
+
+    - Rejects paths with shell metacharacters.
+    - Resolves to a real path (following symlinks).
+    - Rejects paths with '..' components before resolution.
+
+    Returns the resolved real path.
+    Raises ValueError if the path is invalid.
+    """
+    if not path or not isinstance(path, str):
+        raise ValueError(f"{field_name} must be a non-empty string, got: {path!r}")
+
+    if _DANGEROUS_PATH_CHARS.search(path):
+        raise ValueError(
+            f"Invalid characters in {field_name}: path contains shell metacharacters."
+        )
+
+    # Reject explicit traversal attempts
+    if ".." in path.split(os.sep):
+        raise ValueError(
+            f"Path traversal detected in {field_name}. "
+            f"Use absolute paths without '..' components."
+        )
+
+    return os.path.realpath(path)
+
+
+def _validate_identifier(value: str, field_name: str) -> str:
+    """Validate that a string is a safe identifier."""
+    if not value or not isinstance(value, str):
+        raise ValueError(f"{field_name} must be a non-empty string, got: {value!r}")
+
+    if not _SAFE_IDENTIFIER_RE.match(value):
+        raise ValueError(
+            f"Invalid {field_name}: '{value}'. "
+            f"Must contain only alphanumeric characters, underscores, hyphens, and dots."
+        )
+    return value
+
+
+def _validate_list_of_strings(values, field_name: str) -> list:
+    """Validate that a value is a list of non-empty strings."""
+    if not isinstance(values, list):
+        raise ValueError(f"{field_name} must be a list, got: {type(values).__name__}")
+    for i, v in enumerate(values):
+        if not isinstance(v, str) or not v:
+            raise ValueError(
+                f"{field_name}[{i}] must be a non-empty string, got: {v!r}"
+            )
+    return values
+
+
+@shared_task(
+    bind=True,
+    name="dna_pipeline_task",
+    time_limit=172800,  # 48 hours hard limit
+    soft_time_limit=169200,  # 47 hours soft limit
+    acks_late=True,
+    reject_on_worker_lost=True,
+    max_retries=1,
+    default_retry_delay=300,  # 5 minutes
+)
 def dna_pipeline_task(
+    self,
     analysis_type,
     workdir,
     normal_sample,
@@ -42,6 +113,44 @@ def dna_pipeline_task(
     gene_fusion=True,
 ):
     try:
+        # Validate inputs at the task boundary
+        _validate_identifier(analysis_type, "analysis_type")
+        workdir = _validate_path(workdir, "workdir")
+        _validate_identifier(normal_sample_name, "normal_sample_name")
+        _validate_identifier(tumor_sample_name, "tumor_sample_name")
+
+        if normal_sample:
+            if isinstance(normal_sample, list):
+                normal_sample = [
+                    _validate_path(p, "normal_sample") for p in normal_sample
+                ]
+            elif isinstance(normal_sample, str):
+                normal_sample = _validate_path(normal_sample, "normal_sample")
+
+        if tumor_samples:
+            if isinstance(tumor_samples, list):
+                tumor_samples = [
+                    _validate_path(p, "tumor_samples") for p in tumor_samples
+                ]
+            elif isinstance(tumor_samples, str):
+                tumor_samples = _validate_path(tumor_samples, "tumor_samples")
+
+        if bed_file:
+            bed_file = _validate_path(bed_file, "bed_file")
+
+        if mappers:
+            _validate_list_of_strings(mappers, "mappers")
+            for m in mappers:
+                _validate_identifier(m, "mapper")
+
+        if variant_callers:
+            _validate_list_of_strings(variant_callers, "variant_callers")
+            for vc in variant_callers:
+                _validate_identifier(vc, "variant_caller")
+
+        if bam_qc:
+            _validate_identifier(bam_qc, "bam_qc")
+
         dna_pipeline_input = DNAPipelineInput(
             ANALYSIS_TYPE=analysis_type,
             WORKDIR=workdir,
@@ -66,25 +175,42 @@ def dna_pipeline_task(
         dna_pipeline.run_pipeline()
         return {"return_code": 0, "message": "Pipeline completed successfully"}
 
+    except SoftTimeLimitExceeded:
+        logger.error("DNA pipeline task exceeded soft time limit")
+        raise
     except (FileNotFoundError, PermissionError, ValueError, Exception) as e:
         error_type = type(e).__name__
         logger.error(f"{error_type} in DNA pipeline: {e}")
         raise Exception(f"{error_type.replace('Error', '')}: {str(e)}")
 
 
-@shared_task(name="parse_project_results")
-def parse_project_data(path):
+@shared_task(
+    bind=True,
+    name="parse_project_results",
+    time_limit=3600,  # 1 hour hard limit
+    soft_time_limit=3300,  # 55 minutes soft limit
+    acks_late=True,
+    reject_on_worker_lost=True,
+    max_retries=2,
+    default_retry_delay=60,
+)
+def parse_project_data(self, path):
     try:
+        path = _validate_path(path, "path")
+
         if not os.path.exists(path):
             raise FileNotFoundError(f"Project path does not exist: {path}")
 
-        configs = glob.glob(f"{path}/*_config.yaml")
+        if not os.path.isdir(path):
+            raise ValueError(f"Project path is not a directory: {path}")
+
+        configs = glob.glob(os.path.join(path, "*_config.yaml"))
         latest_config = max(configs, key=os.path.getctime, default=None)
 
         if latest_config is None:
             raise FileNotFoundError(f"No config files found in {path}")
 
-        config_dict = yaml.load(Path(latest_config).read_text(), Loader=yaml.Loader)
+        config_dict = yaml.safe_load(Path(latest_config).read_text())
 
         parser = ProjectResultsParser(pipeline_config=config_dict)
 
@@ -116,11 +242,25 @@ def parse_project_data(path):
         raise Exception(f"Unexpected error: {str(e)}")
 
 
-@shared_task(name="annotation_task")
+@shared_task(
+    bind=True,
+    name="annotation_task",
+    time_limit=43200,  # 12 hours hard limit
+    soft_time_limit=41400,  # 11.5 hours soft limit
+    acks_late=True,
+    reject_on_worker_lost=True,
+    max_retries=1,
+    default_retry_delay=120,
+)
 def annotate_variants(
-    variants_file_path: str, workdir: str, variant_type: str = None
+    self, variants_file_path: str, workdir: str, variant_type: str = None
 ) -> str:
     try:
+        variants_file_path = _validate_path(variants_file_path, "variants_file_path")
+
+        if variant_type is not None:
+            _validate_identifier(variant_type, "variant_type")
+
         logger.info(
             f"Received request to annotate variants file: {variants_file_path}, workdir: {workdir}"
         )
@@ -129,9 +269,11 @@ def annotate_variants(
             raise FileNotFoundError(f"Variants file not found: {variants_file_path}")
 
         if workdir is None:
-            workdir = Path(variants_file_path).parent
-        elif not os.path.exists(workdir):
-            raise FileNotFoundError(f"Working directory not found: {workdir}")
+            workdir = str(Path(variants_file_path).parent)
+        else:
+            workdir = _validate_path(workdir, "workdir")
+            if not os.path.exists(workdir):
+                raise FileNotFoundError(f"Working directory not found: {workdir}")
 
         variant_annotator = VariantMultipleAnnotator(
             variants_file_path, workdir, variant_type=variant_type
@@ -160,11 +302,30 @@ def annotate_variants(
         raise Exception(f"Annotation failed: {str(e)}")
 
 
-@shared_task(name="parse_vcf_task")
+@shared_task(
+    bind=True,
+    name="parse_vcf_task",
+    time_limit=3600,  # 1 hour hard limit
+    soft_time_limit=3300,  # 55 minutes soft limit
+    acks_late=True,
+    reject_on_worker_lost=True,
+    max_retries=2,
+    default_retry_delay=60,
+)
 def parse_vcf(
-    vcf_path: str, sample_name: str, caller_type: str, reference_genome: str = None
+    self,
+    vcf_path: str,
+    sample_name: str,
+    caller_type: str,
+    reference_genome: str = None,
 ) -> str:
     try:
+        vcf_path = _validate_path(vcf_path, "vcf_path")
+        _validate_identifier(sample_name, "sample_name")
+        _validate_identifier(caller_type, "caller_type")
+        if reference_genome is not None:
+            _validate_identifier(reference_genome, "reference_genome")
+
         logger.info(
             f"Received request to parse VCF file: {vcf_path}, sample_name: {sample_name}, caller_type: {caller_type}"
         )
@@ -225,10 +386,26 @@ def parse_vcf(
         raise Exception(f"VCF parsing failed: {str(e)}")
 
 
-@shared_task(name="exomiser_task")
-def exomiser_task(vcf_path: str, hpo_terms: list, workdir: str) -> str:
+@shared_task(
+    bind=True,
+    name="exomiser_task",
+    time_limit=7200,  # 2 hours hard limit
+    soft_time_limit=6900,  # 1 hour 55 minutes soft limit
+    acks_late=True,
+    reject_on_worker_lost=True,
+    max_retries=1,
+    default_retry_delay=120,
+)
+def exomiser_task(self, vcf_path: str, hpo_terms: list, workdir: str) -> str:
+    vcf_path = _validate_path(vcf_path, "vcf_path")
+    _validate_list_of_strings(hpo_terms, "hpo_terms")
+    for term in hpo_terms:
+        _validate_identifier(term, "hpo_term")
+
     if workdir is None:
         workdir = str(Path(vcf_path).parent)
+    else:
+        workdir = _validate_path(workdir, "workdir")
 
     variants_json = ExomiserPrioritizer(vcf_path, hpo_terms, workdir).prioritize()
 
@@ -239,20 +416,33 @@ def exomiser_task(vcf_path: str, hpo_terms: list, workdir: str) -> str:
     return exomiser_variants_file_path
 
 
-@shared_task(name="parse_annotated_cnv_task")
-def parse_annotated_cnv_task(vcf_path: str, workdir: str = None) -> str:
+@shared_task(
+    bind=True,
+    name="parse_annotated_cnv_task",
+    time_limit=3600,  # 1 hour hard limit
+    soft_time_limit=3300,  # 55 minutes soft limit
+    acks_late=True,
+    reject_on_worker_lost=True,
+    max_retries=2,
+    default_retry_delay=60,
+)
+def parse_annotated_cnv_task(self, vcf_path: str, workdir: str = None) -> str:
     """
     Parse a VEP-annotated CNV VCF into a JSON list using AnnotatedCnvVcfParser.
     Returns the path to the written JSON file.
     """
     try:
+        vcf_path = _validate_path(vcf_path, "vcf_path")
+
         if not os.path.exists(vcf_path):
             raise FileNotFoundError(f"VCF file not found: {vcf_path}")
 
         if workdir is None:
             workdir = str(Path(vcf_path).parent)
-        elif not os.path.exists(workdir):
-            raise FileNotFoundError(f"Working directory not found: {workdir}")
+        else:
+            workdir = _validate_path(workdir, "workdir")
+            if not os.path.exists(workdir):
+                raise FileNotFoundError(f"Working directory not found: {workdir}")
 
         parser = AnnotatedCnvVcfParser()
         parsed = parser.parse(vcf_path)

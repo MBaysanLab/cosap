@@ -81,12 +81,12 @@ class MantaVariantCaller(_Callable, _VariantCaller):
         docker_runner = DockerRunner(device=device)
         docker_runner.run(
             DockerImages.MANTA,
-            " ".join(manta_command),
+            manta_command,
             workdir=workdir,
         )
         docker_runner.run(
             DockerImages.MANTA,
-            " ".join(manta_run_wf_command),
+            manta_run_wf_command,
             workdir=workdir,
         )
         cls._move_manta_vcfs(

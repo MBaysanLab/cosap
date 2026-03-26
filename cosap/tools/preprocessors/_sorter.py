@@ -35,4 +35,4 @@ class SamtoolsSorter:
             library_paths=library_paths,
         )
 
-        run(command)
+        run(command, check=True)

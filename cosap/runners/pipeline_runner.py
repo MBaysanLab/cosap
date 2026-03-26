@@ -4,6 +4,7 @@ import yaml
 
 from .._pipeline_config import MappingKeys, PipelineKeys, VariantCallingKeys
 from .._utils import join_paths
+from ..pipeline_builder._validation import validate_pipeline_config
 from ..tools.mappers import MapperFactory
 from ..tools.preprocessors import (
     BamIndexer,
@@ -20,7 +21,7 @@ class PipelineRunner:
         self.device = device.lower()
 
     def validate_pipeline_config(self, pipeline_config: dict):
-        raise NotImplementedError()
+        validate_pipeline_config(pipeline_config)
 
     def map(self, mapping_configs: list):
         for config in mapping_configs:
@@ -60,6 +61,8 @@ class PipelineRunner:
             yaml.dump(pipeline_config, config_yaml, default_flow_style=False)
 
     def run_pipeline(self, pipeline_config: dict, runner: str = "snakemake") -> str:
+        self.validate_pipeline_config(pipeline_config)
+
         workdir = pipeline_config[PipelineKeys.WORKDIR]
         config_yaml_path = os.path.normpath(
             join_paths(

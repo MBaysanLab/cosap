@@ -67,5 +67,5 @@ class PharmcatAnnotator(_Annotatable, _Annotator):
             annotator_config=annotator_config,
         )
 
-        run(create_preprocess_vcf_command, cwd=workdir)
-        run(pharmcat_command, cwd=workdir)
+        run(create_preprocess_vcf_command, cwd=workdir, check=True)
+        run(pharmcat_command, cwd=workdir, check=True)

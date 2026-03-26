@@ -96,7 +96,7 @@ class DeepVariantVariantCaller(_Callable, _VariantCaller):
             )
             docker_runner.run(
                 DockerImages.PARABRICKS,
-                " ".join(deepvariant_command),
+                deepvariant_command,
                 workdir=str(workdir),
                 paths_to_bind=[
                     {"source": input_dir, "target": input_dir},
@@ -108,7 +108,7 @@ class DeepVariantVariantCaller(_Callable, _VariantCaller):
             )
             docker_runner.run(
                 DockerImages.DEEPVARIANT,
-                " ".join(deepvariant_command),
+                deepvariant_command,
                 workdir=str(workdir),
                 paths_to_bind=[
                     {"source": input_dir, "target": input_dir},

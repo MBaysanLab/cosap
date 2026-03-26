@@ -70,7 +70,7 @@ class VepAnnotator(_Annotatable, _Annotator):
                 "file": "intervar_db",
                 "params": None,
                 "use_file_prefix": True,
-            }
+            },
         ]
 
         for plugin in plugins:
@@ -192,10 +192,10 @@ class VepAnnotator(_Annotatable, _Annotator):
         output_dir = cls.create_output_dir(annotator_config)
 
         # Change the read/write permissions of the output directory
-        run(["chmod", "-R", "a+rwx", output_dir])
+        run(["chmod", "-R", "a+rwx", output_dir], check=True)
 
         # Change the read/write permissions of the input file
-        run(["chmod", "a+rwx", annotator_config[AnnotatorKeys.INPUT]])
+        run(["chmod", "a+rwx", annotator_config[AnnotatorKeys.INPUT]], check=True)
 
         runner = DockerRunner()
         runner.run(

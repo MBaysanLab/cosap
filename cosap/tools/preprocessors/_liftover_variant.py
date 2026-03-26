@@ -44,7 +44,7 @@ class LiftoverVariant(_Preprocessor, _PreProcessable):
         command = cls._create_command(
             liftover_config=liftover_config, library_paths=library_paths
         )
-        run(command, cwd=liftover_config[LiftoverKeys.OUTPUT_DIR])
+        run(command, cwd=liftover_config[LiftoverKeys.OUTPUT_DIR], check=True)
 
     @classmethod
     def run_preprocessor(cls, liftover_config: Dict, device="cpu"):

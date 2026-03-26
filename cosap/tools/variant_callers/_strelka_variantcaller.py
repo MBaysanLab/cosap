@@ -86,12 +86,12 @@ class StrelkaVariantCaller(_Callable, _VariantCaller):
         docker_runner = DockerRunner(device=device)
         docker_runner.run(
             DockerImages.STRELKA2,
-            " ".join(strelka_command),
+            strelka_command,
             workdir=workdir,
         )
         docker_runner.run(
             DockerImages.STRELKA2,
-            " ".join(strelka_run_wf_command),
+            strelka_run_wf_command,
             workdir=workdir,
         )
 

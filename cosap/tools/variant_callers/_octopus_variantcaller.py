@@ -56,4 +56,8 @@ class OctopusVariantCaller(_Callable, _VariantCaller):
             app_config=app_config,
         )
 
-        run(octopus_command, cwd=caller_config[VariantCallingKeys.OUTPUT_DIR])
+        run(
+            octopus_command,
+            cwd=caller_config[VariantCallingKeys.OUTPUT_DIR],
+            check=True,
+        )

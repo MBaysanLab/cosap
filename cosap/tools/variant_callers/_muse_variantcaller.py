@@ -78,5 +78,5 @@ class MuseVariantCaller(_Callable, _VariantCaller):
             app_config=app_config,
         )
 
-        run(call_command)
-        run(sump_command)
+        run(call_command, check=True)
+        run(sump_command, check=True)

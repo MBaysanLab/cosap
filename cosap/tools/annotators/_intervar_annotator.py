@@ -55,4 +55,4 @@ class IntervarAnnotator(_Annotatable, _Annotator):
         )
 
         output_dir = cls.create_output_dir(annotator_config)
-        run(intervar_command, cwd=output_dir)
+        run(intervar_command, cwd=output_dir, check=True)

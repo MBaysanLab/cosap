@@ -299,10 +299,9 @@ class GATKGermlineCNVCaller(_CNVCaller):
         """Create command for GATK DetermineGermlineContigPloidy."""
         params = caller_config.get(GermlineCNVCallingKeys.PARAMS, {})
         run_mode = cls._normalize_run_mode(caller_config)
-        case_ploidy_model = (
-            caller_config.get(GermlineCNVCallingKeys.PLOIDY_MODEL)
-            or params.get("ploidy_model")
-        )
+        case_ploidy_model = caller_config.get(
+            GermlineCNVCallingKeys.PLOIDY_MODEL
+        ) or params.get("ploidy_model")
 
         command = [
             "gatk",
@@ -419,10 +418,9 @@ class GATKGermlineCNVCaller(_CNVCaller):
 
         if run_mode == "CASE":
             if not case_model_path:
-                case_model_path = (
-                    caller_config.get(GermlineCNVCallingKeys.CNV_MODEL)
-                    or params.get("cnv_model")
-                )
+                case_model_path = caller_config.get(
+                    GermlineCNVCallingKeys.CNV_MODEL
+                ) or params.get("cnv_model")
             if not case_model_path:
                 raise ValueError(
                     "CASE mode requires a CNV model shard path for each shard."
@@ -583,7 +581,7 @@ class GATKGermlineCNVCaller(_CNVCaller):
             docker_runner = DockerRunner(device=device)
             return_code = docker_runner.run(
                 DockerImages.GATK,
-                " ".join(command),
+                command,
                 workdir=workdir,
                 run_as_root=run_as_root,
                 paths_to_bind=paths_to_bind,
@@ -729,7 +727,7 @@ class GATKGermlineCNVCaller(_CNVCaller):
         docker_runner = DockerRunner(device=device)
         return_code = docker_runner.run(
             DockerImages.GATK,
-            " ".join(command),
+            command,
             workdir=workdir,
         )
 
@@ -1064,7 +1062,9 @@ class GATKGermlineCNVCaller(_CNVCaller):
                 if not os.path.exists(local_priors):
                     shutil.copy2(original_priors, local_priors)
                     print(f"  Copied contig ploidy priors to: {local_priors}")
-                caller_config[GermlineCNVCallingKeys.CONTIG_PLOIDY_PRIORS] = local_priors
+                caller_config[GermlineCNVCallingKeys.CONTIG_PLOIDY_PRIORS] = (
+                    local_priors
+                )
 
         if params.get("mappability_track"):
             original_mappability = params["mappability_track"]
@@ -1090,9 +1090,7 @@ class GATKGermlineCNVCaller(_CNVCaller):
             cmd = cls._create_preprocess_intervals_command(
                 caller_config, library_paths, app_config
             )
-            return_code = docker_runner.run(
-                DockerImages.GATK, " ".join(cmd), workdir=workdir
-            )
+            return_code = docker_runner.run(DockerImages.GATK, cmd, workdir=workdir)
             if return_code not in (0, None):
                 raise RuntimeError(f"PreprocessIntervals failed: {return_code}")
         else:
@@ -1107,9 +1105,7 @@ class GATKGermlineCNVCaller(_CNVCaller):
             cmd = cls._create_annotate_intervals_command(
                 caller_config, library_paths, app_config
             )
-            return_code = docker_runner.run(
-                DockerImages.GATK, " ".join(cmd), workdir=workdir
-            )
+            return_code = docker_runner.run(DockerImages.GATK, cmd, workdir=workdir)
             if return_code not in (0, None):
                 raise RuntimeError(f"AnnotateIntervals failed: {return_code}")
         else:
@@ -1134,31 +1130,31 @@ class GATKGermlineCNVCaller(_CNVCaller):
         print("Step 4/8: FilterIntervals...")
         filtered_intervals = os.path.join(intervals_dir, "filtered.interval_list")
         if run_mode == "COHORT":
-            caller_config[GermlineCNVCallingKeys.FILTERED_INTERVALS] = filtered_intervals
+            caller_config[GermlineCNVCallingKeys.FILTERED_INTERVALS] = (
+                filtered_intervals
+            )
 
             if not os.path.exists(filtered_intervals):
                 cmd = cls._create_filter_intervals_command(
                     caller_config, library_paths, app_config
                 )
-                return_code = docker_runner.run(
-                    DockerImages.GATK, " ".join(cmd), workdir=workdir
-                )
+                return_code = docker_runner.run(DockerImages.GATK, cmd, workdir=workdir)
                 if return_code not in (0, None):
                     raise RuntimeError(f"FilterIntervals failed: {return_code}")
             else:
                 print(f"  Cached: {filtered_intervals}")
         else:
             caller_config.pop(GermlineCNVCallingKeys.FILTERED_INTERVALS, None)
-            print("  CASE mode: skipping FilterIntervals; using cohort model intervals.")
+            print(
+                "  CASE mode: skipping FilterIntervals; using cohort model intervals."
+            )
 
         # Step 5: ScatterIntervals
         print("Step 5/8: ScatterIntervals...")
         if run_mode == "CASE":
             case_model_shards = cls._resolve_case_model_shards(caller_config)
             shard_intervals = [None] * len(case_model_shards)
-            print(
-                f"  CASE mode: using {len(case_model_shards)} provided model shards."
-            )
+            print(f"  CASE mode: using {len(case_model_shards)} provided model shards.")
         else:
             intervals_per_shard = params.get(
                 "intervals_per_shard", cls.DEFAULT_INTERVALS_PER_SHARD
@@ -1188,14 +1184,16 @@ class GATKGermlineCNVCaller(_CNVCaller):
                 caller_config, library_paths, app_config
             )
             return_code = docker_runner.run(
-                DockerImages.GATK, " ".join(cmd), workdir=workdir, run_as_root=True
+                DockerImages.GATK, cmd, workdir=workdir, run_as_root=True
             )
             if return_code not in (0, None):
                 raise RuntimeError(
                     f"DetermineGermlineContigPloidy failed: {return_code}"
                 )
         else:
-            cached_target = ploidy_model_dir if run_mode == "COHORT" else ploidy_calls_dir
+            cached_target = (
+                ploidy_model_dir if run_mode == "COHORT" else ploidy_calls_dir
+            )
             print(f"  Cached: {cached_target}")
 
         # Restore original output_dir
