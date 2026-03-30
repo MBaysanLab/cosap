@@ -27,6 +27,7 @@ class DNAPipelineInput:
     GENEFUSION: bool = False
     DEVICE: str = "cpu"
     SKIP_RECALIBRATION: bool = True
+    MODEL_TYPE: str = None
 
     def __post_init__(self):
         if isinstance(self.TUMOR_SAMPLES, tuple):
@@ -39,6 +40,24 @@ class DNAPipelineInput:
             if self.BED_FILE is None:
                 raise Exception(
                     "Bed file should be provided for VarDict variant caller"
+                )
+
+        analysis = self.ANALYSIS_TYPE.lower()
+        if analysis == "germline" and self.NORMAL_SAMPLE is None:
+            raise ValueError(
+                "A normal sample (--normal_sample) is required for germline analysis. "
+                "Provide a comma-separated pair of R1,R2 FASTQ paths."
+            )
+        if analysis == "somatic":
+            if self.NORMAL_SAMPLE is None:
+                raise ValueError(
+                    "A normal sample (--normal_sample) is required for somatic analysis. "
+                    "Provide a comma-separated pair of R1,R2 FASTQ paths."
+                )
+            if not self.TUMOR_SAMPLES:
+                raise ValueError(
+                    "At least one tumor sample (--tumor_sample) is required for somatic analysis. "
+                    "Provide a comma-separated pair of R1,R2 FASTQ paths."
                 )
 
         if self.TUMOR_SAMPLE_NAME is None:
@@ -210,6 +229,7 @@ class DNAPipeline:
                         else None,
                         tumor_sample=tumor_final_step,
                         bed_file=self.input.BED_FILE,
+                        model_type=self.input.MODEL_TYPE,
                         params={
                             "germline_sample_name": self.input.NORMAL_SAMPLE_NAME,
                             "tumor_sample_name": tumor_sample_name,
@@ -288,6 +308,7 @@ class DNAPipeline:
                     tumor_sample=None,
                     bed_file=self.input.BED_FILE,
                     gvcf=self.input.GVCF,
+                    model_type=self.input.MODEL_TYPE,
                 )
                 self.pipeline.add(vc)
 

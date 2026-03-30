@@ -19,6 +19,7 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
     name: _PipelineStep = None
     gvcf: bool = False
     bed_file: str = None
+    model_type: str = None
     key: str = PipelineKeys.VARIANT_CALLING
     next_step: _PipelineStep = None
     output_dir: str = None
@@ -102,6 +103,9 @@ class VariantCaller(_IPipelineStep, _PipelineStep):
                 VariantCallingKeys.WORKDIR: self.output_dir,
             },
         }
+
+        if self.model_type is not None:
+            vc_config[self.name][VariantCallingKeys.MODEL_TYPE] = self.model_type
 
         if self.tumor_sample is not None:
             vc_config[self.name][VariantCallingKeys.TUMOR_INPUT] = (

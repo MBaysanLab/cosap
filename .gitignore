@@ -133,3 +133,6 @@ dmypy.json
 
 *.ipynb
 cosap/_config.py
+
+# Session context (local only)
+CONTEXT.md

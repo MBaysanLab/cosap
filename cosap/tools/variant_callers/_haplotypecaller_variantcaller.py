@@ -23,7 +23,7 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
         library_paths: LibraryPaths,
         memory_handler: MemoryHandler,
     ) -> List:
-        MAX_MEMORY_IN_GB = int(AppConfig.MAX_MEMORY_PER_JOB // (1024.0**3))
+        max_memory_mb = int(AppConfig.MAX_MEMORY_PER_JOB // (1024.0**2))
 
         germline_bam = convert_to_absolute_path(
             memory_handler.get_bam_path(
@@ -35,16 +35,14 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
             if caller_config[VariantCallingKeys.OUTPUT_TYPE] == "VCF"
             else caller_config[VariantCallingKeys.GVCF_OUTPUT]
         )
-        output_file = join_paths(
-            caller_config[VariantCallingKeys.OUTPUT_DIR], output_file
-        )
-
+        # Use bare filename only — the subprocess runs with cwd=OUTPUT_DIR,
+        # so joining OUTPUT_DIR here would double the path.
         output_name = memory_handler.get_output_path(output_file)
 
         command = [
             "gatk",
             "--java-options",
-            "-Xmx20G",
+            f"-Xmx{max_memory_mb}M -XX:-UsePerfData",
             "HaplotypeCaller",
             "-R",
             library_paths.REF_FASTA,
@@ -52,6 +50,10 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
             germline_bam,
             "-O",
             output_name,
+            "--native-pair-hmm-threads",
+            str(AppConfig.MAX_THREADS_PER_JOB),
+            "--tmp-dir",
+            ".",
         ]
         if caller_config[VariantCallingKeys.OUTPUT_TYPE] == "GVCF":
             command.append("--emit-ref-confidence")
@@ -78,9 +80,8 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
             if caller_config[VariantCallingKeys.OUTPUT_TYPE] == "VCF"
             else caller_config[VariantCallingKeys.GVCF_OUTPUT]
         )
-        output_file = join_paths(
-            caller_config[VariantCallingKeys.OUTPUT_DIR], output_file
-        )
+        # Use bare filename — DockerRunner sets workdir to absolute OUTPUT_DIR,
+        # so joining OUTPUT_DIR here would double the path.
 
         command = [
             "pbrun",
@@ -105,23 +106,16 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
     def _create_cnnscorevariants_command(
         cls, caller_config: Dict, library_paths: LibraryPaths
     ) -> List:
-        input_name = join_paths(
-            caller_config[VariantCallingKeys.OUTPUT_DIR],
-            caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT],
+        # Use bare filenames — DockerRunner sets workdir to absolute OUTPUT_DIR,
+        # so joining OUTPUT_DIR here would double the path.
+        input_name = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
+        output_name = cls._create_cnn_annotated_output_name(
+            caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
         )
-        output_name = join_paths(
-            caller_config[VariantCallingKeys.OUTPUT_DIR],
-            cls._create_cnn_annotated_output_name(
-                caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
-            ),
-        )
-        input_bam = caller_config[VariantCallingKeys.GERMLINE_INPUT]
 
         command = [
             "gatk",
-            "NVScoreVariants",
-            "-I",
-            input_bam,
+            "CNNScoreVariants",
             "-V",
             input_name,
             "-R",
@@ -129,7 +123,7 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
             "-O",
             output_name,
             "-tensor-type",
-            "read_tensor",
+            "reference",
         ]
 
         return command
@@ -182,7 +176,7 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
             "--resource",
             library_paths.ONE_THOUSAND_G,
             "--info-key",
-            "CNN_2D",
+            "CNN_1D",
             "-O",
             output_name,
         ]

@@ -64,6 +64,7 @@ VALID_PREPROCESSORS = {
 VALID_CNV_CALLERS = {"cnvkit", "gatk_germline_cnv"}
 VALID_MSI_CALLERS = {"msisensor"}
 VALID_GENE_FUSION_CALLERS = {"genefuse"}
+VALID_MODEL_TYPES = {"WGS", "WES"}
 
 
 def validate_safe_path(path: str, field_name: str) -> None:
@@ -183,6 +184,21 @@ def _validate_step_configs(
                     validate_identifier(value, f"{step_name}.{name}.{key}")
                 except PipelineConfigError as e:
                     errors.append(str(e))
+
+        # Validate model_type for deepvariant
+        library = config.get("library", "")
+        if library.lower() == "deepvariant":
+            model_type = config.get("model_type")
+            if not model_type:
+                errors.append(
+                    f"{step_name}.{name}: model_type is required for deepvariant. "
+                    f"Valid options are: {sorted(VALID_MODEL_TYPES)}"
+                )
+            elif model_type not in VALID_MODEL_TYPES:
+                errors.append(
+                    f"{step_name}.{name}: invalid model_type '{model_type}'. "
+                    f"Valid options are: {sorted(VALID_MODEL_TYPES)}"
+                )
 
     return errors
 

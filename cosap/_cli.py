@@ -98,8 +98,8 @@ def cli():
 @click.option(
     "--gvcf",
     help="Generate gvcf files",
-    type=bool,
     required=False,
+    is_flag=True,
 )
 @click.option(
     "--msi",
@@ -119,6 +119,12 @@ def cli():
     required=False,
     default="cpu",
 )
+@click.option(
+    "--model_type",
+    help="Model type for DeepVariant. Options = ['WGS', 'WES']",
+    type=click.Choice(["WGS", "WES"], case_sensitive=True),
+    required=False,
+)
 def pipeline(
     analysis_type,
     workdir,
@@ -135,6 +141,7 @@ def pipeline(
     msi,
     gene_fusion,
     device=None,
+    model_type=None,
 ):
     try:
         print(
@@ -153,8 +160,19 @@ def pipeline(
                 gvcf: {gvcf} \n \
                 msi: {msi} \n \
                 gene_fusion: {gene_fusion} \n \
-                device: {device} \n"
+                device: {device} \n \
+                model_type: {model_type} \n"
         )
+
+        if model_type is None and "deepvariant" in [
+            vc.lower() for vc in variant_caller
+        ]:
+            click.echo(
+                "Error: --model_type is required when using deepvariant. "
+                "Options: WGS, WES",
+                err=True,
+            )
+            raise SystemExit(1)
 
         pipeline_input = DNAPipelineInput(
             ANALYSIS_TYPE=analysis_type,
@@ -172,6 +190,7 @@ def pipeline(
             MSI=msi,
             GENEFUSION=gene_fusion,
             DEVICE=device,
+            MODEL_TYPE=model_type,
         )
         dna_pipeline = DNAPipeline(pipeline_input)
         dna_pipeline.run_pipeline()
@@ -354,6 +373,12 @@ def mapper(fastqs, mapper, output_dir, sample_name, read_groups, output_name, de
     required=False,
     default="cpu",
 )
+@click.option(
+    "--model_type",
+    help="Model type for DeepVariant. Options = ['WGS', 'WES']",
+    type=click.Choice(["WGS", "WES"], case_sensitive=True),
+    required=False,
+)
 def variant_caller(
     variant_caller,
     tumor_sample,
@@ -362,12 +387,21 @@ def variant_caller(
     tumor_sample_name,
     bed_file,
     device,
+    model_type,
 ):
     try:
         # Check if tumor_sample is provided
         if not tumor_sample and not normal_sample:
             click.echo(
                 "Please provide the path to the analysis ready bam files.", err=True
+            )
+            raise SystemExit(1)
+
+        if model_type is None and variant_caller.lower() == "deepvariant":
+            click.echo(
+                "Error: --model_type is required when using deepvariant. "
+                "Options: WGS, WES",
+                err=True,
             )
             raise SystemExit(1)
 
@@ -391,6 +425,7 @@ def variant_caller(
             },
             output_dir=output_dir,
             bed_file=bed_file,
+            model_type=model_type,
         )
         variant_caller_config = variant_caller_builder.get_config()
         cosap_variant_caller = VariantCallerFactory.create(variant_caller)

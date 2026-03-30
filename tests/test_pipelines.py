@@ -19,7 +19,8 @@ from cosap import (
     VariantCallerFactory,
 )
 from cosap._utils import join_paths
-from cosap.tests import create_test_fastqs_from_chr1_ref_with_1_snp
+
+from tests._fastq_generators import create_test_fastqs_from_chr1_ref_with_1_snp
 
 TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
@@ -38,11 +39,11 @@ def test_bowtie_somaticsniper_pipeline(tmp_path):
     ) = create_test_fastqs_from_chr1_ref_with_1_snp(workdir=workdir)
     snp_chrom, snp_pos, snp_ref, snp_alt = single_SNP_tuple
 
-    run_basic_bowtie_somaticsniper_pipeline(
+    caller = run_basic_bowtie_somaticsniper_pipeline(
         workdir=workdir, normal_fastqs=normal_fastqs, tumor_fastqs=tumor_fastqs
     )
 
-    vcf_path = os.path.join(workdir, "VCF", "somaticsniper", "all_TEST_VCF.vcf")
+    vcf_path = caller.get_output()
     assert os.path.isfile(vcf_path)
 
     somaticsniper_headers = [
@@ -128,6 +129,8 @@ def run_basic_bowtie_somaticsniper_pipeline(
 
     pipeline_runner = PipelineRunner()
     pipeline_runner.run_pipeline(config)
+
+    return caller
 
 
 @pytest.fixture

@@ -111,6 +111,7 @@ class VariantCallingKeys(PipelineBaseKeys):
     INDEL_OUTPUT: str = "indel_output"
     OTHER_VARIANTS_OUTPUT: str = "other_variants_output"
     PILEUPS: str = "pileups"
+    MODEL_TYPE: str = "model_type"
 
 
 @dataclass

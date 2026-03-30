@@ -57,13 +57,13 @@ class MemoryHandler:
         return tmp_path
 
     def get_bam_path(self, path: str) -> str:
+        # Find the index from the *original* path before copying to ramdisk,
+        # since the index won't exist at the ramdisk location yet.
+        bai_path = get_bam_index_path(path)
+
         bam_path = self.get_path(path)
         if not os.path.exists(bam_path):
             raise FileNotFoundError(f"BAM file {bam_path} not found")
-
-        # get index path along with bam path. the index can be either in form of .bai or .bam.bai
-
-        bai_path = get_bam_index_path(bam_path)
 
         _ = self.get_path(bai_path)
         return bam_path
