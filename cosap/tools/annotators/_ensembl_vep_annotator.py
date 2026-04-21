@@ -177,7 +177,7 @@ class VepAnnotator(_Annotatable, _Annotator):
             "--no_stats",
             "--vcf",
             "--buffer_size",
-            "10000",
+            "200000",
         ]
 
         # Add plugins dynamically based on file availability

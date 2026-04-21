@@ -1,6 +1,5 @@
-from pathlib import Path
 from subprocess import PIPE, Popen, check_output, run
-from typing import Dict, List, Union
+from typing import Dict, List
 
 from ..._library_paths import LibraryPaths
 from ..._pipeline_config import VariantCallingKeys
@@ -11,7 +10,7 @@ from ._variantcallers import _Callable, _VariantCaller
 class VarScanVariantCaller(_Callable, _VariantCaller):
     @classmethod
     def _create_samtools_command(
-        cls, caller_config=Dict, library_paths=LibraryPaths
+        cls, caller_config: Dict = None, library_paths: LibraryPaths = None
     ) -> List:
         germline_bam = convert_to_absolute_path(
             caller_config[VariantCallingKeys.GERMLINE_INPUT]
@@ -43,7 +42,7 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
 
     @classmethod
     def _create_varscan_somatic_command(
-        cls, caller_config=Dict, library_paths=LibraryPaths
+        cls, caller_config: Dict = None, library_paths: LibraryPaths = None
     ) -> List:
         snp_output_name = caller_config[VariantCallingKeys.ALL_VARIANTS_OUTPUT]
         indel_output_name = caller_config[VariantCallingKeys.INDEL_OUTPUT]
@@ -57,15 +56,24 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
             indel_output_name,
             "--mpileup",
             "1",
-            "--min-coverage-normal 8",
-            "--min-coverage-tumor 6",
-            "--min-var-freq 0.10",
-            "--min-freq-for-hom 0.75",
-            "--normal-purity 1.0",
-            "--tumor-purity 1.00",
-            "--p-value 0.99",
-            "--somatic-p-value 0.05",
-            "--strand-filter 0",
+            "--min-coverage-normal",
+            "8",
+            "--min-coverage-tumor",
+            "6",
+            "--min-var-freq",
+            "0.10",
+            "--min-freq-for-hom",
+            "0.75",
+            "--normal-purity",
+            "1.0",
+            "--tumor-purity",
+            "1.00",
+            "--p-value",
+            "0.99",
+            "--somatic-p-value",
+            "0.05",
+            "--strand-filter",
+            "0",
             "--output-vcf",
         ]
         return command
@@ -73,15 +81,18 @@ class VarScanVariantCaller(_Callable, _VariantCaller):
     @classmethod
     def _create_process_somatic_command(
         cls,
-        vcf=Union[str, Path],
+        vcf: str = None,
     ) -> List:
         command = [
             "varscan",
             "processSomatic",
             vcf,
-            "--min-tumor-freq 0.1",
-            "--max-normal-freq 0.05",
-            "--p-value 0.07",
+            "--min-tumor-freq",
+            "0.1",
+            "--max-normal-freq",
+            "0.05",
+            "--p-value",
+            "0.07",
         ]
         return command
 

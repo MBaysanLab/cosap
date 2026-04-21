@@ -114,13 +114,21 @@ class SnakemakeRunner:
             log_file.write("2. Creating DAG...\n")
             log_file.flush()
 
-        dag = Popen(create_dag, cwd=self.workdir, stdout=PIPE)
-        print_dat_to_file = check_output(save_dag, cwd=self.workdir, stdin=dag.stdout)
-        dag.wait()
+        try:
+            dag = Popen(create_dag, cwd=self.workdir, stdout=PIPE)
+            print_dat_to_file = check_output(
+                save_dag, cwd=self.workdir, stdin=dag.stdout
+            )
+            dag.wait()
+
+            with open(log_file_path, "a") as log_file:
+                log_file.write("DAG created and saved as SVG.\n\n")
+        except (FileNotFoundError, NotADirectoryError, OSError) as e:
+            with open(log_file_path, "a") as log_file:
+                log_file.write(f"Warning: Could not generate DAG SVG: {e}\n")
+                log_file.write("Install graphviz to enable DAG visualization.\n\n")
 
         with open(log_file_path, "a") as log_file:
-            log_file.write("DAG created and saved as SVG.\n\n")
-
             log_file.write("3. Running dry run...\n")
             log_file.flush()
 

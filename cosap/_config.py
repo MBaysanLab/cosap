@@ -4,6 +4,7 @@ import atexit
 import importlib.resources as importlib_resources
 import multiprocessing
 import os
+import re
 from contextlib import ExitStack
 from dataclasses import dataclass
 from threading import Lock
@@ -21,11 +22,12 @@ def get_snakefile_path() -> str:
         path = file_manager.enter_context(importlib_resources.as_file(ref))
 
         return path
-        
+
     except ModuleNotFoundError:
         # TODO: Handle this more gracefully
         return None
-    
+
+
 def get_cosap_dotenv():
     """
     Create and return a .env file in ~/.cosap directory if it does not exist.
@@ -49,7 +51,27 @@ def _strtobool(value: str) -> bool:
         return False
     else:
         raise ValueError(f"Invalid truth value: {value}")
-    
+
+
+def _safe_positive_int_from_env(env_var: str, default: int) -> int:
+    raw_value = os.getenv(env_var)
+    if raw_value is None:
+        return default
+
+    try:
+        parsed = int(raw_value)
+    except ValueError:
+        return default
+
+    return parsed if parsed > 0 else default
+
+
+def _safe_samtools_memory_from_env(default: str = "768M") -> str:
+    value = os.getenv("COSAP_SAMTOOLS_SORT_MEM_PER_THREAD", default)
+    if re.match(r"^\d+[KMG]$", value):
+        return value
+    return default
+
 
 class _AppConfigMeta(type):
     _instances = {}
@@ -64,36 +86,40 @@ class _AppConfigMeta(type):
 
 @dataclass
 class AppConfig(metaclass=_AppConfigMeta):
-
-    # Load the .env file
-    load_dotenv(
-        dotenv_path=get_cosap_dotenv()
-    )
+    # Load the .env file
+    load_dotenv(dotenv_path=get_cosap_dotenv())
 
     HOME_PATH = os.getenv("HOME")
     LIBRARY_PATH: str = os.getenv(
-        "COSAP_LIBRARY_PATH",
-        os.path.join(HOME_PATH, "cosap_data")
+        "COSAP_LIBRARY_PATH", os.path.join(HOME_PATH, "cosap_data")
     )
     if not os.path.exists(LIBRARY_PATH):
         os.mkdir(LIBRARY_PATH)
 
     SNAKEFILE_PATH: str = get_snakefile_path()
-    
+
     RAMDISK_PATH: str = os.getenv("COSAP_RAMDISK_PATH", "/dev/shm")
     REF_VERSION = os.getenv("COSAP_REF_VERSION", "hg38")
 
     MAX_THREADS_PER_JOB: int = int(
         os.getenv("COSAP_THREADS_PER_JOB", multiprocessing.cpu_count())
     )
-    if (MAX_THREADS_PER_JOB == 0 or
-        MAX_THREADS_PER_JOB > multiprocessing.cpu_count()):
+    if MAX_THREADS_PER_JOB == 0 or MAX_THREADS_PER_JOB > multiprocessing.cpu_count():
         MAX_THREADS_PER_JOB = multiprocessing.cpu_count()
 
+    SAMTOOLS_SORT_THREADS: int = _safe_positive_int_from_env(
+        "COSAP_SAMTOOLS_SORT_THREADS",
+        min(MAX_THREADS_PER_JOB, 3),
+    )
+    SAMTOOLS_SORT_THREADS = min(SAMTOOLS_SORT_THREADS, MAX_THREADS_PER_JOB)
+    SAMTOOLS_SORT_MEM_PER_THREAD: str = _safe_samtools_memory_from_env()
+
     # Max memory is (avaliable memory / number of parallel jobs) in bytes
-    MAX_MEMORY_PER_JOB: int = psutil.virtual_memory().total / (
-        multiprocessing.cpu_count() // MAX_THREADS_PER_JOB
-    ) * 0.8
+    MAX_MEMORY_PER_JOB: int = (
+        psutil.virtual_memory().total
+        / (multiprocessing.cpu_count() // MAX_THREADS_PER_JOB)
+        * 0.8
+    )
 
     WORKDIR: str = os.getcwd()
 
@@ -104,5 +130,3 @@ class AppConfig(metaclass=_AppConfigMeta):
 
     DEVICE = os.getenv("COSAP_DEVICE", "cpu")
     VEP_CACHE_VERSION = os.getenv("COSAP_VEP_CACHE_VERSION", "115")
-
-

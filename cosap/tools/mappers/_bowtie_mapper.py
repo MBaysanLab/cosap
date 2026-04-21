@@ -1,4 +1,4 @@
-from subprocess import PIPE, run
+from subprocess import PIPE, Popen
 from typing import Dict, List
 
 from ..._config import AppConfig
@@ -88,19 +88,25 @@ class Bowtie2Mapper(_Mapper, _Mappable):
             app_config=app_config, input_path=mapper_config[MappingKeys.OUTPUT]
         )
 
-        bowtie = run(bowtie_command, stdout=PIPE, stderr=PIPE, cwd=workdir, check=False)
-        samtools = run(
+        bowtie = Popen(bowtie_command, stdout=PIPE, stderr=PIPE, cwd=workdir)
+        samtools = Popen(
             sort_command,
-            input=bowtie.stdout,
+            stdin=bowtie.stdout,
             stdout=PIPE,
             stderr=PIPE,
             cwd=workdir,
-            check=True,
         )
+
+        bowtie.stdout.close()
+        _, samtools_stderr = samtools.communicate()
+        _, bowtie_stderr = bowtie.communicate()
+
         if bowtie.returncode != 0:
             raise Exception(
-                f"Bowtie2 command {(*bowtie_command,)} failed with error: {bowtie.stderr.decode('utf-8')}"
+                f"Bowtie2 command {(*bowtie_command,)} failed with error: {bowtie_stderr.decode('utf-8')}"
             )
-        else:
-            print(samtools.stdout.decode("utf-8"))
+        if samtools.returncode != 0:
+            raise Exception(
+                f"samtools sort command {(*sort_command,)} failed with error: {samtools_stderr.decode('utf-8')}"
+            )
         # run(index_command)

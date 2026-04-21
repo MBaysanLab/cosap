@@ -10,7 +10,7 @@ from ._variantcallers import _Callable, _VariantCaller
 class VarScanGermlineVariantCaller(_Callable, _VariantCaller):
     @classmethod
     def _create_samtools_command(
-        cls, caller_config=Dict, library_paths=LibraryPaths
+        cls, caller_config: Dict = None, library_paths: LibraryPaths = None
     ) -> List:
         germline_bam = convert_to_absolute_path(
             caller_config[VariantCallingKeys.GERMLINE_INPUT]

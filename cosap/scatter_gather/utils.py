@@ -11,16 +11,19 @@ from .._utils import join_paths
 
 def merge_bam_files(bam_list: List, output_path: str):
     command = ["samtools", "merge", output_path, *bam_list]
-    run(command)
+    run(command, check=True)
 
 
 def merge_vcf_files(vcf_list: List, output_path: str):
-    command = ["picard", "GatherVcfs", "-I", *vcf_list, "-O", output_path]
-    run(command)
+    command = ["picard", "GatherVcfs"]
+    for vcf in vcf_list:
+        command.extend(["-I", vcf])
+    command.extend(["-O", output_path])
+    run(command, check=True)
 
 
 def convert_region_file_to_bed(interval_file_path: str):
-    output_filename = interval_file_path.split(".")[0]
+    output_filename = os.path.splitext(interval_file_path)[0]
     command = [
         "picard",
         "IntervalListToBed",
@@ -29,7 +32,7 @@ def convert_region_file_to_bed(interval_file_path: str):
         "-O",
         f"{output_filename}.bed",
     ]
-    run(command)
+    run(command, check=True)
 
 
 def create_gatk_intervals(
@@ -48,10 +51,11 @@ def create_gatk_intervals(
     if bed_file:
         command.extend(["-L", bed_file])
 
-    run(command)
+    run(command, check=True)
 
     for interval_file in os.listdir(output_dir):
-        convert_region_file_to_bed(join_paths(output_dir, interval_file))
+        if interval_file.endswith(".interval_list"):
+            convert_region_file_to_bed(join_paths(output_dir, interval_file))
 
 
 def get_region_file_list(file_type="bed", bed_file=None, workdir=None) -> list:
@@ -63,7 +67,9 @@ def get_region_file_list(file_type="bed", bed_file=None, workdir=None) -> list:
         if workdir
         else FolderedOutputs.REGIONS_FILE_OUTPUT
     )
-    if not os.path.exists(region_files_dir):
+
+    interval_files = glob(f"{region_files_dir}/*.{file_type}")
+    if not interval_files:
         os.makedirs(region_files_dir, exist_ok=True)
         create_gatk_intervals(
             library_path=library_paths,
@@ -71,8 +77,8 @@ def get_region_file_list(file_type="bed", bed_file=None, workdir=None) -> list:
             output_dir=region_files_dir,
             bed_file=bed_file,
         )
+        interval_files = glob(f"{region_files_dir}/*.{file_type}")
 
-    interval_files = glob(f"{region_files_dir}/*.{file_type}")
     return interval_files
 
 
@@ -84,15 +90,17 @@ def split_bam_by_intervals(bam_path: str, bed_file=None) -> list:
     threads = app_config.MAX_THREADS_PER_JOB
 
     if int(threads) == 1:
-        return bam_path
+        return [bam_path]
 
     interval_files = get_region_file_list(bed_file=bed_file)
+    bam_stem = os.path.splitext(os.path.basename(bam_path))[0]
+    bam_dir = os.path.dirname(bam_path)
     for interval_index in range(len(interval_files)):
         splitted_bam_filename = FileFormats.SPLITTED_BAM_FILENAME.format(
-            split_no=interval_index, name=bam_path.split(".")[0]
+            split_no=interval_index, name=join_paths(bam_dir, bam_stem) if bam_dir else bam_stem
         )
         output_list.append(splitted_bam_filename)
-        if os.path.isfile(splitted_bam_filename):
+        if os.path.isfile(splitted_bam_filename) and os.path.getsize(splitted_bam_filename) > 0:
             print("BAM file already exists, skipping.")
             continue
         command = [
@@ -107,7 +115,7 @@ def split_bam_by_intervals(bam_path: str, bed_file=None) -> list:
             "-o",
             splitted_bam_filename,
         ]
-        run(command)
+        run(command, check=True)
         samtools_index_bam(splitted_bam_filename)
 
     return output_list
@@ -116,7 +124,7 @@ def split_bam_by_intervals(bam_path: str, bed_file=None) -> list:
 def samtools_index_bam(path: str):
     app_config = AppConfig()
     command = ["samtools", "index", "-@", str(app_config.MAX_THREADS_PER_JOB), path]
-    run(command)
+    run(command, check=True)
 
 
 def create_tmp_filename(filename: str, index: int = 0) -> str:

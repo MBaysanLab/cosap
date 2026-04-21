@@ -4,7 +4,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git g++ cmake autoconf libtool liblzma-dev zlib1g-dev libbz2-dev libcurl3-dev libssl-dev \
-    ca-certificates cpp make libltdl-dev wget unzip \
+    ca-certificates cpp make libltdl-dev wget unzip graphviz \
     && apt-get clean && rm -rf /var/lib/apt/lists/
 
 WORKDIR /tmp

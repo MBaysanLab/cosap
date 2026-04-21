@@ -11,7 +11,7 @@ from ._variantcallers import _Callable, _VariantCaller
 class MuseVariantCaller(_Callable, _VariantCaller):
     @classmethod
     def _create_muse_output_prefix(cls, output_name: str):
-        return output_name.strip(".vcf")
+        return output_name.removesuffix(".vcf")
 
     @classmethod
     def _create_muse_call_command(

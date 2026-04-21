@@ -1,5 +1,6 @@
 import glob
 import os
+import shutil
 import subprocess
 from contextlib import contextmanager
 from itertools import chain, repeat
@@ -37,6 +38,10 @@ class ScatterGather:
         )
 
         if split_bams:
+            if not germline_bam and not tumor_bam:
+                raise ValueError(
+                    "split_bams=True but neither germline nor tumor BAM is provided"
+                )
             splitted_germline_bams = (
                 split_bam_by_intervals(germline_bam, bed_file=bed_file)
                 if germline_bam
@@ -86,9 +91,16 @@ class ScatterGather:
     def cleanup_on_exit(filepath):
         try:
             yield
-        except BaseException:
+        except KeyboardInterrupt:
+            raise
+        except Exception:
             if os.path.exists(filepath):
                 os.remove(filepath)
+            # Also clean up associated index files
+            for ext in [".tbi", ".idx"]:
+                idx_path = filepath + ext
+                if os.path.exists(idx_path):
+                    os.remove(idx_path)
             raise
 
     @staticmethod
@@ -107,6 +119,22 @@ class ScatterGather:
         else:
             raise ValueError(f"Mode {mode} not supported")
 
+        if not vcfs:
+            raise RuntimeError(
+                "No VCF files to gather. The scatter step may have produced no output. "
+                "Check that interval files exist and scatter jobs completed successfully."
+            )
+
+        # Verify all input VCF files exist
+        missing_vcfs = [
+            vcf for vcf in vcfs if not os.path.isfile(os.path.join(cwd, vcf) if cwd else vcf)
+        ]
+        if missing_vcfs:
+            raise RuntimeError(
+                f"Missing VCF files for gather step: {missing_vcfs}. "
+                "Scatter jobs may have failed to produce output."
+            )
+
         command.extend(list(chain(*zip(repeat("-I"), vcfs))))
 
         with ScatterGather.cleanup_on_exit(output_path):
@@ -120,9 +148,16 @@ class ScatterGather:
 
     @staticmethod
     def clean_temp_files(path):
-        temp_files = glob.glob(f"{path}/*tmp*")
+        # Scatter shards use identifications like "tmp<shortuuid>", which can
+        # appear either at the start of a filename (e.g. "tmpABC.g.vcf.gz")
+        # or embedded after a fixed prefix (e.g. "all_unfiltered_tmpABC.vcf.gz").
+        # Match both, plus their associated index files.
+        temp_files = set(glob.glob(f"{path}/tmp*")) | set(glob.glob(f"{path}/*_tmp*"))
         for tmp in temp_files:
-            os.remove(tmp)
+            if os.path.isfile(tmp):
+                os.remove(tmp)
+            elif os.path.isdir(tmp):
+                shutil.rmtree(tmp)
 
     @staticmethod
     def split_bam_process_configs(config: dict) -> list[dict]:

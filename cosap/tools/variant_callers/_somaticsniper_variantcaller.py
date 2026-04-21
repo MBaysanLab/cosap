@@ -10,7 +10,7 @@ from ._variantcallers import _Callable, _VariantCaller
 class SomaticSniperVariantCaller(_Callable, _VariantCaller):
     @classmethod
     def _create_somaticSniper_command(
-        cls, caller_config=Dict, library_paths=LibraryPaths
+        cls, caller_config: Dict = None, library_paths: LibraryPaths = None
     ) -> List:
         germline_bam = convert_to_absolute_path(
             caller_config[VariantCallingKeys.GERMLINE_INPUT]
@@ -36,7 +36,7 @@ class SomaticSniperVariantCaller(_Callable, _VariantCaller):
         return command
 
     @classmethod
-    def call_variants(cls, caller_config=Dict, device: str = "cpu"):
+    def call_variants(cls, caller_config: Dict = None, device: str = "cpu"):
         library_paths = LibraryPaths()
 
         somatic_sniper_command = cls._create_somaticSniper_command(

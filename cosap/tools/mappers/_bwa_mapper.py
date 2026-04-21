@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from subprocess import PIPE, run
+from subprocess import PIPE, Popen
 from typing import Dict, List
 
 from ..._config import AppConfig
@@ -146,21 +146,27 @@ class BWAMapper(_Mapper, _Mappable):
             #     app_config=app_config, input_path=mapper_config[MappingKeys.OUTPUT]
             # )
 
-            bwa = run(bwa_command, stdout=PIPE, stderr=PIPE, cwd=workdir, check=False)
-            samtools = run(
+            bwa = Popen(bwa_command, stdout=PIPE, stderr=PIPE, cwd=workdir)
+            samtools = Popen(
                 sort_command,
-                input=bwa.stdout,
+                stdin=bwa.stdout,
                 stdout=PIPE,
                 stderr=PIPE,
                 cwd=workdir,
-                check=True,
             )
+
+            bwa.stdout.close()
+            _, samtools_stderr = samtools.communicate()
+            _, bwa_stderr = bwa.communicate()
+
             if bwa.returncode != 0:
                 raise Exception(
-                    f"BWA command {(*bwa_command,)} failed with error: {bwa.stderr.decode('utf-8')}"
+                    f"BWA command {(*bwa_command,)} failed with error: {bwa_stderr.decode('utf-8')}"
                 )
-            else:
-                print(samtools.stdout.decode("utf-8"))
+            if samtools.returncode != 0:
+                raise Exception(
+                    f"samtools sort command {(*sort_command,)} failed with error: {samtools_stderr.decode('utf-8')}"
+                )
             # run(index_command)
 
         elif device == "gpu":

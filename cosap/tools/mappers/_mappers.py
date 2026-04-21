@@ -12,7 +12,9 @@ class _Mapper(ABC):
             "samtools",
             "sort",
             "-@",
-            "6",  # TODO: Calculate using available memory (http://www.htslib.org/doc/samtools-sort.html)
+            str(app_config.SAMTOOLS_SORT_THREADS),
+            "-m",
+            app_config.SAMTOOLS_SORT_MEM_PER_THREAD,
             "-n",
             "-o",
             output_path,
@@ -27,7 +29,7 @@ class _Mapper(ABC):
             "index",
             input_path,
             "-@",
-            "6",
+            str(app_config.SAMTOOLS_SORT_THREADS),
         ]
         return command
 

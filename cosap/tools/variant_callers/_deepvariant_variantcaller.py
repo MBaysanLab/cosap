@@ -11,6 +11,23 @@ from ._variantcallers import _Callable, _VariantCaller
 
 
 class DeepVariantVariantCaller(_Callable, _VariantCaller):
+    @staticmethod
+    def _resolve_regions_argument(value: str) -> str:
+        """DeepVariant's ``--regions`` (and parabricks' ``--interval-file``)
+        accept either a path to a BED/interval file *or* a region literal
+        such as ``chr22:16570000-16610000``. ``convert_to_absolute_path``
+        prepends cwd unconditionally, which corrupts region literals into
+        nonexistent paths like ``/home/.../chr22:16570000-16610000``.
+
+        Only absolutize when the value points at an existing file on disk;
+        leave region literals untouched.
+        """
+        if value is None:
+            return None
+        if os.path.isfile(value) or os.path.isfile(os.path.abspath(value)):
+            return convert_to_absolute_path(value)
+        return value
+
     @classmethod
     def create_run_deepvariant_command(
         cls, caller_config: Dict, library_paths: LibraryPaths
@@ -42,7 +59,9 @@ class DeepVariantVariantCaller(_Callable, _VariantCaller):
             command.append(f"--output_gvcf={output_gvcf}")
 
         bed_file = (
-            convert_to_absolute_path(caller_config[VariantCallingKeys.BED_FILE])
+            cls._resolve_regions_argument(
+                caller_config[VariantCallingKeys.BED_FILE]
+            )
             if VariantCallingKeys.BED_FILE in caller_config.keys()
             else None
         )
@@ -75,10 +94,12 @@ class DeepVariantVariantCaller(_Callable, _VariantCaller):
         if gvcf_mode:
             output_gvcf = caller_config[VariantCallingKeys.GVCF_OUTPUT]
             command.append(f"--gvcf")
-            command.append(f"--out-variants={output_gvcf}")
+            command.append(f"--out-gvcf={output_gvcf}")
 
         bed_file = (
-            convert_to_absolute_path(caller_config[VariantCallingKeys.BED_FILE])
+            cls._resolve_regions_argument(
+                caller_config[VariantCallingKeys.BED_FILE]
+            )
             if VariantCallingKeys.BED_FILE in caller_config.keys()
             else None
         )
