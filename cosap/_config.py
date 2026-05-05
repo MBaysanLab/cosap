@@ -130,3 +130,5 @@ class AppConfig(metaclass=_AppConfigMeta):
 
     DEVICE = os.getenv("COSAP_DEVICE", "cpu")
     VEP_CACHE_VERSION = os.getenv("COSAP_VEP_CACHE_VERSION", "115")
+    CONTAINER_RUNTIME = os.getenv("COSAP_CONTAINER_RUNTIME", "docker")
+    CONTAINER_ENGINE_BIN = os.getenv("COSAP_APPTAINER_BIN", "apptainer")
