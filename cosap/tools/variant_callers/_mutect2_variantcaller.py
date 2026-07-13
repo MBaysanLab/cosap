@@ -16,6 +16,13 @@ from ._variantcallers import _Callable, _VariantCaller
 
 
 class Mutect2VariantCaller(_Callable, _VariantCaller):
+    @staticmethod
+    def _create_parabricks_output_path(caller_config: dict, output_key: str) -> str:
+        output_path = caller_config[output_key]
+        if os.path.isabs(output_path):
+            return output_path
+        return os.path.join(caller_config[VariantCallingKeys.OUTPUT_DIR], output_path)
+
     @classmethod
     def _create_run_command(
         cls,
@@ -198,7 +205,9 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
         if VariantCallingKeys.TUMOR_INPUT in caller_config.keys():
             tumor_bam = caller_config[VariantCallingKeys.TUMOR_INPUT]
 
-        output_name = caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
+        output_name = cls._create_parabricks_output_path(
+            caller_config, VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT
+        )
 
         command = [
             "pbrun",
@@ -316,11 +325,12 @@ class Mutect2VariantCaller(_Callable, _VariantCaller):
             command = cls._create_parabricks_mutectcaller_command(
                 caller_config=caller_config, library_paths=library_paths
             )
-            output_dir = os.path.abspath(
-                os.path.dirname(
-                    caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
+            output_dir = caller_config[VariantCallingKeys.OUTPUT_DIR]
+            if not os.path.isabs(output_dir):
+                output_dir = os.path.join(
+                    str(Path(caller_config[VariantCallingKeys.WORKDIR]).absolute()),
+                    output_dir,
                 )
-            )
             os.makedirs(output_dir, exist_ok=True)
 
             runner = DockerRunner(device=device)

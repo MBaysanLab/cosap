@@ -13,6 +13,36 @@ logger = getLogger(__name__)
 
 # Shell metacharacters that should not appear in paths bound to containers.
 _DANGEROUS_PATH_CHARS = re.compile(r"[;\|`$\(\)\{\}!&<>]")
+_APPTAINER_ENV_VARS = (
+    "APPTAINER_NAME",
+    "APPTAINER_CONTAINER",
+    "SINGULARITY_NAME",
+    "SINGULARITY_CONTAINER",
+)
+_DEFAULT_APPTAINER_BIN_CANDIDATES = (
+    "/usr/bin/apptainer",
+    "/usr/local/bin/apptainer",
+    "/opt/apptainer/bin/apptainer",
+)
+
+
+def _check_if_running_in_apptainer() -> bool:
+    return any(os.getenv(env_var) for env_var in _APPTAINER_ENV_VARS)
+
+
+def _resolve_apptainer_bin(apptainer_bin: str) -> Optional[str]:
+    resolved_bin = which(apptainer_bin)
+    if resolved_bin is not None:
+        return resolved_bin
+
+    if os.path.isabs(apptainer_bin) and os.path.isfile(apptainer_bin):
+        return apptainer_bin
+
+    for candidate in _DEFAULT_APPTAINER_BIN_CANDIDATES:
+        if os.path.isfile(candidate):
+            return candidate
+
+    return None
 
 
 class _ContainerRunnerBase(ABC):
@@ -375,10 +405,21 @@ class _ApptainerBackendRunner(_ContainerRunnerBase):
         remove: bool,
         run_as_root: bool,
     ) -> int:
-        if which(self.apptainer_bin) is None:
+        resolved_apptainer_bin = _resolve_apptainer_bin(self.apptainer_bin)
+        if resolved_apptainer_bin is None:
+            if _check_if_running_in_apptainer():
+                raise RuntimeError(
+                    "Apptainer backend selected inside an Apptainer container, but the "
+                    f"child Apptainer executable was not found on PATH: {self.apptainer_bin}. "
+                    "Rebuild the COSAP image so its bundled Apptainer install is present, or bind a full "
+                    "host Apptainer installation into the COSAP container and set COSAP_APPTAINER_BIN to "
+                    "the mounted executable. Mounting only the binary is not sufficient because Apptainer "
+                    "also needs its config and support files."
+                )
             raise RuntimeError(
                 f"Apptainer backend selected, but executable was not found: {self.apptainer_bin}"
             )
+        self.apptainer_bin = resolved_apptainer_bin
 
         if run_as_root:
             logger.warning(
@@ -531,6 +572,8 @@ class _ApptainerBackendRunner(_ContainerRunnerBase):
 def get_container_runtime() -> str:
     runtime = AppConfig.CONTAINER_RUNTIME.lower()
     if runtime == "auto":
+        if _check_if_running_in_apptainer():
+            return "apptainer"
         if os.path.exists("/.dockerenv") or which("docker") is not None:
             return "docker"
         if which(AppConfig.CONTAINER_ENGINE_BIN) is not None:

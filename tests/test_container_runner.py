@@ -59,6 +59,13 @@ class TestContainerRuntimeSelection:
         )
         assert docker_runner.get_container_runtime() == "apptainer"
 
+    def test_auto_runtime_prefers_current_apptainer_container(self, monkeypatch):
+        monkeypatch.setattr(docker_runner.AppConfig, "CONTAINER_RUNTIME", "auto")
+        monkeypatch.setenv("APPTAINER_NAME", "cosap.sif")
+        monkeypatch.setattr(docker_runner, "which", lambda cmd: "/usr/bin/docker")
+
+        assert docker_runner.get_container_runtime() == "apptainer"
+
     def test_invalid_runtime_raises(self, monkeypatch):
         monkeypatch.setattr(docker_runner.AppConfig, "CONTAINER_RUNTIME", "podman")
         with pytest.raises(ValueError, match="COSAP_CONTAINER_RUNTIME"):
@@ -66,6 +73,12 @@ class TestContainerRuntimeSelection:
 
 
 class TestApptainerRunner:
+    def test_resolve_apptainer_bin_falls_back_to_absolute_candidates(self, monkeypatch):
+        monkeypatch.setattr(docker_runner, "which", lambda cmd: None)
+        monkeypatch.setattr(docker_runner.os.path, "isfile", lambda path: path == "/usr/bin/apptainer")
+
+        assert docker_runner._resolve_apptainer_bin("apptainer") == "/usr/bin/apptainer"
+
     def test_inherited_bind_paths_are_preserved(self, monkeypatch):
         monkeypatch.setattr(docker_runner.AppConfig, "LIBRARY_PATH", "/refs")
         monkeypatch.setenv("APPTAINER_BIND", "/outer/work:/outer/work:rw,/shared:/shared:ro")
@@ -98,6 +111,37 @@ class TestApptainerRunner:
         assert "--bind /refs:/refs:ro" in command
         assert "--bind /workdir:/workdir" in command
         assert "docker://google/deepvariant:1.10.0-beta" in command
+
+    def test_apptainer_args_skip_gpu_flag_for_cpu(self):
+        command = docker_runner._ApptainerBackendRunner._container_run_to_args(
+            apptainer_bin="apptainer",
+            image="google/deepvariant:1.10.0-beta",
+            command=["run_deepvariant", "--help"],
+            working_dir="/workdir",
+            bind_paths=[("/refs", "/refs", "ro")],
+            use_gpu=False,
+        )
+
+        assert command[:2] == ["apptainer", "exec"]
+        assert "--nv" not in command
+        assert command[-3:] == ["docker://google/deepvariant:1.10.0-beta", "run_deepvariant", "--help"]
+
+    def test_missing_child_apptainer_binary_has_nested_runtime_hint(self, monkeypatch):
+        monkeypatch.setenv("APPTAINER_NAME", "cosap.sif")
+
+        runner = docker_runner._ApptainerBackendRunner()
+        monkeypatch.setattr(docker_runner, "which", lambda cmd: None)
+        monkeypatch.setattr(docker_runner.os.path, "isfile", lambda path: False)
+
+        with pytest.raises(RuntimeError, match="Rebuild the COSAP image"):
+            runner._run_impl(
+                image="google/deepvariant:1.10.0-beta",
+                command=["run_deepvariant", "--help"],
+                workdir="/workdir",
+                bind_paths=[],
+                remove=True,
+                run_as_root=False,
+            )
 
     def test_docker_runner_selects_apptainer_backend(self, monkeypatch):
         monkeypatch.setattr(docker_runner.AppConfig, "CONTAINER_RUNTIME", "apptainer")

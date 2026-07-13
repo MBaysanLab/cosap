@@ -12,6 +12,15 @@ from ._preprocessors import _PreProcessable, _Preprocessor
 
 
 class BaseRecalibrator(_Preprocessor, _PreProcessable):
+    @staticmethod
+    def _create_output_path(calibration_config: Dict, output_key: str) -> str:
+        output_path = calibration_config[output_key]
+        if os.path.isabs(output_path):
+            return output_path
+        return os.path.join(
+            calibration_config[BaseRecalibratorKeys.OUTPUT_DIR], output_path
+        )
+
     @classmethod
     def _create_table_command(
         cls, calibration_config: Dict, library_paths: LibraryPaths
@@ -88,6 +97,9 @@ class BaseRecalibrator(_Preprocessor, _PreProcessable):
     def _create_parabricks_bqsr_command(
         cls, calibration_config: Dict, library_paths: LibraryPaths
     ) -> list:
+        recal_table = cls._create_output_path(
+            calibration_config, BaseRecalibratorKeys.TABLE
+        )
         command = [
             "pbrun",
             "bqsr",
@@ -102,7 +114,7 @@ class BaseRecalibrator(_Preprocessor, _PreProcessable):
             "--knownSites",
             library_paths.ONE_THOUSAND_G,
             "--out-recal-file",
-            calibration_config[BaseRecalibratorKeys.TABLE],
+            recal_table,
         ]
 
         return command
@@ -111,6 +123,12 @@ class BaseRecalibrator(_Preprocessor, _PreProcessable):
     def _create_parabricks_applybqsr_command(
         cls, calibration_config: Dict, library_paths: LibraryPaths
     ) -> list:
+        recal_table = cls._create_output_path(
+            calibration_config, BaseRecalibratorKeys.TABLE
+        )
+        output_bam = cls._create_output_path(
+            calibration_config, BaseRecalibratorKeys.OUTPUT
+        )
         command = [
             "pbrun",
             "applybqsr",
@@ -119,9 +137,9 @@ class BaseRecalibrator(_Preprocessor, _PreProcessable):
             "--in-bam",
             calibration_config[BaseRecalibratorKeys.INPUT],
             "--in-recal-file",
-            calibration_config[BaseRecalibratorKeys.TABLE],
+            recal_table,
             "--out-bam",
-            calibration_config[BaseRecalibratorKeys.OUTPUT],
+            output_bam,
         ]
 
         return command
@@ -145,16 +163,26 @@ class BaseRecalibrator(_Preprocessor, _PreProcessable):
                 calibration_config=calibration_config, library_paths=library_paths
             )
 
-            output_dir = os.path.abspath(
-                os.path.dirname(calibration_config[BaseRecalibratorKeys.OUTPUT])
-            )
+            output_dir = calibration_config[BaseRecalibratorKeys.OUTPUT_DIR]
+            if not os.path.isabs(output_dir):
+                workdir = str(
+                    Path(calibration_config[BaseRecalibratorKeys.WORKDIR]).absolute()
+                )
+                output_dir = os.path.join(
+                    workdir,
+                    output_dir,
+                )
+            else:
+                workdir = str(
+                    Path(calibration_config[BaseRecalibratorKeys.WORKDIR]).absolute()
+                )
             os.makedirs(output_dir, exist_ok=True)
 
             runner = DockerRunner(device=device)
             return_code = runner.run(
                 image=DockerImages.PARABRICKS,
                 command=bqsr_command,
-                workdir=str(Path(output_dir).parent),
+                workdir=workdir,
             )
             if return_code not in (0, None):
                 raise RuntimeError(
@@ -163,7 +191,7 @@ class BaseRecalibrator(_Preprocessor, _PreProcessable):
             return_code = runner.run(
                 image=DockerImages.PARABRICKS,
                 command=applybqsr_command,
-                workdir=str(Path(output_dir).parent),
+                workdir=workdir,
             )
             if return_code not in (0, None):
                 raise RuntimeError(

@@ -42,6 +42,41 @@ def test_samtools_sort_command_uses_configured_threads_and_memory(monkeypatch):
     assert command[:6] == ["samtools", "sort", "-@", "2", "-m", "512M"]
 
 
+def test_bwa_parabricks_command_splits_read_group_arguments(mapper_config):
+    mapper_config[MappingKeys.OUTPUT] = "out.bam"
+    mapper_config[MappingKeys.OUTPUT_DIR] = "output"
+    mapper_config[MappingKeys.PARAMS][MappingKeys.READ_GROUP] = {
+        MappingKeys.RG_ID: 0,
+        MappingKeys.RG_SM: "normal",
+        MappingKeys.RG_LB: 0,
+        MappingKeys.RG_PL: "ILLUMINA",
+    }
+
+    read_group = BWAMapper._create_read_group(
+        mapper_config=mapper_config, is_parabricks=True
+    )
+    command = BWAMapper._create_parabricks_command(
+        mapper_config=mapper_config,
+        read_group=read_group,
+        library_paths=Mock(BWA_ASSEMBLY="ref.fasta"),
+    )
+
+    assert command[command.index("--out-bam") + 1] == "output/out.bam"
+    assert "--bwa-options=-K 10000000" in command
+    assert "--bwa-options=-'K 10000000'" not in command
+    assert "--read-group-id-prefix 0 --read-group-sm normal" not in command
+    assert command[-8:] == [
+        "--read-group-id-prefix",
+        "0",
+        "--read-group-sm",
+        "normal",
+        "--read-group-lb",
+        "0",
+        "--read-group-pl",
+        "ILLUMINA",
+    ]
+
+
 @pytest.mark.parametrize("mapper", [BWAMapper, BWA2Mapper, Bowtie2Mapper])
 def test_mapper_streams_with_popen(monkeypatch, mapper, mapper_config):
     monkeypatch.setattr(_config.AppConfig, "MAX_THREADS_PER_JOB", 2)

@@ -19,3 +19,16 @@ Run the example pipeline and that is it.
 python example_run.py
 ```
 
+# Apptainer GPU note
+
+When running COSAP itself inside Apptainer and using `--device gpu`, launch the parent container with `--nv`.
+
+```bash
+apptainer exec --nv \
+  --bind /path/to/reference:/cosap_data \
+  --bind /path/to/workdir:/workdir \
+  docker://itubioinformatics/cosap:<version> \
+  cosap pipeline ... --device gpu
+```
+
+COSAP will select the Apptainer backend automatically when already inside an Apptainer container, and GPU child containers such as Parabricks are launched with `--nv` as well. The COSAP Docker image bundles Apptainer by default. If you override it with a host install via `COSAP_APPTAINER_BIN`, mount a full Apptainer install, not just `/usr/bin/apptainer`, because the child runtime also needs its config and helper files.

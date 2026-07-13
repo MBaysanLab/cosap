@@ -10,6 +10,7 @@
 # --- Runtime / JVM ---
 openjdk==17.*
 python==3.9.*
+uv
 
 # --- Bioinformatics CLI tools (conda-only, invoked via subprocess) ---
 bbmap==39.01
@@ -31,6 +32,7 @@ snpeff==5.1
 bedtools==2.31.*
 msisensor-pro==1.2.*
 genefuse==0.8.*
+muse=2.1.2
 
 # --- Perl dependencies (for annotation tools) ---
 perl-dbi

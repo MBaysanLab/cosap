@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from subprocess import PIPE, Popen
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from ..._config import AppConfig
 from ..._docker_images import DockerImages
@@ -16,7 +16,7 @@ class BWAMapper(_Mapper, _Mappable):
     @classmethod
     def _create_read_group(
         cls, mapper_config: Dict, is_parabricks: bool = False
-    ) -> str:
+    ) -> Union[str, List[str]]:
         flags = cls._create_readgroup_flags(
             mapper_config=mapper_config,
         )
@@ -42,17 +42,22 @@ class BWAMapper(_Mapper, _Mappable):
 
         else:
             if MappingKeys.RG_ID in flags.keys():
-                read_arguments.append(
-                    rf"--read-group-id-prefix {flags[MappingKeys.RG_ID]}"
-                )
+                read_arguments.append("--read-group-id-prefix")
+                read_arguments.append(str(flags[MappingKeys.RG_ID]))
             if MappingKeys.RG_SM in flags.keys():
-                read_arguments.append(rf"--read-group-sm {flags[MappingKeys.RG_SM]}")
+                read_arguments.extend(
+                    ["--read-group-sm", str(flags[MappingKeys.RG_SM])]
+                )
             if MappingKeys.RG_LB in flags.keys():
-                read_arguments.append(rf"--read-group-lb {flags[MappingKeys.RG_LB]}")
+                read_arguments.extend(
+                    ["--read-group-lb", str(flags[MappingKeys.RG_LB])]
+                )
             if MappingKeys.RG_PL in flags.keys():
-                read_arguments.append(rf"--read-group-pl {flags[MappingKeys.RG_PL]}")
+                read_arguments.extend(
+                    ["--read-group-pl", str(flags[MappingKeys.RG_PL])]
+                )
 
-            read_groups = " ".join(read_arguments)
+            read_groups = read_arguments
 
         return read_groups
 
@@ -82,17 +87,25 @@ class BWAMapper(_Mapper, _Mappable):
             command.extend(["-R", read_group])
         return command
 
+    @staticmethod
+    def _create_parabricks_output_path(mapper_config: Dict) -> str:
+        output_path = mapper_config[MappingKeys.OUTPUT]
+        if os.path.isabs(output_path):
+            return output_path
+        return os.path.join(mapper_config[MappingKeys.OUTPUT_DIR], output_path)
+
     @classmethod
     def _create_parabricks_command(
         cls,
         mapper_config: Dict,
         library_paths: LibraryPaths,
-        read_group: str = None,
+        read_group: List[str] = None,
     ) -> List:
         fastq_inputs = [
             convert_to_absolute_path(fastq)
             for fastq in mapper_config[MappingKeys.INPUT].values()
         ]
+        output_path = cls._create_parabricks_output_path(mapper_config)
 
         command = [
             "pbrun",
@@ -102,8 +115,8 @@ class BWAMapper(_Mapper, _Mappable):
             "--in-fq",
             *fastq_inputs,
             "--out-bam",
-            mapper_config[MappingKeys.OUTPUT],
-            "--bwa-options=-'K 10000000'",
+            output_path,
+            "--bwa-options=-K 10000000",
         ]
         if not mapper_config[MappingKeys.POST_PROCESSING]:
             command.extend(["--no-markdups"])
@@ -117,12 +130,12 @@ class BWAMapper(_Mapper, _Mappable):
                     "--knownSites",
                     library_paths.ONE_THOUSAND_G,
                     "--out-recal-file",
-                    f"{mapper_config[MappingKeys.OUTPUT]}.recal",
+                    f"{output_path}.recal",
                 ]
             )
 
         if read_group:
-            command.extend([read_group])
+            command.extend(read_group)
         return command
 
     @classmethod
@@ -182,9 +195,12 @@ class BWAMapper(_Mapper, _Mappable):
             input_dir = os.path.abspath(
                 os.path.dirname(mapper_config[MappingKeys.INPUT]["1"])
             )
-            output_dir = os.path.abspath(
-                os.path.dirname(mapper_config[MappingKeys.OUTPUT])
-            )
+            output_path = cls._create_parabricks_output_path(mapper_config)
+            output_dir = os.path.dirname(output_path)
+            if not os.path.isabs(output_dir):
+                output_dir = os.path.join(
+                    str(Path(mapper_config[MappingKeys.WORKDIR]).absolute()), output_dir
+                )
             os.makedirs(output_dir, exist_ok=True)
             runner = DockerRunner(device=device)
             runner.run(

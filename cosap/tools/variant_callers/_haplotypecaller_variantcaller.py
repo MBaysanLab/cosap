@@ -329,11 +329,12 @@ class HaplotypeCallerVariantCaller(_Callable, _VariantCaller):
             command = cls._create_parabricks_haplotypecaller_command(
                 caller_config=caller_config, library_paths=library_paths
             )
-            output_dir = os.path.abspath(
-                os.path.dirname(
-                    caller_config[VariantCallingKeys.UNFILTERED_VARIANTS_OUTPUT]
+            output_dir = caller_config[VariantCallingKeys.OUTPUT_DIR]
+            if not os.path.isabs(output_dir):
+                output_dir = os.path.join(
+                    str(Path(caller_config[VariantCallingKeys.WORKDIR]).absolute()),
+                    output_dir,
                 )
-            )
             os.makedirs(output_dir, exist_ok=True)
 
             runner = DockerRunner(device=device)

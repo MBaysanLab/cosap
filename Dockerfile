@@ -4,20 +4,17 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git g++ cmake autoconf libtool liblzma-dev zlib1g-dev libbz2-dev libcurl3-dev libssl-dev \
-    ca-certificates cpp make libltdl-dev wget unzip graphviz \
+    ca-certificates cpp make libltdl-dev wget unzip graphviz software-properties-common \
+    curl cpio rpm2cpio \
     && apt-get clean && rm -rf /var/lib/apt/lists/
 
+RUN curl -fsSL https://raw.githubusercontent.com/apptainer/apptainer/main/tools/install-unprivileged.sh \
+    | bash -s - /usr/local/apptainer \
+    && ln -s /usr/local/apptainer/bin/apptainer /usr/local/bin/apptainer \
+    && test -x /usr/local/apptainer/bin/apptainer \
+    && /usr/local/apptainer/bin/apptainer --version
+
 WORKDIR /tmp
-
-# Install MuSE
-RUN wget https://github.com/wwylab/MuSE/archive/refs/tags/v2.0.1.tar.gz && \
-    tar -vxf v2.0.1.tar.gz && \
-    cd MuSE-2.0.1 && \
-    ./install_muse.sh && \
-    cp MuSE /usr/local/bin/ && \
-    rm -rf /tmp/MuSE-2.0.1 /tmp/v2.0.1.tar.gz
-
-ENV PATH=$PATH:/usr/local/bin/MuSE
 
 # Install COSAP
 COPY requirements.txt /tmp/requirements.txt
@@ -26,7 +23,7 @@ RUN mkdir /app
 COPY . /app/.
 
 WORKDIR /app
-RUN mamba run --no-capture-output -n cosap pip install --no-cache-dir .
+RUN mamba run --no-capture-output -n cosap uv pip install --no-cache .
 
 # Set environment variables
 ENV COSAP=/app

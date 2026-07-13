@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Standalone script: read an Ensembl VEP-annotated VCF(.gz) and write it to an
-Apache Arrow IPC file using Polars for maximum speed.
+Apache Arrow IPC Stream file using Polars for maximum speed.
 
 Usage:
     python vep_vcf_to_arrow.py input.vcf.gz output.arrow
@@ -16,17 +16,20 @@ Design goals:
       not the full file.
     - All heavy lifting (CSQ explode, type casting, column rename) is done
       inside Polars expressions → benefits from its multithreaded engine.
-    - The Arrow IPC file is written incrementally (one RecordBatch per batch)
-      so the output is valid even for huge files.
+    - The Arrow IPC Stream format is used (no footer with per-batch block
+      offsets) so the writer holds O(1) memory regardless of batch count.
+      Read back with ``pyarrow.ipc.open_stream`` or ``polars.read_ipc_stream``.
 
 Requirements:
-    pip install polars pyarrow
+    pip install polars pyarrow tqdm
 """
 
 from __future__ import annotations
 
 import argparse
+import gc
 import gzip
+import re
 import sys
 import time
 from pathlib import Path
@@ -35,6 +38,7 @@ from typing import Optional
 import polars as pl
 import pyarrow as pa
 import pyarrow.ipc as ipc
+from tqdm import tqdm
 
 # ---------------------------------------------------------------------------
 # Column mapping: internal name → VEP CSQ field name
@@ -185,11 +189,50 @@ def _parse_csq_fields(meta_lines: list[str]) -> list[str]:
     )
 
 
-def _parse_vcf_header(path: str) -> tuple[list[str], list[str], list[str]]:
+def _parse_info_ids(meta_lines: list[str]) -> list[str]:
+    """Extract INFO IDs from ``##INFO=<ID=...>`` header lines."""
+    info_ids: list[str] = []
+    for line in meta_lines:
+        if not line.startswith("##INFO=<ID="):
+            continue
+        info_id = line[len("##INFO=<ID=") :].split(",", 1)[0].strip()
+        # CSQ is parsed separately and must not be retained as a generic INFO
+        # column, otherwise the large raw CSQ payload gets duplicated.
+        if info_id and info_id != "CSQ":
+            info_ids.append(info_id)
+    return info_ids
+
+
+def _normalize_info_name(info_id: str) -> str:
+    """Map a VCF INFO ID to a prefixed, collision-resistant column name."""
+    normalized = re.sub(r"[^0-9A-Za-z]+", "_", info_id.strip()).strip("_")
+    if not normalized:
+        raise ValueError(f"Unable to normalize INFO field name: {info_id!r}")
+    return f"info_{normalized.lower()}"
+
+
+def _build_info_column_map(info_ids: list[str]) -> dict[str, str]:
+    """Build a deterministic INFO ID -> output column mapping."""
+    info_columns: dict[str, str] = {}
+    seen: dict[str, str] = {}
+    for info_id in info_ids:
+        column_name = _normalize_info_name(info_id)
+        existing = seen.get(column_name)
+        if existing is not None and existing != info_id:
+            raise ValueError(
+                "INFO field name collision after normalization: "
+                f"{existing!r} and {info_id!r} both map to {column_name!r}"
+            )
+        seen[column_name] = info_id
+        info_columns[info_id] = column_name
+    return info_columns
+
+
+def _parse_vcf_header(path: str) -> tuple[list[str], list[str], list[str], dict[str, str]]:
     """
     Read meta-lines and the #CHROM header line.
 
-    Returns (meta_lines, vcf_columns, csq_fields).
+    Returns (meta_lines, vcf_columns, csq_fields, info_columns).
     """
     meta_lines: list[str] = []
     vcf_columns: list[str] = []
@@ -205,7 +248,27 @@ def _parse_vcf_header(path: str) -> tuple[list[str], list[str], list[str]]:
     if not vcf_columns:
         raise ValueError("No #CHROM header line found in VCF")
     csq_fields = _parse_csq_fields(meta_lines)
-    return meta_lines, vcf_columns, csq_fields
+    info_columns = _build_info_column_map(_parse_info_ids(meta_lines))
+    return meta_lines, vcf_columns, csq_fields, info_columns
+
+
+def _parse_info_values(info: str, info_columns: dict[str, str]) -> dict[str, Optional[str]]:
+    """Parse all INFO values from a raw INFO string."""
+    values = {column_name: None for column_name in info_columns.values()}
+    if not info:
+        return values
+
+    for item in info.split(";"):
+        if not item:
+            continue
+        if "=" in item:
+            key, value = item.split("=", 1)
+        else:
+            key, value = item, "1"
+        column_name = info_columns.get(key)
+        if column_name is not None:
+            values[column_name] = value
+    return values
 
 
 # ---------------------------------------------------------------------------
@@ -236,31 +299,36 @@ def _parse_batch(
     lines: list[str],
     vcf_columns: list[str],
     csq_fields: list[str],
+    info_columns: dict[str, str],
     apply_transforms: bool,
     pick_only: bool,
 ) -> pl.DataFrame:
     """
     Convert raw VCF data lines into a fully-processed Polars DataFrame.
 
+    Memory-conscious version: only materialises CSQ sub-fields that are
+    actually referenced by ``VEP_COLUMN_MAPPING``. Unmapped CSQ fields are
+    discarded during the split, never allocated as Polars columns. This is
+    the single biggest peak-memory saving for VCFs with rich CSQ payloads
+    (50+ fields × millions of exploded rows).
+
     Steps:
       1. Split each line on TAB → fixed VCF columns.
       2. Extract the CSQ value from the INFO column.
       3. Explode multi-transcript CSQ entries (comma-separated).
-      4. Split each CSQ entry on '|' into individual fields.
+      4. Split each CSQ entry on '|', keeping only mapped sub-fields.
       5. Build variant_id.
       6. Rename VEP field names → internal names.
       7. Optionally apply transforms (type casts, score interpretations, etc.).
     """
-    n_vcf_cols = len(vcf_columns)
-
     # --- Step 1: split into VCF columns -----------------------------------
     # We only need CHROM, POS, REF, ALT, and INFO (index 7 in standard VCF).
-    # Doing a full split is cheap relative to CSQ parsing.
     chroms: list[str] = []
     positions: list[str] = []
     refs: list[str] = []
     alts: list[str] = []
     csq_raw_list: list[Optional[str]] = []
+    info_value_lists = {column_name: [] for column_name in info_columns.values()}
 
     for line in lines:
         parts = line.split("\t", 8)  # split at most into 9 parts (fast)
@@ -272,41 +340,65 @@ def _parse_batch(
         info = parts[7] if len(parts) > 7 else ""
         csq_val = _extract_csq(info)
         csq_raw_list.append(csq_val)
+        info_values = _parse_info_values(info, info_columns)
+        for column_name, values in info_value_lists.items():
+            values.append(info_values[column_name])
 
     # Build a base DataFrame with the VCF-level columns
-    base = pl.DataFrame(
-        {
-            "#CHROM": chroms,
-            "POS": positions,
-            "REF": refs,
-            "ALT": alts,
-            "_csq_raw": csq_raw_list,
-        }
-    )
+    base_columns = {
+        "#CHROM": chroms,
+        "POS": positions,
+        "REF": refs,
+        "ALT": alts,
+        "_csq_raw": csq_raw_list,
+        **info_value_lists,
+    }
+    base = pl.DataFrame(base_columns)
+    # Free the Python-side lists immediately — they hold ~half a GB of
+    # Python string overhead per 200k-row batch.
+    del chroms, positions, refs, alts, csq_raw_list, info_value_lists, base_columns
 
     # --- Step 2-4: explode CSQ -------------------------------------------
-    # Explode comma-separated transcripts, then split on '|'
+    # Determine which CSQ sub-fields we actually want to keep.
+    # Anything not in VEP_COLUMN_MAPPING is dropped at split-time so it
+    # never becomes a column. This is the key memory optimisation.
+    wanted_vep_fields = set(VEP_COLUMN_MAPPING.values())
+    keep_csq_indices = [
+        (i, name) for i, name in enumerate(csq_fields) if name in wanted_vep_fields
+    ]
+
+    n_csq = len(csq_fields)
+
+    # Explode comma-separated transcripts
     df = (
-        base.filter(pl.col("_csq_raw").is_not_null())
+        base.lazy()
+        .filter(pl.col("_csq_raw").is_not_null())
         .with_columns(pl.col("_csq_raw").str.split(",").alias("_csq_list"))
-        .explode("_csq_list")
         .drop("_csq_raw")
+        .explode("_csq_list")
     )
+    del base
+
+    # Split each CSQ entry into the individual sub-fields, but only
+    # project out the ones we actually need.
+    csq_split_expr = pl.col("_csq_list").str.split_exact("|", n_csq - 1)
+    df = df.with_columns(
+        [
+            csq_split_expr.struct.field(f"field_{idx}").alias(name)
+            for idx, name in keep_csq_indices
+        ]
+    ).drop("_csq_list")
+
+    # Materialise. Use streaming so Polars can pipeline the explode +
+    # projection without holding the full intermediate.
+    try:
+        df = df.collect(engine="streaming")
+    except TypeError:
+        # Older Polars versions
+        df = df.collect(streaming=True)
 
     if df.is_empty():
-        return df.drop("_csq_list")
-
-    # Split each CSQ entry into the individual sub-fields
-    n_csq = len(csq_fields)
-    csq_struct = df.select(pl.col("_csq_list").str.split_exact("|", n_csq - 1)).unnest(
-        "_csq_list"
-    )
-
-    # Rename struct fields (field_0 .. field_N) → actual CSQ names
-    rename_map = {f"field_{i}": csq_fields[i] for i in range(n_csq)}
-    csq_struct = csq_struct.rename(rename_map)
-
-    df = pl.concat([df.drop("_csq_list"), csq_struct], how="horizontal")
+        return df
 
     # --- Step 5: variant_id -----------------------------------------------
     df = df.with_columns(
@@ -321,22 +413,16 @@ def _parse_batch(
         ).alias("variant_id")
     )
 
-    # Ensure variant_id has chr prefix
+    # Ensure variant_id has chr prefix and replace '/' → '_'
     df = df.with_columns(
         pl.when(pl.col("variant_id").str.starts_with("chr"))
         .then(pl.col("variant_id"))
         .otherwise(pl.lit("chr") + pl.col("variant_id"))
+        .str.replace_all("/", "_")
         .alias("variant_id"),
     )
 
-    # Also replace '/' → '_' in variant_id (matches cosap behaviour
-    # for Uploaded_variation from VEP which uses chr_pos_ref/alt)
-    df = df.with_columns(
-        pl.col("variant_id").str.replace_all("/", "_").alias("variant_id")
-    )
-
     # --- Step 6: rename VEP → internal ------------------------------------
-    # Only rename columns that actually exist in the DataFrame
     cols_present = set(df.columns)
     rename = {
         vep_name: internal_name
@@ -348,12 +434,8 @@ def _parse_batch(
 
     # Keep only mapped columns (+ variant_id which is already named correctly)
     keep = [c for c in VEP_COLUMN_MAPPING.keys() if c in df.columns]
-    # Also keep any CSQ columns that weren't in the mapping (user might want
-    # to inspect the full VEP output).
-    unmapped_csq = [
-        c for c in df.columns if c not in keep and c not in {"_csq_raw", "_csq_list"}
-    ]
-    df = df.select(keep + unmapped_csq)
+    info_keep = [c for c in info_columns.values() if c in df.columns]
+    df = df.select(keep + info_keep)
 
     # --- Step 7: optional transforms (mirrors cosap post-processing) ------
     if apply_transforms:
@@ -509,13 +591,14 @@ def _align_to_schema(table: pa.Table, schema: pa.Schema) -> pa.Table:
 def convert(
     input_path: str,
     output_path: str,
-    batch_size: int = 200_000,
+    batch_size: int = 50_000,
     pick_only: bool = False,
     apply_transforms: bool = False,
     compression: str = "uncompressed",
 ) -> None:
     """
-    Read *input_path* (VEP VCF / VCF.gz) and write *output_path* (Arrow IPC).
+    Read *input_path* (VEP VCF / VCF.gz) and write *output_path* (Arrow IPC
+    Stream).
 
     Parameters
     ----------
@@ -546,9 +629,14 @@ def convert(
     t0 = time.perf_counter()
 
     # ---- parse header ----
-    _meta, vcf_columns, csq_fields = _parse_vcf_header(input_path)
+    _meta, vcf_columns, csq_fields, info_columns = _parse_vcf_header(input_path)
     print(f"VCF columns : {vcf_columns[:8]}{'...' if len(vcf_columns) > 8 else ''}")
     print(f"CSQ fields  : {len(csq_fields)} ({', '.join(csq_fields[:6])}, ...)")
+    print(
+        "INFO fields : "
+        f"{len(info_columns)} ({', '.join(list(info_columns.values())[:6])}"
+        f"{', ...' if len(info_columns) > 6 else ''})"
+    )
     if compression != "uncompressed":
         print(f"Compression : {compression}")
 
@@ -560,36 +648,51 @@ def convert(
     )
 
     # ---- streaming write ----
-    writer: Optional[ipc.RecordBatchFileWriter] = None
+    writer: Optional[ipc.RecordBatchStreamWriter] = None
     schema: Optional[pa.Schema] = None
     total_rows = 0
-    batch_num = 0
+    with tqdm(desc="Processing VCF batches", unit="batch") as pbar:
+        for line_batch in _iter_data_lines(input_path, batch_size):
+            df = _parse_batch(
+                line_batch,
+                vcf_columns,
+                csq_fields,
+                info_columns,
+                apply_transforms,
+                pick_only,
+            )
 
-    for line_batch in _iter_data_lines(input_path, batch_size):
-        batch_num += 1
-        df = _parse_batch(
-            line_batch, vcf_columns, csq_fields, apply_transforms, pick_only
-        )
+            batch_rows = len(df)
+            if df.is_empty():
+                del df
+                pbar.update(1)
+                pbar.set_postfix_str(f"rows=0 skipped total_rows={total_rows:,}")
+                continue
 
-        if df.is_empty():
-            print(f"  batch {batch_num}: 0 rows (all filtered / no CSQ), skipped")
-            continue
+            arrow_table = df.to_arrow()
+            del df
 
-        arrow_table = df.to_arrow()
+            if writer is None:
+                schema = arrow_table.schema
+                writer = ipc.new_stream(output_path, schema, options=ipc_options)
 
-        if writer is None:
-            schema = arrow_table.schema
-            writer = ipc.new_file(output_path, schema, options=ipc_options)
+            # Align this batch to the first batch's schema (handles column
+            # order differences and missing columns across batches).
+            arrow_table = _align_to_schema(arrow_table, schema)
+            writer.write_table(arrow_table)
 
-        # Align this batch to the first batch's schema (handles column
-        # order differences and missing columns across batches).
-        arrow_table = _align_to_schema(arrow_table, schema)
-        writer.write_table(arrow_table)
+            # Release per-batch buffers back to the OS to prevent the slow
+            # RSS creep that PyArrow's memory pool otherwise causes when
+            # processing hundreds of batches.
+            del arrow_table
+            pa.default_memory_pool().release_unused()
+            gc.collect()
 
-        total_rows += len(df)
-        print(
-            f"  batch {batch_num}: {len(df):>9,} rows  (cumulative {total_rows:>12,})"
-        )
+            total_rows += batch_rows
+            pbar.update(1)
+            pbar.set_postfix_str(
+                f"rows={batch_rows:,} total_rows={total_rows:,}"
+            )
 
     if writer is not None:
         writer.close()
@@ -633,8 +736,13 @@ Examples:
     parser.add_argument(
         "--batch-size",
         type=int,
-        default=200_000,
-        help="Number of VCF lines per processing batch (default: 200000)",
+        default=50_000,
+        help=(
+            "Number of VCF lines per processing batch (default: 50000). "
+            "Each line can explode into many rows (one per VEP transcript), "
+            "so the effective row count per batch is often 10-50x this value. "
+            "Lower if you hit OOM; raise if you have plenty of RAM."
+        ),
     )
     parser.add_argument(
         "--pick-only",
