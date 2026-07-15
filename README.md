@@ -15,6 +15,21 @@ COSAP provides several tool options for each of these steps.
 
 The documentation for this project has moved. Please visit [docs.cosap.bio](https://docs.cosap.bio) for the latest information.
 
+### Mitochondrial Variant Calling
+
+COSAP supports GATK's hg38 mitochondrial SNV/indel workflow with dual standard and shifted `chrM` references, mitochondrial-mode Mutect2, blacklist filtering, and optional Haplochecker contamination reporting. It accepts either an analysis-ready indexed BAM or paired FASTQs; FASTQ input is trimmed, mapped against the full hg38 reference, duplicate-marked, and recalibrated before mitochondrial calling.
+
+The hg38 resource bundle must provide the GATK `chrM` standard and shifted references, BWA sidecars, dictionaries, shift-back chain, and blacklist under `chrM/`. The workflow currently runs on CPU and accepts BAM, not CRAM, input.
+
+```bash
+cosap mitochondrial \
+  --workdir /workdir/mitochondrial \
+  --sample-name sample1 \
+  --bam /data/sample1.bam \
+  --bam-index /data/sample1.bam.bai \
+  --median-autosomal-coverage 30
+```
+
 ### Apptainer GPU Usage
 
 COSAP can launch child Apptainer containers for GPU-backed tools such as Parabricks.

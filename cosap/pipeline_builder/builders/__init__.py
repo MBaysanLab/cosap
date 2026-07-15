@@ -15,6 +15,7 @@ from ._mapper_builder import Mapper
 from ._mdup_builder import MDUP
 from ._merge_builder import Merger
 from ._msi_caller_builder import MSICaller
+from ._mitochondrial_variant_caller_builder import MitochondrialVariantCaller
 from ._pipeline_steps import _IPipelineStep, _PipelineStep
 from ._qualitycontroller_builder import QualityController
 from ._sorter_builder import Sorter

@@ -36,6 +36,7 @@ class Pipeline:
             PipelineKeys.MSI: dict(),
             PipelineKeys.CNV: dict(),
             PipelineKeys.GERMLINE_CNV: dict(),
+            PipelineKeys.MITOCHONDRIAL_VARIANT_CALLING: dict(),
             PipelineKeys.FINAL_OUTPUT: list(),
             PipelineKeys.WORKDIR: "",
         }

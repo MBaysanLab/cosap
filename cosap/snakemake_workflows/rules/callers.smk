@@ -12,7 +12,9 @@ from cosap._pipeline_config import (
     MSICallingKeys,
     CNVCallingKeys,
     GermlineCNVCallingKeys,
+    MitochondrialCallingKeys,
 )
+from cosap.tools.mitochondrial_callers import MitochondrialCallerFactory
 
 def get_bams(wildcards, calling_rule: str) -> list[str]:
     input_bams = []
@@ -165,4 +167,33 @@ rule germline_cnv_caller:
         )
         cnv_caller.call(
             config[PipelineKeys.GERMLINE_CNV][wildcards.identification]
+        )
+
+
+def get_mitochondrial_inputs(wildcards) -> list[str]:
+    caller_config = config[PipelineKeys.MITOCHONDRIAL_VARIANT_CALLING][
+        wildcards.identification
+    ]
+    inputs = [caller_config[MitochondrialCallingKeys.INPUT_BAM]]
+    if MitochondrialCallingKeys.INPUT_BAM_INDEX in caller_config:
+        inputs.append(caller_config[MitochondrialCallingKeys.INPUT_BAM_INDEX])
+    return inputs
+
+
+rule mitochondrial_variant_caller:
+    """GATK dual-reference mitochondrial SNV/indel discovery."""
+    input:
+        get_mitochondrial_inputs,
+    output:
+        vcf=FolderedOutputs.MITOCHONDRIAL_FILTERED_VCF,
+    run:
+        caller = MitochondrialCallerFactory.create(
+            config[PipelineKeys.MITOCHONDRIAL_VARIANT_CALLING][
+                wildcards.identification
+            ][MitochondrialCallingKeys.LIBRARY]
+        )
+        caller.call(
+            config[PipelineKeys.MITOCHONDRIAL_VARIANT_CALLING][
+                wildcards.identification
+            ]
         )

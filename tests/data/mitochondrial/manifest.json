@@ -1,0 +1,132 @@
+{
+  "source_repository": "https://github.com/scorreard/Variant_catalogue_pipeline",
+  "source_commit": "c3d772f51d883a2c858c3a8c017e08774383da81",
+  "license": "Apache-2.0",
+  "files": [
+    {
+      "destination": "fastq/NA12718_R1.fastq.gz",
+      "url": "https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/c3d772f51d883a2c858c3a8c017e08774383da81/testdata/NA12718_R1.fastq.gz",
+      "size": 18789278
+    },
+    {
+      "destination": "fastq/NA12718_R2.fastq.gz",
+      "url": "https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/c3d772f51d883a2c858c3a8c017e08774383da81/testdata/NA12718_R2.fastq.gz",
+      "size": 19516739
+    },
+    {
+      "destination": "Homo_sapiens_assembly38.fasta.gz",
+      "url": "https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/c3d772f51d883a2c858c3a8c017e08774383da81/testdata/reference/hg38_full_analysis_set_plus_decoy_hla_chr20_X_Y_MT.fa.gz",
+      "size": 72111633
+    },
+    {
+      "destination": "Homo_sapiens_assembly38.fasta.fai",
+      "url": "https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/c3d772f51d883a2c858c3a8c017e08774383da81/testdata/reference/hg38_full_analysis_set_plus_decoy_hla_chr20_X_Y_MT.fa.fai",
+      "size": 110
+    },
+    {
+      "destination": "chrM/Homo_sapiens_assembly38.chrM.fasta",
+      "url": "https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/c3d772f51d883a2c858c3a8c017e08774383da81/testdata/mitochondrial_references/Homo_sapiens_assembly38.chrM.fasta",
+      "size": 16857
+    },
+    {
+      "destination": "chrM/Homo_sapiens_assembly38.chrM.fasta.fai",
+      "url": "https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/c3d772f51d883a2c858c3a8c017e08774383da81/testdata/mitochondrial_references/Homo_sapiens_assembly38.chrM.fasta.fai",
+      "size": 23
+    },
+    {
+      "destination": "chrM/Homo_sapiens_assembly38.chrM.dict",
+      "url": "https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/c3d772f51d883a2c858c3a8c017e08774383da81/testdata/mitochondrial_references/Homo_sapiens_assembly38.chrM.dict",
+      "size": 192
+    },
+    {
+      "destination": "chrM/Homo_sapiens_assembly38.chrM.fasta.amb",
+      "url": "https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/c3d772f51d883a2c858c3a8c017e08774383da81/testdata/mitochondrial_references/Homo_sapiens_assembly38.chrM.fasta.amb",
+      "size": 19
+    },
+    {
+      "destination": "chrM/Homo_sapiens_assembly38.chrM.fasta.ann",
+      "url": "https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/c3d772f51d883a2c858c3a8c017e08774383da81/testdata/mitochondrial_references/Homo_sapiens_assembly38.chrM.fasta.ann",
+      "size": 144
+    },
+    {
+      "destination": "chrM/Homo_sapiens_assembly38.chrM.fasta.bwt",
+      "url": "https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/c3d772f51d883a2c858c3a8c017e08774383da81/testdata/mitochondrial_references/Homo_sapiens_assembly38.chrM.fasta.bwt",
+      "size": 16648
+    },
+    {
+      "destination": "chrM/Homo_sapiens_assembly38.chrM.fasta.pac",
+      "url": "https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/c3d772f51d883a2c858c3a8c017e08774383da81/testdata/mitochondrial_references/Homo_sapiens_assembly38.chrM.fasta.pac",
+      "size": 4144
+    },
+    {
+      "destination": "chrM/Homo_sapiens_assembly38.chrM.fasta.sa",
+      "url": "https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/c3d772f51d883a2c858c3a8c017e08774383da81/testdata/mitochondrial_references/Homo_sapiens_assembly38.chrM.fasta.sa",
+      "size": 8336
+    },
+    {
+      "destination": "chrM/Homo_sapiens_assembly38.chrM.shifted_by_8000_bases.fasta",
+      "url": "https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/c3d772f51d883a2c858c3a8c017e08774383da81/testdata/mitochondrial_references/Homo_sapiens_assembly38.chrM.shifted_by_8000_bases.fasta",
+      "size": 16857
+    },
+    {
+      "destination": "chrM/Homo_sapiens_assembly38.chrM.shifted_by_8000_bases.fasta.fai",
+      "url": "https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/c3d772f51d883a2c858c3a8c017e08774383da81/testdata/mitochondrial_references/Homo_sapiens_assembly38.chrM.shifted_by_8000_bases.fasta.fai",
+      "size": 23
+    },
+    {
+      "destination": "chrM/Homo_sapiens_assembly38.chrM.shifted_by_8000_bases.dict",
+      "url": "https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/c3d772f51d883a2c858c3a8c017e08774383da81/testdata/mitochondrial_references/Homo_sapiens_assembly38.chrM.shifted_by_8000_bases.dict",
+      "size": 214
+    },
+    {
+      "destination": "chrM/Homo_sapiens_assembly38.chrM.shifted_by_8000_bases.fasta.amb",
+      "url": "https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/c3d772f51d883a2c858c3a8c017e08774383da81/testdata/mitochondrial_references/Homo_sapiens_assembly38.chrM.shifted_by_8000_bases.fasta.amb",
+      "size": 20
+    },
+    {
+      "destination": "chrM/Homo_sapiens_assembly38.chrM.shifted_by_8000_bases.fasta.ann",
+      "url": "https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/c3d772f51d883a2c858c3a8c017e08774383da81/testdata/mitochondrial_references/Homo_sapiens_assembly38.chrM.shifted_by_8000_bases.fasta.ann",
+      "size": 144
+    },
+    {
+      "destination": "chrM/Homo_sapiens_assembly38.chrM.shifted_by_8000_bases.fasta.bwt",
+      "url": "https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/c3d772f51d883a2c858c3a8c017e08774383da81/testdata/mitochondrial_references/Homo_sapiens_assembly38.chrM.shifted_by_8000_bases.fasta.bwt",
+      "size": 16648
+    },
+    {
+      "destination": "chrM/Homo_sapiens_assembly38.chrM.shifted_by_8000_bases.fasta.pac",
+      "url": "https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/c3d772f51d883a2c858c3a8c017e08774383da81/testdata/mitochondrial_references/Homo_sapiens_assembly38.chrM.shifted_by_8000_bases.fasta.pac",
+      "size": 4144
+    },
+    {
+      "destination": "chrM/Homo_sapiens_assembly38.chrM.shifted_by_8000_bases.fasta.sa",
+      "url": "https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/c3d772f51d883a2c858c3a8c017e08774383da81/testdata/mitochondrial_references/Homo_sapiens_assembly38.chrM.shifted_by_8000_bases.fasta.sa",
+      "size": 8336
+    },
+    {
+      "destination": "chrM/ShiftBack.chain",
+      "url": "https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/c3d772f51d883a2c858c3a8c017e08774383da81/testdata/mitochondrial_references/ShiftBack.chain",
+      "size": 125
+    },
+    {
+      "destination": "chrM/blacklist_sites.hg38.chrM.bed",
+      "url": "https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/c3d772f51d883a2c858c3a8c017e08774383da81/testdata/mitochondrial_references/blacklist_sites.hg38.chrM.bed",
+      "size": 132
+    },
+    {
+      "destination": "chrM/blacklist_sites.hg38.chrM.bed.idx",
+      "url": "https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/c3d772f51d883a2c858c3a8c017e08774383da81/testdata/mitochondrial_references/blacklist_sites.hg38.chrM.bed.idx",
+      "size": 283
+    },
+    {
+      "destination": "chrM/control_region_shifted.chrM.interval_list",
+      "url": "https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/c3d772f51d883a2c858c3a8c017e08774383da81/testdata/mitochondrial_references/control_region_shifted.chrM.interval_list",
+      "size": 233
+    },
+    {
+      "destination": "chrM/non_control_region.chrM.interval_list",
+      "url": "https://raw.githubusercontent.com/scorreard/Variant_catalogue_pipeline/c3d772f51d883a2c858c3a8c017e08774383da81/testdata/mitochondrial_references/non_control_region.chrM.interval_list",
+      "size": 211
+    }
+  ]
+}

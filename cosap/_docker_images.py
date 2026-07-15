@@ -11,5 +11,6 @@ class DockerImages:
     STRELKA2: str = "iarcbioinfo/strelka2-nf"
     MANTA: str = "szarate/manta:v1.6.0"
     GATK: str = "broadinstitute/gatk"
+    HAPLOCHECKER: str = "us.gcr.io/broad-dsde-methods/haplochecker:haplochecker-0124"
     VARNET: str = "kiranchari/varnet"
     METARNN: str = "itubioinformatics/metarnn"

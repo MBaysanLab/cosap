@@ -40,6 +40,19 @@ class FileFormats:
     GCNV_GENOTYPED_INTERVALS: str = r"genotyped_intervals_{identification}.vcf.gz"
     GCNV_GENOTYPED_SEGMENTS: str = r"genotyped_segments_{identification}.vcf.gz"
     GCNV_DENOISED_COPY_RATIOS: str = r"denoised_copy_ratios_{identification}.tsv"
+    MT_SUBSET_BAM: str = r"{identification}.chrM.bam"
+    MT_UNMAPPED_BAM: str = r"{identification}.chrM.unmapped.bam"
+    MT_STANDARD_ALIGNED_BAM: str = r"{identification}.chrM.aligned.bam"
+    MT_SHIFTED_ALIGNED_BAM: str = r"{identification}.chrM.shifted.aligned.bam"
+    MT_STANDARD_RAW_VCF: str = r"{identification}.chrM.raw.vcf.gz"
+    MT_SHIFTED_RAW_VCF: str = r"{identification}.chrM.shifted.raw.vcf.gz"
+    MT_MERGED_RAW_VCF: str = r"{identification}.chrM.merged.raw.vcf.gz"
+    MT_MERGED_STATS: str = r"{identification}.chrM.merged.stats"
+    MT_FILTERED_VCF: str = r"{identification}.chrM.vcf.gz"
+    MT_SPLIT_VCF: str = r"{identification}.chrM.split.vcf.gz"
+    MT_COVERAGE_METRICS: str = r"{identification}.chrM.coverage.metrics"
+    MT_DUPLICATE_METRICS: str = r"{identification}.chrM.duplicate.metrics"
+    MT_CONTAMINATION_REPORT: str = r"{identification}.chrM.contamination.tsv"
 
 
 @dataclass
@@ -58,6 +71,7 @@ class OutputFolders:
     MSI: str = "MSI"
     CNV: str = "CNV"
     GERMLINE_CNV: str = "GERMLINE_CNV"
+    MITOCHONDRIAL_VARIANT_CALLING: str = "MITOCHONDRIAL_VARIANTS"
 
 
 @dataclass
@@ -99,4 +113,9 @@ class FolderedOutputs:
     )
     GCNV_GENOTYPED_SEGMENTS: str = join_paths(
         OutputFolders.GERMLINE_CNV, "{library}", FileFormats.GCNV_GENOTYPED_SEGMENTS
+    )
+    MITOCHONDRIAL_FILTERED_VCF: str = join_paths(
+        OutputFolders.MITOCHONDRIAL_VARIANT_CALLING,
+        "{library}",
+        FileFormats.MT_FILTERED_VCF,
     )

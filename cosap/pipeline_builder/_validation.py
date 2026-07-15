@@ -64,6 +64,7 @@ VALID_PREPROCESSORS = {
 VALID_CNV_CALLERS = {"cnvkit", "gatk_germline_cnv"}
 VALID_MSI_CALLERS = {"msisensor"}
 VALID_GENE_FUSION_CALLERS = {"genefuse"}
+VALID_MITOCHONDRIAL_CALLERS = {"gatk_mitochondrial"}
 VALID_MODEL_TYPES = {"WGS", "WES"}
 
 
@@ -162,6 +163,8 @@ def _validate_step_configs(
             "output",
             "normal_input",
             "tumor_input",
+            "input_bam",
+            "input_bam_index",
             "bed",
             "table",
             "metrics",
@@ -245,6 +248,7 @@ def validate_pipeline_config(pipeline_config: Dict) -> None:
         "quality_control": VALID_QC_TOOLS,
         "cnv": VALID_CNV_CALLERS,
         "germline_cnv": VALID_CNV_CALLERS,
+        "mitochondrial_variant_calling": VALID_MITOCHONDRIAL_CALLERS,
     }
 
     for step_key, valid_libs in step_validations.items():

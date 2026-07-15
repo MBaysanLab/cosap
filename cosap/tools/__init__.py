@@ -3,6 +3,7 @@ from .cnv_callers import *
 from .comparator import *
 from .gene_fusion_callers import *
 from .mappers import *
+from .mitochondrial_callers import *
 from .msi_callers import *
 from .preprocessors import *
 from .quality_controllers import *

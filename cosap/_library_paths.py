@@ -89,6 +89,27 @@ class _LibraryPaths38(_LibraryPaths):
     CHAIN_FILE: str = _get_file_path_hg38("hg19ToHg38.over.chain.gz")
     # GermlineCNVCaller reference files
     CONTIG_PLOIDY_PRIORS: str = _get_file_path_hg38("contig_ploidy_priors_hg38.tsv")
+    # GATK mitochondrial Mutect2 resource bundle.
+    MT_DIR: str = _get_file_path_hg38("chrM")
+    MT_FASTA: str = _get_file_path_hg38("chrM", "Homo_sapiens_assembly38.chrM.fasta")
+    MT_DICT: str = _get_file_path_hg38("chrM", "Homo_sapiens_assembly38.chrM.dict")
+    MT_FASTA_INDEX: str = _get_file_path_hg38("chrM", "Homo_sapiens_assembly38.chrM.fasta.fai")
+    MT_FASTA_AMB: str = _get_file_path_hg38("chrM", "Homo_sapiens_assembly38.chrM.fasta.amb")
+    MT_FASTA_ANN: str = _get_file_path_hg38("chrM", "Homo_sapiens_assembly38.chrM.fasta.ann")
+    MT_FASTA_BWT: str = _get_file_path_hg38("chrM", "Homo_sapiens_assembly38.chrM.fasta.bwt")
+    MT_FASTA_PAC: str = _get_file_path_hg38("chrM", "Homo_sapiens_assembly38.chrM.fasta.pac")
+    MT_FASTA_SA: str = _get_file_path_hg38("chrM", "Homo_sapiens_assembly38.chrM.fasta.sa")
+    MT_SHIFTED_FASTA: str = _get_file_path_hg38("chrM", "Homo_sapiens_assembly38.chrM.shifted_by_8000_bases.fasta")
+    MT_SHIFTED_DICT: str = _get_file_path_hg38("chrM", "Homo_sapiens_assembly38.chrM.shifted_by_8000_bases.dict")
+    MT_SHIFTED_FASTA_INDEX: str = _get_file_path_hg38("chrM", "Homo_sapiens_assembly38.chrM.shifted_by_8000_bases.fasta.fai")
+    MT_SHIFTED_FASTA_AMB: str = _get_file_path_hg38("chrM", "Homo_sapiens_assembly38.chrM.shifted_by_8000_bases.fasta.amb")
+    MT_SHIFTED_FASTA_ANN: str = _get_file_path_hg38("chrM", "Homo_sapiens_assembly38.chrM.shifted_by_8000_bases.fasta.ann")
+    MT_SHIFTED_FASTA_BWT: str = _get_file_path_hg38("chrM", "Homo_sapiens_assembly38.chrM.shifted_by_8000_bases.fasta.bwt")
+    MT_SHIFTED_FASTA_PAC: str = _get_file_path_hg38("chrM", "Homo_sapiens_assembly38.chrM.shifted_by_8000_bases.fasta.pac")
+    MT_SHIFTED_FASTA_SA: str = _get_file_path_hg38("chrM", "Homo_sapiens_assembly38.chrM.shifted_by_8000_bases.fasta.sa")
+    MT_SHIFT_BACK_CHAIN: str = _get_file_path_hg38("chrM", "ShiftBack.chain")
+    MT_BLACKLIST: str = _get_file_path_hg38("chrM", "blacklist_sites.hg38.chrM.bed")
+    MT_BLACKLIST_INDEX: str = _get_file_path_hg38("chrM", "blacklist_sites.hg38.chrM.bed.idx")
 
 
 @dataclass

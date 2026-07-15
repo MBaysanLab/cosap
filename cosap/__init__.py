@@ -14,6 +14,7 @@ from .tools.cnv_callers import *
 from .tools.comparator import *
 from .tools.gene_fusion_callers import *
 from .tools.mappers import *
+from .tools.mitochondrial_callers import *
 from .tools.msi_callers import *
 from .tools.preprocessors import *
 from .tools.quality_controllers import *

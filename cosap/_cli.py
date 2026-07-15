@@ -23,7 +23,12 @@ from .pipeline_builder.builders import (
 )
 from .tools import MapperFactory, PreprocessorFactory, VariantCallerFactory
 from .tools.cnv_callers import CNVCallerFactory
-from .workflows import DNAPipeline, DNAPipelineInput
+from .workflows import (
+    DNAPipeline,
+    DNAPipelineInput,
+    MitochondrialPipeline,
+    MitochondrialPipelineInput,
+)
 
 
 def _handle_error(ctx, e):
@@ -44,6 +49,52 @@ def _handle_error(ctx, e):
 @click.group()
 def cli():
     pass
+
+
+@cli.command("mitochondrial")
+@click.option("--workdir", required=True, help="Directory for all workflow outputs.")
+@click.option("--sample-name", required=True, help="Sample name written to outputs.")
+@click.option("--bam", required=False, help="Analysis-ready, coordinate-sorted hg38 BAM.")
+@click.option("--bam-index", required=False, help="BAM .bai or .csi index.")
+@click.option("--fastq-r1", required=False, help="Paired-end FASTQ read 1.")
+@click.option("--fastq-r2", required=False, help="Paired-end FASTQ read 2.")
+@click.option("--mapper", default="bwa", show_default=True)
+@click.option("--skip-recalibration", is_flag=True, help="Do not run BQSR in FASTQ mode.")
+@click.option("--contig-name", default="chrM", show_default=True)
+@click.option("--median-autosomal-coverage", type=float)
+@click.option("--min-allele-fraction", type=float)
+@click.option("--f-score-beta", type=float)
+@click.option("--contamination-estimate", type=float)
+@click.option("--skip-haplochecker", is_flag=True)
+def mitochondrial(
+    workdir, sample_name, bam, bam_index, fastq_r1, fastq_r2, mapper,
+    skip_recalibration, contig_name, median_autosomal_coverage,
+    min_allele_fraction, f_score_beta, contamination_estimate, skip_haplochecker,
+):
+    """Call mitochondrial SNVs and indels from hg38 BAM or paired FASTQs."""
+    try:
+        pipeline = MitochondrialPipeline(
+            MitochondrialPipelineInput(
+                WORKDIR=workdir,
+                SAMPLE_NAME=sample_name,
+                INPUT_BAM=bam,
+                INPUT_BAM_INDEX=bam_index,
+                FASTQS=(fastq_r1, fastq_r2) if fastq_r1 or fastq_r2 else None,
+                MAPPER=mapper,
+                SKIP_RECALIBRATION=skip_recalibration,
+                CONTIG_NAME=contig_name,
+                MEDIAN_AUTOSOMAL_COVERAGE=median_autosomal_coverage,
+                MIN_ALLELE_FRACTION=min_allele_fraction,
+                F_SCORE_BETA=f_score_beta,
+                CONTAMINATION_ESTIMATE=contamination_estimate,
+                RUN_HAPLOCHECKER=not skip_haplochecker,
+            )
+        )
+        pipeline.run_pipeline()
+    except SystemExit:
+        raise
+    except Exception as e:
+        _handle_error(click.get_current_context(), e)
 
 
 @cli.command()
@@ -560,6 +611,20 @@ def bam_preprocessor(
     default=None,
 )
 @click.option(
+    "--target-bases-per-shard",
+    "target_bases_per_shard",
+    help="Target analyzed bases per gCNV scatter shard (default 10000000).",
+    type=int,
+    default=None,
+)
+@click.option(
+    "--intervals-per-shard",
+    "intervals_per_shard",
+    help="Fixed interval count per gCNV scatter shard. Overrides --target-bases-per-shard.",
+    type=int,
+    default=None,
+)
+@click.option(
     "--sensitive",
     help="Use increased sensitivity parameters for WGS data. May increase false positives.",
     is_flag=True,
@@ -577,6 +642,21 @@ def bam_preprocessor(
     "mappability_track",
     help="Path to mappability track BED file for interval filtering.",
     required=False,
+    type=click.Path(exists=True),
+)
+@click.option(
+    "--segmental-duplication-track",
+    "segmental_duplication_track",
+    help="Path to segmental-duplication BED file for interval annotation/filtering.",
+    required=False,
+    type=click.Path(exists=True),
+)
+@click.option(
+    "--exclude-intervals",
+    "exclude_intervals",
+    help="Intervals to exclude from gCNV analysis. Can be specified multiple times.",
+    required=False,
+    multiple=True,
     type=click.Path(exists=True),
 )
 @click.option(
@@ -601,9 +681,13 @@ def germline_cnv_cohort(
     data_type,
     bin_length,
     padding,
+    target_bases_per_shard,
+    intervals_per_shard,
     sensitive,
     allosomal_contigs,
     mappability_track,
+    segmental_duplication_track,
+    exclude_intervals,
     max_copy_number,
     verbosity,
 ):
@@ -650,6 +734,13 @@ def germline_cnv_cohort(
                 "Consider using more samples for better model training.",
                 err=True,
             )
+        if len(bam_files) < 100:
+            click.echo(
+                "Warning: GATK recommends starting GermlineCNVCaller cohort mode "
+                "with approximately 100 samples. Smaller cohorts can produce "
+                "unstable normalization and exploratory calls only.",
+                err=True,
+            )
 
         if data_type == "exome" and not intervals:
             click.echo("Error: --intervals is required for exome/panel data.", err=True)
@@ -678,6 +769,14 @@ def germline_cnv_cohort(
 
         if mappability_track:
             params["mappability_track"] = mappability_track
+        if segmental_duplication_track:
+            params["segmental_duplication_track"] = segmental_duplication_track
+        if exclude_intervals:
+            params["exclude_intervals"] = list(exclude_intervals)
+        if target_bases_per_shard is not None:
+            params["target_bases_per_shard"] = target_bases_per_shard
+        if intervals_per_shard is not None:
+            params["intervals_per_shard"] = intervals_per_shard
 
         # Add sensitive parameters if requested (for WGS)
         if sensitive:
@@ -701,7 +800,9 @@ def germline_cnv_cohort(
         click.echo(f"Processing {len(bam_files)} BAM files:")
         bam_readers = []
         for bam_path in bam_files:
-            bam_name = os.path.basename(bam_path).replace(".bam", "")
+            bam_name = os.path.basename(bam_path)
+            if bam_name.endswith((".bam", ".cram")):
+                bam_name = os.path.splitext(bam_name)[0]
             click.echo(f"  - {bam_name}: {bam_path}")
             bam_readers.append(BamReader(bam_path, name=bam_name))
 
@@ -822,6 +923,21 @@ def germline_cnv_cohort(
     type=click.Path(exists=True),
 )
 @click.option(
+    "--segmental-duplication-track",
+    "segmental_duplication_track",
+    help="Path to segmental-duplication BED file for interval annotation/filtering.",
+    required=False,
+    type=click.Path(exists=True),
+)
+@click.option(
+    "--exclude-intervals",
+    "exclude_intervals",
+    help="Intervals to exclude from gCNV analysis. Can be specified multiple times.",
+    required=False,
+    multiple=True,
+    type=click.Path(exists=True),
+)
+@click.option(
     "--max-copy-number",
     "max_copy_number",
     help="Maximum copy number to report (default 5).",
@@ -846,17 +962,13 @@ def germline_cnv_case(
     padding,
     allosomal_contigs,
     mappability_track,
+    segmental_duplication_track,
+    exclude_intervals,
     max_copy_number,
     verbosity,
 ):
     """Run GATK GermlineCNVCaller in CASE mode against existing cohort models."""
     try:
-        if data_type == "exome" and not intervals:
-            click.echo(
-                "Error: --intervals is required for exome/panel case calling.", err=True
-            )
-            raise SystemExit(1)
-
         if not output_dir:
             output_dir = os.getcwd()
             click.echo(f"Using current directory as output: {output_dir}")
@@ -878,13 +990,19 @@ def germline_cnv_case(
         }
         if mappability_track:
             params["mappability_track"] = mappability_track
+        if segmental_duplication_track:
+            params["segmental_duplication_track"] = segmental_duplication_track
+        if exclude_intervals:
+            params["exclude_intervals"] = list(exclude_intervals)
         if data_type == "exome":
             params["enable_bias_factors"] = True
 
         click.echo(f"Processing {len(bam_files)} BAM files:")
         bam_readers = []
         for bam_path in bam_files:
-            bam_name = os.path.basename(bam_path).replace(".bam", "")
+            bam_name = os.path.basename(bam_path)
+            if bam_name.endswith((".bam", ".cram")):
+                bam_name = os.path.splitext(bam_name)[0]
             click.echo(f"  - {bam_name}: {bam_path}")
             bam_readers.append(BamReader(bam_path, name=bam_name))
 

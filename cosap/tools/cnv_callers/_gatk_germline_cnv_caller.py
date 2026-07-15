@@ -22,6 +22,8 @@ Parallelization Strategy:
 """
 
 import glob
+import json
+import math
 import os
 import shutil
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -61,8 +63,14 @@ class GATKGermlineCNVCaller(_CNVCaller):
     - PostprocessGermlineCNVCalls runs in parallel across samples
     """
 
-    # Default intervals per shard (~5Mbp for 1kb bins)
+    # Default intervals per shard (~5Mbp for 1kb WGS bins). Retained as an
+    # explicit fallback for malformed interval lists or user overrides.
     DEFAULT_INTERVALS_PER_SHARD = 5000
+    # Broad recommends ~10-50Mbp genomic coverage per scatter for reliable
+    # bias-factor inference. Exome targets are often far shorter than 1kb, so
+    # fixed 5k-interval scattering can under-cover each shard by an order of
+    # magnitude.
+    DEFAULT_TARGET_BASES_PER_SHARD = 10_000_000
 
     @classmethod
     def _normalize_run_mode(cls, caller_config: Dict) -> str:
@@ -218,6 +226,71 @@ class GATKGermlineCNVCaller(_CNVCaller):
             output_dir,
         ]
         return command
+
+    @staticmethod
+    def _sample_name_from_alignment_path(alignment_path: str) -> str:
+        path = Path(alignment_path)
+        if path.suffix in {".bam", ".cram"}:
+            return path.stem
+        return path.name
+
+    @staticmethod
+    def _count_interval_list_targets(interval_list: str) -> Tuple[int, int]:
+        interval_count = 0
+        total_bases = 0
+        with open(interval_list) as handle:
+            for line in handle:
+                if not line.strip() or line.startswith("@"):
+                    continue
+                parts = line.rstrip("\n").split("\t")
+                if len(parts) < 3:
+                    continue
+                try:
+                    start = int(parts[1])
+                    end = int(parts[2])
+                except ValueError:
+                    continue
+                interval_count += 1
+                total_bases += max(0, end - start + 1)
+        return interval_count, total_bases
+
+    @classmethod
+    def _resolve_intervals_per_shard(cls, filtered_intervals: str, params: Dict) -> int:
+        if params.get("intervals_per_shard"):
+            return int(params["intervals_per_shard"])
+
+        target_bases = int(
+            params.get("target_bases_per_shard", cls.DEFAULT_TARGET_BASES_PER_SHARD)
+        )
+        interval_count, total_bases = cls._count_interval_list_targets(
+            filtered_intervals
+        )
+        if interval_count == 0 or total_bases == 0 or target_bases <= 0:
+            return cls.DEFAULT_INTERVALS_PER_SHARD
+
+        desired_shards = max(1, math.ceil(total_bases / target_bases))
+        return max(1, math.ceil(interval_count / desired_shards))
+
+    @classmethod
+    def _write_scatter_summary(
+        cls, scatter_dir: str, filtered_intervals: str, intervals_per_shard: int, params: Dict
+    ) -> None:
+        interval_count, total_bases = cls._count_interval_list_targets(
+            filtered_intervals
+        )
+        target_bases = int(
+            params.get("target_bases_per_shard", cls.DEFAULT_TARGET_BASES_PER_SHARD)
+        )
+        summary = {
+            "filtered_interval_count": interval_count,
+            "filtered_total_bases": total_bases,
+            "target_bases_per_shard": target_bases,
+            "intervals_per_shard": intervals_per_shard,
+            "fixed_intervals_per_shard_override": "intervals_per_shard" in params,
+        }
+        with open(os.path.join(scatter_dir, "scatter_summary.json"), "w") as handle:
+            json.dump(summary, handle, indent=2)
+            handle.write("\n")
 
     @classmethod
     def _create_filter_intervals_command(
@@ -629,7 +702,7 @@ class GATKGermlineCNVCaller(_CNVCaller):
         """Collect read counts for all samples in parallel."""
         tasks = []
         for bam_file in sample_inputs:
-            sample_name = os.path.basename(bam_file).replace(".bam", "")
+            sample_name = cls._sample_name_from_alignment_path(bam_file)
             rc_output = os.path.join(read_counts_dir, f"read_counts_{sample_name}.hdf5")
 
             if os.path.exists(rc_output):
@@ -1156,8 +1229,16 @@ class GATKGermlineCNVCaller(_CNVCaller):
             shard_intervals = [None] * len(case_model_shards)
             print(f"  CASE mode: using {len(case_model_shards)} provided model shards.")
         else:
-            intervals_per_shard = params.get(
-                "intervals_per_shard", cls.DEFAULT_INTERVALS_PER_SHARD
+            intervals_per_shard = cls._resolve_intervals_per_shard(
+                filtered_intervals, params
+            )
+            cls._write_scatter_summary(
+                scatter_dir, filtered_intervals, intervals_per_shard, params
+            )
+            print(
+                "  Scatter sizing: "
+                f"{intervals_per_shard} intervals/shard "
+                f"(target {params.get('target_bases_per_shard', cls.DEFAULT_TARGET_BASES_PER_SHARD)} bp/shard)"
             )
             shard_intervals = cls._scatter_intervals(
                 filtered_intervals, scatter_dir, intervals_per_shard, workdir, device

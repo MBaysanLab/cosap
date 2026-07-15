@@ -27,6 +27,7 @@ class PipelineKeys:
     MSI: str = "msi"
     CNV: str = "cnv"
     GERMLINE_CNV: str = "germline_cnv"
+    MITOCHONDRIAL_VARIANT_CALLING: str = "mitochondrial_variant_calling"
 
 
 @dataclass
@@ -163,6 +164,34 @@ class GermlineCNVCallingKeys(PipelineBaseKeys):
     RUN_MODE: str = "run_mode"  # COHORT or CASE
     BIN_LENGTH: str = "bin_length"
     PADDING: str = "padding"
+
+
+@dataclass
+class MitochondrialCallingKeys(PipelineBaseKeys):
+    """Keys for the GATK mitochondrial short-variant workflow."""
+
+    INPUT_BAM: str = "input_bam"
+    INPUT_BAM_INDEX: str = "input_bam_index"
+    CONTIG_NAME: str = "contig_name"
+    MEDIAN_AUTOSOMAL_COVERAGE: str = "median_autosomal_coverage"
+    MIN_ALLELE_FRACTION: str = "min_allele_fraction"
+    F_SCORE_BETA: str = "f_score_beta"
+    CONTAMINATION_ESTIMATE: str = "contamination_estimate"
+    RUN_HAPLOCHECKER: str = "run_haplochecker"
+
+    SUBSET_BAM: str = "subset_bam"
+    UNMAPPED_BAM: str = "unmapped_bam"
+    STANDARD_ALIGNED_BAM: str = "standard_aligned_bam"
+    SHIFTED_ALIGNED_BAM: str = "shifted_aligned_bam"
+    STANDARD_RAW_VCF: str = "standard_raw_vcf"
+    SHIFTED_RAW_VCF: str = "shifted_raw_vcf"
+    MERGED_RAW_VCF: str = "merged_raw_vcf"
+    MERGED_STATS: str = "merged_stats"
+    FILTERED_VCF: str = "filtered_vcf"
+    SPLIT_VCF: str = "split_vcf"
+    COVERAGE_METRICS: str = "coverage_metrics"
+    DUPLICATE_METRICS: str = "duplicate_metrics"
+    CONTAMINATION_REPORT: str = "contamination_report"
 
 
 @dataclass

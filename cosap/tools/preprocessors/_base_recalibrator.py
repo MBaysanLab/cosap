@@ -65,6 +65,8 @@ class BaseRecalibrator(_Preprocessor, _PreProcessable):
             calibration_config[BaseRecalibratorKeys.TABLE],
             "-O",
             calibration_config[BaseRecalibratorKeys.OUTPUT],
+            "--create-output-bam-index",
+            "true",
         ]
         bed_file = (
             convert_to_absolute_path(calibration_config[BaseRecalibratorKeys.BED_FILE])
