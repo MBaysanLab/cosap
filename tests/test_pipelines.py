@@ -22,6 +22,7 @@ from cosap import (
     VariantCaller,
     VariantCallerFactory,
 )
+from cosap._pipeline_config import PipelineKeys
 
 TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
@@ -176,6 +177,90 @@ def _get_sample_name_from_bam(bam_path: str) -> str:
     raise ValueError(f"No @RG SM tag found in BAM header: {bam_path}")
 
 
+def _write_fastq(path):
+    path.write_text("@read\nA\n+\nI\n")
+    return str(path)
+
+
+def test_germline_dna_pipeline_includes_mitochondrial_caller_by_default(tmp_path):
+    r1 = _write_fastq(tmp_path / "normal_R1.fastq")
+    r2 = _write_fastq(tmp_path / "normal_R2.fastq")
+
+    pipeline_input = DNAPipelineInput(
+        ANALYSIS_TYPE="germline",
+        WORKDIR=str(tmp_path),
+        NORMAL_SAMPLE=(r1, r2),
+        MAPPERS=["bwa"],
+        VARIANT_CALLERS=["haplotypecaller"],
+        NORMAL_SAMPLE_NAME="NA12878",
+    )
+
+    dna_pipeline = DNAPipeline(pipeline_input)
+    mitochondrial_config = dna_pipeline.config[
+        PipelineKeys.MITOCHONDRIAL_VARIANT_CALLING
+    ]
+
+    assert list(mitochondrial_config) == ["NA12878_bwa_mitochondrial"]
+    assert (
+        mitochondrial_config["NA12878_bwa_mitochondrial"]["library"]
+        == "gatk_mitochondrial"
+    )
+
+
+def test_somatic_dna_pipeline_includes_mitochondrial_callers_by_default(tmp_path):
+    normal_r1 = _write_fastq(tmp_path / "normal_R1.fastq")
+    normal_r2 = _write_fastq(tmp_path / "normal_R2.fastq")
+    tumor_r1 = _write_fastq(tmp_path / "tumor_R1.fastq")
+    tumor_r2 = _write_fastq(tmp_path / "tumor_R2.fastq")
+
+    pipeline_input = DNAPipelineInput(
+        ANALYSIS_TYPE="somatic",
+        WORKDIR=str(tmp_path),
+        NORMAL_SAMPLE=(normal_r1, normal_r2),
+        TUMOR_SAMPLES=(tumor_r1, tumor_r2),
+        MAPPERS=["bwa"],
+        VARIANT_CALLERS=["mutect2"],
+        NORMAL_SAMPLE_NAME="normal",
+        TUMOR_SAMPLE_NAME="tumor",
+    )
+
+    dna_pipeline = DNAPipeline(pipeline_input)
+
+    assert set(dna_pipeline.config[PipelineKeys.MITOCHONDRIAL_VARIANT_CALLING]) == {
+        "normal_bwa_mitochondrial",
+        "tumor_bwa_mitochondrial",
+    }
+
+
+def test_somatic_dna_pipeline_reuses_normal_steps_for_multiple_tumors(tmp_path):
+    normal_r1 = _write_fastq(tmp_path / "normal_R1.fastq")
+    normal_r2 = _write_fastq(tmp_path / "normal_R2.fastq")
+    tumor_1_r1 = _write_fastq(tmp_path / "tumor_1_R1.fastq")
+    tumor_1_r2 = _write_fastq(tmp_path / "tumor_1_R2.fastq")
+    tumor_2_r1 = _write_fastq(tmp_path / "tumor_2_R1.fastq")
+    tumor_2_r2 = _write_fastq(tmp_path / "tumor_2_R2.fastq")
+
+    pipeline_input = DNAPipelineInput(
+        ANALYSIS_TYPE="somatic",
+        WORKDIR=str(tmp_path),
+        NORMAL_SAMPLE=(normal_r1, normal_r2),
+        TUMOR_SAMPLES=[(tumor_1_r1, tumor_1_r2), (tumor_2_r1, tumor_2_r2)],
+        MAPPERS=["bwa"],
+        VARIANT_CALLERS=["mutect2"],
+        NORMAL_SAMPLE_NAME="normal",
+        TUMOR_SAMPLE_NAME="tumor",
+    )
+
+    dna_pipeline = DNAPipeline(pipeline_input)
+
+    assert list(dna_pipeline.config[PipelineKeys.MDUP]).count("normal_bwa") == 1
+    assert set(dna_pipeline.config[PipelineKeys.MITOCHONDRIAL_VARIANT_CALLING]) == {
+        "normal_bwa_mitochondrial",
+        "tumor_1_bwa_mitochondrial",
+        "tumor_2_bwa_mitochondrial",
+    }
+
+
 @pytest.mark.integration
 def test_bwa_haplotypecaller_dna_pipeline(tmp_path):
     """End-to-end test of the default DNAPipeline workflow (germline analysis)
@@ -215,6 +300,7 @@ def test_bwa_haplotypecaller_dna_pipeline(tmp_path):
         MAPPERS=["bwa"],
         VARIANT_CALLERS=["haplotypecaller"],
         NORMAL_SAMPLE_NAME="NA12878",
+        MITOCHONDRIAL=False,
     )
 
     dna_pipeline = DNAPipeline(pipeline_input)

@@ -5,16 +5,12 @@ from typing import Optional, Tuple
 
 from ..pipeline_builder import (
     BamReader,
-    FastqReader,
-    MDUP,
-    Mapper,
     MitochondrialVariantCaller,
     Pipeline,
-    Recalibrator,
-    Sorter,
-    Trimmer,
 )
 from ..runners.pipeline_runner import PipelineRunner
+from .dna.components import preprocess_sample
+from .models import PreprocessingOptions, SampleInput
 
 
 @dataclass
@@ -78,37 +74,19 @@ class MitochondrialPipeline:
             self._caller(BamReader(self.input.INPUT_BAM, name=self.input.SAMPLE_NAME))
             return
 
-        readers = [
-            FastqReader(self.input.FASTQS[0], read=1, name=self.input.SAMPLE_NAME),
-            FastqReader(self.input.FASTQS[1], read=2, name=self.input.SAMPLE_NAME),
-        ]
-        trimmer = Trimmer(input_step=readers, name=self.input.SAMPLE_NAME)
-        mapper = Mapper(
-            library=self.input.MAPPER,
-            input_step=trimmer,
-            name=self.input.SAMPLE_NAME,
-            params={
-                "read_groups": {
-                    "ID": "0",
-                    "SM": self.input.SAMPLE_NAME,
-                    "PU": "0",
-                    "PL": "ILLUMINA",
-                    "LB": "0",
-                }
-            },
+        sample = SampleInput(name=self.input.SAMPLE_NAME, fastqs=self.input.FASTQS)
+        processed = preprocess_sample(
+            self.pipeline,
+            sample,
+            PreprocessingOptions(
+                mapper=self.input.MAPPER,
+                skip_recalibration=self.input.SKIP_RECALIBRATION,
+                mapper_name=self.input.SAMPLE_NAME,
+                sort_before_mark_duplicates=True,
+                mark_duplicates_spark=False,
+            ),
         )
-        sorter = Sorter(input_step=mapper, name=self.input.SAMPLE_NAME)
-        mdup = MDUP(input_step=sorter, name=self.input.SAMPLE_NAME, spark=False)
-        self.pipeline.add(trimmer)
-        self.pipeline.add(mapper)
-        self.pipeline.add(sorter)
-        self.pipeline.add(mdup)
-        final_bam = mdup
-        if not self.input.SKIP_RECALIBRATION:
-            recalibrator = Recalibrator(input_step=mdup, name=self.input.SAMPLE_NAME)
-            self.pipeline.add(recalibrator)
-            final_bam = recalibrator
-        self._caller(final_bam)
+        self._caller(processed.final_bam)
 
     def run_pipeline(self):
         return PipelineRunner(device="cpu").run_pipeline(self.config)

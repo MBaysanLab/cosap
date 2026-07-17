@@ -8,7 +8,9 @@ from .memory_handler import *
 from .parsers import *
 from .pipeline_builder import *
 from .runners import *
+from .runners.pipeline_runner import PipelineRunner
 from .scatter_gather import *
+from .services import *
 from .tools.annotators import *
 from .tools.cnv_callers import *
 from .tools.comparator import *

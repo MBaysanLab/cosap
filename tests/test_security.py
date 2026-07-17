@@ -17,7 +17,7 @@ import pytest
 
 # ---------------------------------------------------------------------------
 # Helper: import a single module by file path without triggering the full
-# cosap package __init__ (which requires psutil, docker, celery, etc.).
+# cosap package __init__ (which requires psutil, docker, and other runtime deps).
 # ---------------------------------------------------------------------------
 
 
@@ -268,25 +268,24 @@ class TestValidatePipelineConfig:
 
 
 # ===========================================================================
-# Test: Celery task input validation helpers
+# Test: external worker input validation helpers
 # ===========================================================================
-# We test the standalone validation functions from celery.py without importing
-# the full celery module (which requires celery, redis, etc.).
-# We extract the functions via regex from the source file.
+# The external cosap_celery worker owns task-boundary validation. Keep these
+# lightweight checks independent from that worker's optional runtime deps.
 
 
-class TestCeleryValidationHelpers:
+class TestWorkerValidationHelpers:
     """Tests for _validate_path, _validate_identifier, _validate_list_of_strings
-    from cosap/celery/celery.py.
+    from cosap_celery/tasks/validation.py.
 
     The actual functions are copied here verbatim to avoid importing the full
-    celery module (which requires celery, redis, etc.). The source-level
-    checks in other test classes verify the functions exist in the source.
+    worker package. The source-level checks in other test classes verify the
+    corresponding safety constraints in COSAP.
     """
 
     @pytest.fixture(autouse=True)
     def setup_helpers(self):
-        """Define the validation helpers inline (mirroring celery.py)."""
+        """Define the validation helpers inline (mirroring the worker contract)."""
         _SAFE_ID_RE = re.compile(r"^[a-zA-Z0-9._-]+$")
         _DANGER_RE = re.compile(r"[;\|`$\(\)\{\}!&<>]")
 
@@ -499,42 +498,6 @@ class TestDockerRunnerSecurityChecks:
     def test_has_container_cleanup(self):
         """Docker runner should clean up containers."""
         assert "remove" in self.source or "cleanup" in self.source.lower()
-
-
-# ===========================================================================
-# Test: Celery config security settings (source-level check)
-# ===========================================================================
-
-
-class TestCeleryConfigSecurity:
-    """Verify security-relevant Celery configuration settings."""
-
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        config_path = os.path.join(_PROJECT_ROOT, "cosap", "celery", "celeryconfig.py")
-        with open(config_path) as f:
-            self.source = f.read()
-
-    def test_no_default_credentials(self):
-        """Celery config should not have default 'guest' credentials."""
-        # Should not have guest as a fallback default
-        assert '"guest"' not in self.source or "EnvironmentError" in self.source
-
-    def test_has_task_time_limits(self):
-        """Celery config should set task time limits."""
-        assert "task_time_limit" in self.source
-
-    def test_has_acks_late(self):
-        """Celery config should use acks_late for at-least-once delivery."""
-        assert "task_acks_late" in self.source
-
-    def test_has_json_serialization(self):
-        """Celery config should use JSON serialization (not pickle)."""
-        assert "json" in self.source
-
-    def test_env_vars_required_for_broker(self):
-        """Celery config should require env vars for broker credentials."""
-        assert "EnvironmentError" in self.source or "environ" in self.source
 
 
 # ===========================================================================
