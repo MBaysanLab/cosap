@@ -61,7 +61,7 @@ VALID_PREPROCESSORS = {
     "trimmer",
     "elprep",
 }
-VALID_CNV_CALLERS = {"cnvkit", "gatk_germline_cnv"}
+VALID_CNV_CALLERS = {"clincnv", "cnvkit", "freec", "gatk_germline_cnv"}
 VALID_MSI_CALLERS = {"msisensor"}
 VALID_GENE_FUSION_CALLERS = {"genefuse"}
 VALID_MITOCHONDRIAL_CALLERS = {"gatk_mitochondrial"}

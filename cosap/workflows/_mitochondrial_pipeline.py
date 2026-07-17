@@ -11,6 +11,7 @@ from ..pipeline_builder import (
     MitochondrialVariantCaller,
     Pipeline,
     Recalibrator,
+    Sorter,
     Trimmer,
 )
 from ..runners.pipeline_runner import PipelineRunner
@@ -96,9 +97,11 @@ class MitochondrialPipeline:
                 }
             },
         )
-        mdup = MDUP(input_step=mapper, name=self.input.SAMPLE_NAME)
+        sorter = Sorter(input_step=mapper, name=self.input.SAMPLE_NAME)
+        mdup = MDUP(input_step=sorter, name=self.input.SAMPLE_NAME, spark=False)
         self.pipeline.add(trimmer)
         self.pipeline.add(mapper)
+        self.pipeline.add(sorter)
         self.pipeline.add(mdup)
         final_bam = mdup
         if not self.input.SKIP_RECALIBRATION:

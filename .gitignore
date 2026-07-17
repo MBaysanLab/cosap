@@ -136,3 +136,7 @@ cosap/_config.py
 
 # Session context (local only)
 CONTEXT.md
+
+# Local pytest/benchmark outputs
+.tmp_mito_pytest/
+.tmp_na12878_benchmark/

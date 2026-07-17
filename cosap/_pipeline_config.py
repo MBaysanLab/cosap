@@ -131,6 +131,10 @@ class CNVCallingKeys(PipelineBaseKeys):
     NORMAL_INPUT: str = "normal_input"
     TUMOR_INPUT: str = "tumor_input"
     OUTPUT_DIR: str = "output_dir"
+    FREEC_CONFIG: str = "freec_config"
+    FREEC_INFO: str = "freec_info"
+    FREEC_RAW_CNVS: str = "freec_raw_cnvs"
+    CLINCNV_RAW_CNVS: str = "clincnv_raw_cnvs"
 
 
 @dataclass

@@ -123,6 +123,8 @@ class GATKMitochondrialCaller(_MitochondrialCaller):
         duplicate_metrics = output(MitochondrialCallingKeys.DUPLICATE_METRICS)
         contamination_report = output(MitochondrialCallingKeys.CONTAMINATION_REPORT)
         contig = caller_config[MitochondrialCallingKeys.CONTIG_NAME]
+        sample_name = Path(filtered_vcf).name.split(".")[0]
+        read_group = f"@RG\\tID:{sample_name}\\tSM:{sample_name}\\tPL:ILLUMINA"
         bind_paths = [{"source": str(Path(input_bam).parent), "target": str(Path(input_bam).parent), "mode": "ro"}]
         if input_index is not None:
             bind_paths.append(
@@ -153,19 +155,12 @@ class GATKMitochondrialCaller(_MitochondrialCaller):
             (refs["shifted FASTA"], shifted_bam, f"{duplicate_metrics}.shifted"),
         ):
             temporary_bam = f"{aligned_bam}.bwa.bam"
-            merge_bam = f"{aligned_bam}.merged.bam"
             command = (
-                f"bwa mem {shlex.quote(reference)} {shlex.quote(unmapped_bam)} | "
+                cls._quote(["samtools", "fastq", "-n", "-0", "/dev/null", "-s", "/dev/null", unmapped_bam])
+                + f" | bwa mem -p -R {shlex.quote(read_group)} {shlex.quote(reference)} /dev/stdin | "
                 f"samtools sort -o {shlex.quote(temporary_bam)} -; "
                 + cls._quote([
-                    "gatk", "MergeBamAlignment", "--UNMAPPED_BAM", unmapped_bam,
-                    "--ALIGNED_BAM", temporary_bam, "--OUTPUT", merge_bam,
-                    "--REFERENCE_SEQUENCE", reference, "--CREATE_INDEX", "true",
-                    "--VALIDATION_STRINGENCY", "SILENT",
-                ])
-                + "; "
-                + cls._quote([
-                    "gatk", "MarkDuplicates", "--INPUT", merge_bam, "--OUTPUT", aligned_bam,
+                    "gatk", "MarkDuplicates", "--INPUT", temporary_bam, "--OUTPUT", aligned_bam,
                     "--METRICS_FILE", metrics, "--CREATE_INDEX", "true",
                     "--VALIDATION_STRINGENCY", "SILENT",
                 ])

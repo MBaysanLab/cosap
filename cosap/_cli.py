@@ -7,6 +7,7 @@ from dotenv import set_key
 
 from ._config import get_cosap_dotenv
 from ._formats import FileFormats
+from ._pipeline_config import CNVCallingKeys
 from ._utils import join_paths
 from .file_downloader import FileDownloader
 from .pipeline_builder.builders import (
@@ -51,15 +52,173 @@ def cli():
     pass
 
 
+@cli.command("clincnv")
+@click.option("--coverage-matrix", required=True, type=click.Path(exists=True))
+@click.option("--annotated-bed", required=True, type=click.Path(exists=True))
+@click.option(
+    "--script-dir",
+    required=False,
+    type=click.Path(exists=True),
+    help="Optional host ClinCNV checkout. Defaults to /opt/ClinCNV in the Docker image.",
+)
+@click.option("--sample-name", required=True)
+@click.option("--output-dir", required=True, type=click.Path())
+@click.option("--output", default="clincnv_segments.tsv", show_default=True)
+@click.option("--score-g", default=50, show_default=True, type=float)
+@click.option("--length-g", default=2, show_default=True, type=int)
+@click.option("--threads", default=1, show_default=True, type=int)
+@click.option("--image", type=str, help="Override the ClinCNV Docker image.")
+def clincnv(
+    coverage_matrix,
+    annotated_bed,
+    script_dir,
+    sample_name,
+    output_dir,
+    output,
+    score_g,
+    length_g,
+    threads,
+    image,
+):
+    """Run ClinCNV germline calling for one sample in a coverage cohort."""
+    try:
+        caller_config = {
+            CNVCallingKeys.LIBRARY: CNVCallerFactory.CLINCNV,
+            CNVCallingKeys.OUTPUT_DIR: output_dir,
+            CNVCallingKeys.OUTPUT: output,
+            CNVCallingKeys.PARAMS: {
+                "coverage_matrix": coverage_matrix,
+                "annotated_bed": annotated_bed,
+                "script_dir": script_dir,
+                "sample_name": sample_name,
+                "score_g": score_g,
+                "length_g": length_g,
+                "threads": threads,
+                "hg38": "TRUE",
+                "image": image,
+            },
+        }
+        result = CNVCallerFactory.create(CNVCallerFactory.CLINCNV).call(caller_config)
+        click.echo(result)
+    except SystemExit:
+        raise
+    except Exception as e:
+        _handle_error(click.get_current_context(), e)
+
+
+@cli.command("freec")
+@click.option(
+    "--sample",
+    required=True,
+    type=click.Path(exists=True),
+    help="Sample/tumor BAM, SAM, or pileup input.",
+)
+@click.option(
+    "--control",
+    required=False,
+    type=click.Path(exists=True),
+    help="Optional matched normal/control input.",
+)
+@click.option(
+    "--capture-regions",
+    required=True,
+    type=click.Path(exists=True),
+    help="Sorted WES/panel target BED.",
+)
+@click.option(
+    "--chr-len-file",
+    required=True,
+    type=click.Path(exists=True),
+    help="Chromosome-length file or FASTA .fai.",
+)
+@click.option(
+    "--chr-files",
+    required=False,
+    type=click.Path(exists=True),
+    help="Per-chromosome FASTA directory for control-free GC normalization.",
+)
+@click.option(
+    "--gc-content-profile",
+    required=False,
+    type=click.Path(exists=True),
+    help="Precomputed FREEC GC content profile for control-free mode.",
+)
+@click.option(
+    "--output-dir", required=True, type=click.Path(), help="FREEC output directory."
+)
+@click.option(
+    "--output",
+    default="freec_segments.tsv",
+    show_default=True,
+    help="Normalized COSAP segment TSV name.",
+)
+@click.option(
+    "--ploidy",
+    default="2",
+    show_default=True,
+    help="FREEC ploidy value, e.g. 2 or 2,3,4.",
+)
+@click.option("--threads", default=1, show_default=True, type=int)
+@click.option("--read-count-threshold", default=50, show_default=True, type=int)
+def freec(
+    sample,
+    control,
+    capture_regions,
+    chr_len_file,
+    chr_files,
+    gc_content_profile,
+    output_dir,
+    output,
+    ploidy,
+    threads,
+    read_count_threshold,
+):
+    """Run Control-FREEC CNA calling for WES/panel data."""
+    try:
+        params = {
+            "capture_regions": capture_regions,
+            "chr_len_file": chr_len_file,
+            "ploidy": ploidy,
+            "threads": threads,
+            "read_count_threshold": read_count_threshold,
+        }
+        if chr_files:
+            params["chr_files"] = chr_files
+        if gc_content_profile:
+            params["gc_content_profile"] = gc_content_profile
+
+        caller_config = {
+            CNVCallingKeys.LIBRARY: CNVCallerFactory.FREEC,
+            CNVCallingKeys.TUMOR_INPUT: sample,
+            CNVCallingKeys.OUTPUT_DIR: output_dir,
+            CNVCallingKeys.OUTPUT: output,
+            CNVCallingKeys.PARAMS: params,
+        }
+        if control:
+            caller_config[CNVCallingKeys.NORMAL_INPUT] = control
+
+        caller = CNVCallerFactory.create(CNVCallerFactory.FREEC)
+        result = caller.call(caller_config)
+        click.echo(result)
+    except SystemExit:
+        raise
+    except Exception as e:
+        _handle_error(click.get_current_context(), e)
+
+
 @cli.command("mitochondrial")
 @click.option("--workdir", required=True, help="Directory for all workflow outputs.")
 @click.option("--sample-name", required=True, help="Sample name written to outputs.")
-@click.option("--bam", required=False, help="Analysis-ready, coordinate-sorted hg38 BAM.")
+@click.option(
+    "--bam", required=False, help="Analysis-ready, coordinate-sorted hg38 BAM."
+)
 @click.option("--bam-index", required=False, help="BAM .bai or .csi index.")
 @click.option("--fastq-r1", required=False, help="Paired-end FASTQ read 1.")
 @click.option("--fastq-r2", required=False, help="Paired-end FASTQ read 2.")
 @click.option("--mapper", default="bwa", show_default=True)
-@click.option("--skip-recalibration", is_flag=True, help="Do not run BQSR in FASTQ mode.")
+@click.option(
+    "--skip-recalibration", is_flag=True, help="Do not run BQSR in FASTQ mode."
+)
 @click.option("--contig-name", default="chrM", show_default=True)
 @click.option("--median-autosomal-coverage", type=float)
 @click.option("--min-allele-fraction", type=float)
@@ -67,9 +226,20 @@ def cli():
 @click.option("--contamination-estimate", type=float)
 @click.option("--skip-haplochecker", is_flag=True)
 def mitochondrial(
-    workdir, sample_name, bam, bam_index, fastq_r1, fastq_r2, mapper,
-    skip_recalibration, contig_name, median_autosomal_coverage,
-    min_allele_fraction, f_score_beta, contamination_estimate, skip_haplochecker,
+    workdir,
+    sample_name,
+    bam,
+    bam_index,
+    fastq_r1,
+    fastq_r2,
+    mapper,
+    skip_recalibration,
+    contig_name,
+    median_autosomal_coverage,
+    min_allele_fraction,
+    f_score_beta,
+    contamination_estimate,
+    skip_haplochecker,
 ):
     """Call mitochondrial SNVs and indels from hg38 BAM or paired FASTQs."""
     try:

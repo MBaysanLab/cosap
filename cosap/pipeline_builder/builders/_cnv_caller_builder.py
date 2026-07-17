@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict
 
 from ..._formats import FileFormats, OutputFolders
@@ -17,6 +17,7 @@ class CNVCaller(_IPipelineStep, _PipelineStep):
     key: str = PipelineKeys.CNV
     next_step: _PipelineStep = None
     output_dir: str = None
+    params: Dict = field(default_factory=dict)
 
     def __post_init__(self):
         if self.name is None:
@@ -39,20 +40,23 @@ class CNVCaller(_IPipelineStep, _PipelineStep):
 
     def _create_config(self) -> Dict:
         tumor_input = self.tumor.get_output()
-        normal_input = self.normal.get_output()
+        normal_input = self.normal.get_output() if self.normal else None
 
         output = FileFormats.CNV_OUTPUT.format(identification=self.name)
         output_dir = self.output_dir
         config = {
             self.name: {
                 CNVCallingKeys.LIBRARY: self.library,
-                CNVCallingKeys.NORMAL_INPUT: normal_input,
                 CNVCallingKeys.TUMOR_INPUT: tumor_input,
                 CNVCallingKeys.OUTPUT_DIR: output_dir,
                 CNVCallingKeys.OUTPUT: output,
                 CNVCallingKeys.LOG_FILE: self.log_file,
             }
         }
+        if normal_input:
+            config[self.name][CNVCallingKeys.NORMAL_INPUT] = normal_input
+        if self.params:
+            config[self.name][CNVCallingKeys.PARAMS] = self.params
         if self.bed_file:
             config[self.name][CNVCallingKeys.BED_FILE] = self.bed_file
         return config
