@@ -21,9 +21,10 @@ COPY requirements.txt /tmp/requirements.txt
 RUN --mount=type=cache,target=/opt/conda/pkgs mamba create --name cosap -c conda-forge -c bioconda --file /tmp/requirements.txt
 RUN mkdir /app
 COPY . /app/.
+COPY --from=cosap_formats_source . /tmp/cosap_formats
 
 WORKDIR /app
-RUN mamba run --no-capture-output -n cosap uv pip install --no-cache .
+RUN mamba run --no-capture-output -n cosap uv pip install --no-cache /tmp/cosap_formats .
 
 # Set environment variables
 ENV COSAP=/app
