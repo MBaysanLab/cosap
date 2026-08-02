@@ -1,0 +1,67 @@
+name: Integration Tests
+
+on:
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+    inputs:
+      run_benchmark:
+        description: Run the NA12878 mitochondrial benchmark
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: integration-${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  mitochondrial-fixture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: mamba-org/setup-micromamba@v2
+        with:
+          micromamba-version: "1.5.10-0"
+          init-shell: bash
+
+      - name: Create COSAP environment
+        shell: bash -l {0}
+        run: |
+          micromamba create -y -n cosap -c conda-forge -c bioconda --file requirements.txt
+          micromamba run -n cosap python -m pip install ".[dev]"
+
+      - name: Run mitochondrial fixture integration test
+        shell: bash -l {0}
+        run: >-
+          micromamba run -n cosap env COSAP_RUN_MITO_NFCORE_TEST=1
+          pytest tests/integration/test_mitochondrial_nfcore_fixture.py
+
+  mitochondrial-benchmark:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_benchmark }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: mamba-org/setup-micromamba@v2
+        with:
+          micromamba-version: "1.5.10-0"
+          init-shell: bash
+
+      - name: Create COSAP environment
+        shell: bash -l {0}
+        run: |
+          micromamba create -y -n cosap -c conda-forge -c bioconda --file requirements.txt
+          micromamba run -n cosap python -m pip install ".[dev]"
+
+      - name: Run NA12878 mitochondrial benchmark
+        shell: bash -l {0}
+        run: >-
+          micromamba run -n cosap env COSAP_RUN_MITO_NA12878_BENCHMARK=1
+          pytest tests/integration/test_mitochondrial_na12878_1000g_benchmark.py

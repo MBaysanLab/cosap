@@ -8,8 +8,17 @@ This repository hosts the development of the COSAP library.
 COSAP is an easy yet comprehensive pipeline creation tool for NGS data.
 It provides reproducibility and aims to give deeper insight about the powers and limitations of the current tools by allowing users to compare results of different pipelines.
 
+COSAP owns pipeline and bioinformatics-tool orchestration. Generic format parsing is
+provided by [`cosap-formats`](https://github.com/marifergun/cosap_formats), while
+pipeline-specific result parsing and GATK, tabix, comparator, and annotation
+processors remain in this package. Historical parser imports continue to work as
+compatibility APIs.
+
 A typical variant calling pipeline consists of Read Trimming, Read Mapping, Duplicate Removal&Base Calibration, Variant Calling and Variant Annotation steps.
 COSAP provides several tool options for each of these steps.
+
+For local installation and container build instructions that use a sibling
+`cosap_formats` checkout, see [Source builds](docs/source-builds.md).
 
 ## Usage
 

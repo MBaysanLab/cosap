@@ -1,0 +1,98 @@
+name: Publish Docker Image
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: publish-image-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out COSAP
+        uses: actions/checkout@v4
+        with:
+          path: cosap
+
+      - name: Check out cosap_formats build source
+        uses: actions/checkout@v4
+        with:
+          repository: marifergun/cosap_formats
+          token: ${{ secrets.COSAP_BUILD_TOKEN }}
+          path: cosap_formats_source
+          persist-credentials: false
+
+      - name: Record immutable source revisions
+        id: sources
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          echo "cosap_ref=$(git -C cosap rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "formats_ref=$(git -C cosap_formats_source rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Generate image tags and labels
+        id: metadata
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/marifergun/cosap-base
+          tags: |
+            type=sha,prefix=sha-,format=long,enable=${{ github.ref == 'refs/heads/main' }}
+            type=semver,pattern=v{{version}}
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: marifergun
+          password: ${{ secrets.COSAP_GHCR_TOKEN }}
+
+      - name: Build and publish image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: ./cosap
+          build-contexts: |
+            cosap_formats_source=./cosap_formats_source
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Trigger compatible compute-worker build
+        env:
+          GH_TOKEN: ${{ secrets.COSAP_DISPATCH_TOKEN }}
+          COSAP_REF: ${{ steps.sources.outputs.cosap_ref }}
+          FORMATS_REF: ${{ steps.sources.outputs.formats_ref }}
+          BASE_IMAGE: ghcr.io/marifergun/cosap-base@${{ steps.build.outputs.digest }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          test -n "$GH_TOKEN" || { echo "COSAP_DISPATCH_TOKEN is required" >&2; exit 1; }
+          jq -n \
+            --arg cosap_ref "$COSAP_REF" \
+            --arg formats_ref "$FORMATS_REF" \
+            --arg base_image "$BASE_IMAGE" \
+            '{event_type: "cosap-base-published", client_payload: {cosap_ref: $cosap_ref, formats_ref: $formats_ref, base_image: $base_image}}' \
+            > dispatch.json
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/marifergun/cosap_celery/dispatches \
+            --data-binary @dispatch.json

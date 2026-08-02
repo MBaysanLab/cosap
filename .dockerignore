@@ -35,6 +35,7 @@ env/
 # Project runtime outputs / temp
 workdir/
 cosap_data/
+.tmp_*/
 *.log
 
 # Optional: dev-only folders (not needed to run inside container)
