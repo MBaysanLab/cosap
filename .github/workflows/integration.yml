@@ -33,7 +33,8 @@ jobs:
       - name: Create COSAP environment
         shell: bash -l {0}
         run: |
-          micromamba create -y -n cosap -c conda-forge -c bioconda --file requirements.txt
+          grep -Ev '^[[:space:]]*(#|$)' requirements.txt > /tmp/cosap-conda-spec.txt
+          micromamba create -y -n cosap -c conda-forge -c bioconda --file /tmp/cosap-conda-spec.txt
           micromamba run -n cosap python -m pip install ".[dev]"
 
       - name: Run mitochondrial fixture integration test
@@ -57,7 +58,8 @@ jobs:
       - name: Create COSAP environment
         shell: bash -l {0}
         run: |
-          micromamba create -y -n cosap -c conda-forge -c bioconda --file requirements.txt
+          grep -Ev '^[[:space:]]*(#|$)' requirements.txt > /tmp/cosap-conda-spec.txt
+          micromamba create -y -n cosap -c conda-forge -c bioconda --file /tmp/cosap-conda-spec.txt
           micromamba run -n cosap python -m pip install ".[dev]"
 
       - name: Run NA12878 mitochondrial benchmark
