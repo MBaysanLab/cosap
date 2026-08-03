@@ -4,10 +4,6 @@ on:
   push:
     branches: [main]
     tags: ["v*"]
-    paths-ignore:
-      - ".github/**"
-      - "docs/**"
-      - "*.md"
   workflow_dispatch:
 
 permissions:
@@ -54,6 +50,7 @@ jobs:
           images: ghcr.io/marifergun/cosap-base
           tags: |
             type=sha,prefix=sha-,format=long,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=main,enable=${{ github.ref == 'refs/heads/main' }}
             type=semver,pattern=v{{version}}
 
       - name: Log in to GitHub Container Registry
