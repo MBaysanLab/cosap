@@ -8,7 +8,6 @@ from pathlib import Path
 
 import pytest
 
-
 RUN_ENV = "COSAP_RUN_MITO_NFCORE_TEST"
 
 

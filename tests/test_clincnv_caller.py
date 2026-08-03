@@ -4,7 +4,7 @@ import pytest
 
 from cosap._docker_images import DockerImages
 from cosap._pipeline_config import CNVCallingKeys
-from cosap.tools.cnv_callers import CNVCallerFactory, ClinCNV
+from cosap.tools.cnv_callers import ClinCNV, CNVCallerFactory
 from cosap.tools.cnv_callers import _clincnv_cnv_caller as clincnv_module
 
 

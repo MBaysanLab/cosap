@@ -1,5 +1,5 @@
-from ._cnv_callers import _CNVCaller
 from ._clincnv_cnv_caller import ClinCNV
+from ._cnv_callers import _CNVCaller
 from ._cnvkit_cnv_caller import CNVKit
 from ._freec_cnv_caller import FREEC
 from ._gatk_germline_cnv_caller import GATKGermlineCNVCaller

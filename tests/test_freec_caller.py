@@ -4,7 +4,7 @@ import pytest
 
 from cosap._docker_images import DockerImages
 from cosap._pipeline_config import CNVCallingKeys
-from cosap.tools.cnv_callers import CNVCallerFactory, FREEC
+from cosap.tools.cnv_callers import FREEC, CNVCallerFactory
 
 
 def _touch(path: Path) -> str:
