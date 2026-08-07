@@ -48,7 +48,8 @@ def convert_vcf_to_json(
 
 def convert_vcf_to_json_fast(
     path: str, caller_type: str = None, sample_name: str = None, filter: str = "PASS"
-) -> list:
+) -> str:
+    """Compatibility wrapper for the parser now owned by ``cosap_formats``."""
     return VCFUtils.convert_vcf_to_json_fast(path, caller_type, sample_name, filter)
 
 

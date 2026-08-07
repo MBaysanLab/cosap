@@ -10,6 +10,8 @@ license = { text = "MIT license" }
 dynamic = ["version"]
 requires-python = ">=3.9,<3.12"
 dependencies = [
+    # Generic bioinformatics format parsing
+    "cosap-formats>=0.1,<0.2",
     # CLI framework
     "click>=8.0,<9.0",
     "python-dotenv>=1.0,<2.0",
@@ -19,7 +21,6 @@ dependencies = [
     "pandas>=2.2,<2.3",
     "numpy>=1.24,<2.0",
     "PyYAML>=6.0,<7.0",
-    "orjson>=3.9,<4.0",
     # HTTP client (file downloads)
     "requests>=2.28,<3.0",
     # Bioinformatics (pip-installable)

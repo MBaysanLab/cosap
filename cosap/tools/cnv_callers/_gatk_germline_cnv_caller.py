@@ -1265,7 +1265,10 @@ class GATKGermlineCNVCaller(_CNVCaller):
                 caller_config, library_paths, app_config
             )
             return_code = docker_runner.run(
-                DockerImages.GATK, cmd, workdir=workdir, run_as_root=True
+                DockerImages.GATK,
+                cmd,
+                workdir=workdir,
+                run_as_root=docker_runner.runtime != "executor",
             )
             if return_code not in (0, None):
                 raise RuntimeError(

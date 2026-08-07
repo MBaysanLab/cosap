@@ -7,7 +7,6 @@ from pathlib import Path
 
 import pytest
 
-
 RUN_ENV = "COSAP_RUN_MITO_NA12878_BENCHMARK"
 NA12878_BAM = (
     "https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/phase3/data/NA12878/alignment/"

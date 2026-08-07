@@ -24,6 +24,15 @@ def _load_docker_runner_module():
         LIBRARY_PATH = "/refs"
         CONTAINER_RUNTIME = "docker"
         CONTAINER_ENGINE_BIN = "apptainer"
+        EXECUTOR_URL = "http://executor:8080"
+        EXECUTOR_TOKEN = "test-token"
+        EXECUTOR_CONNECT_TIMEOUT = 1
+        EXECUTOR_READ_TIMEOUT = 2
+        EXECUTOR_LEASE_SECONDS = 90
+        EXECUTOR_POLL_SECONDS = 0
+        EXECUTOR_RETRY_SECONDS = 0
+        EXECUTOR_MAX_WAIT_SECONDS = 0
+        EXECUTOR_MAX_RUN_SECONDS = 3600
 
     config_module.AppConfig = StubAppConfig
     sys.modules["cosap._config"] = config_module
@@ -49,6 +58,10 @@ class TestContainerRuntimeSelection:
     def test_explicit_apptainer_runtime(self, monkeypatch):
         monkeypatch.setattr(docker_runner.AppConfig, "CONTAINER_RUNTIME", "apptainer")
         assert docker_runner.get_container_runtime() == "apptainer"
+
+    def test_explicit_executor_runtime(self, monkeypatch):
+        monkeypatch.setattr(docker_runner.AppConfig, "CONTAINER_RUNTIME", "executor")
+        assert docker_runner.get_container_runtime() == "executor"
 
     def test_auto_runtime_prefers_apptainer_when_available(self, monkeypatch):
         monkeypatch.setattr(docker_runner.AppConfig, "CONTAINER_RUNTIME", "auto")
@@ -151,3 +164,135 @@ class TestApptainerRunner:
 
         assert runner.runtime == "apptainer"
         assert isinstance(runner._runner, docker_runner._ApptainerBackendRunner)
+
+
+class _FakeResponse:
+    def __init__(self, payload, status_code=200):
+        self._payload = payload
+        self.status_code = status_code
+        self.ok = status_code < 400
+        self.text = str(payload)
+
+    def json(self):
+        return self._payload
+
+
+class _FakeSession:
+    def __init__(self, responses):
+        self.responses = list(responses)
+        self.calls = []
+
+    def request(self, method, url, **kwargs):
+        self.calls.append((method, url, kwargs))
+        return self.responses.pop(0)
+
+
+class TestExecutorRunner:
+    def test_executor_submits_mounts_streams_logs_and_returns_exit_code(
+        self, monkeypatch, capsys
+    ):
+        runner = docker_runner._ExecutorBackendRunner(device="gpu")
+        runner._session = _FakeSession(
+            [
+                _FakeResponse({"status": "running"}),
+                _FakeResponse({"lines": ["tool output"], "next_cursor": 1}),
+                _FakeResponse({"status": "failed", "exit_code": 17}),
+                _FakeResponse({"chunks": [], "next_cursor": 1}),
+            ]
+        )
+        monkeypatch.setattr(docker_runner.time, "sleep", lambda _seconds: None)
+
+        result = runner._run_impl(
+            image="approved/tool:1",
+            command=["tool", "--input", "sample.bam"],
+            workdir="/user_files/job",
+            bind_paths=[("/cosap_data", "/cosap_data", "ro")],
+            remove=True,
+            run_as_root=False,
+        )
+
+        assert result == 17
+        assert "tool output" in capsys.readouterr().out
+        create_payload = runner._session.calls[0][2]["json"]
+        assert create_payload["device"] == "gpu"
+        assert create_payload["mounts"] == [
+            {"source": "/cosap_data", "target": "/cosap_data", "mode": "ro"}
+        ]
+        assert runner._session.calls[0][2]["headers"]["Authorization"] == (
+            "Bearer test-token"
+        )
+
+    def test_executor_recovers_when_polling_fails(self, monkeypatch):
+        runner = docker_runner._ExecutorBackendRunner()
+        runner._session = _FakeSession(
+            [
+                _FakeResponse({"status": "running"}),
+                _FakeResponse({"detail": "unavailable"}, status_code=503),
+                _FakeResponse({"chunks": [], "next_cursor": 0}),
+                _FakeResponse({"status": "succeeded", "exit_code": 0}),
+                _FakeResponse({"chunks": [], "next_cursor": 0}),
+            ]
+        )
+        monkeypatch.setattr(docker_runner.time, "sleep", lambda _seconds: None)
+
+        result = runner._run_impl(
+            image="approved/tool:1",
+            command="tool",
+            workdir="/user_files/job",
+            bind_paths=[],
+            remove=True,
+            run_as_root=False,
+        )
+
+        assert result == 0
+        assert all(call[0] != "DELETE" for call in runner._session.calls)
+
+    def test_executor_retries_transient_server_failure(self, monkeypatch):
+        runner = docker_runner._ExecutorBackendRunner()
+        runner._session = _FakeSession(
+            [
+                _FakeResponse({"detail": "unavailable"}, status_code=503),
+                _FakeResponse({"status": "running"}),
+            ]
+        )
+        monkeypatch.setattr(docker_runner.AppConfig, "EXECUTOR_MAX_WAIT_SECONDS", 10)
+        monkeypatch.setattr(docker_runner.time, "sleep", lambda _seconds: None)
+
+        response = runner._request("GET", "/v1/executions/job")
+
+        assert response.json() == {"status": "running"}
+        assert len(runner._session.calls) == 2
+
+    def test_executor_cancels_when_execution_deadline_expires(self, monkeypatch):
+        runner = docker_runner._ExecutorBackendRunner()
+        runner._session = _FakeSession(
+            [
+                _FakeResponse({"status": "running"}),
+                _FakeResponse({"status": "cancelled"}),
+            ]
+        )
+        monkeypatch.setattr(docker_runner.AppConfig, "EXECUTOR_MAX_RUN_SECONDS", 0)
+
+        with pytest.raises(RuntimeError, match="exceeded 0 seconds"):
+            runner._run_impl(
+                image="approved/tool:1",
+                command="tool",
+                workdir="/user_files/job",
+                bind_paths=[],
+                remove=True,
+                run_as_root=False,
+            )
+
+        assert runner._session.calls[-1][0] == "DELETE"
+
+    def test_executor_rejects_root_request(self):
+        runner = docker_runner._ExecutorBackendRunner()
+        with pytest.raises(RuntimeError, match="does not permit root"):
+            runner._run_impl(
+                image="approved/tool:1",
+                command="tool",
+                workdir="/user_files/job",
+                bind_paths=[],
+                remove=True,
+                run_as_root=True,
+            )
