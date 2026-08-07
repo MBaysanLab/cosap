@@ -132,3 +132,16 @@ class AppConfig(metaclass=_AppConfigMeta):
     VEP_CACHE_VERSION = os.getenv("COSAP_VEP_CACHE_VERSION", "115")
     CONTAINER_RUNTIME = os.getenv("COSAP_CONTAINER_RUNTIME", "docker")
     CONTAINER_ENGINE_BIN = os.getenv("COSAP_APPTAINER_BIN", "apptainer")
+    EXECUTOR_URL = os.getenv("COSAP_EXECUTOR_URL", "http://tool-executor:8080").rstrip("/")
+    EXECUTOR_TOKEN = os.getenv("COSAP_EXECUTOR_TOKEN", "")
+    EXECUTOR_CONNECT_TIMEOUT = float(os.getenv("COSAP_EXECUTOR_CONNECT_TIMEOUT", "5"))
+    EXECUTOR_READ_TIMEOUT = float(os.getenv("COSAP_EXECUTOR_READ_TIMEOUT", "30"))
+    EXECUTOR_LEASE_SECONDS = int(os.getenv("COSAP_EXECUTOR_LEASE_SECONDS", "90"))
+    EXECUTOR_POLL_SECONDS = float(os.getenv("COSAP_EXECUTOR_POLL_SECONDS", "2"))
+    EXECUTOR_RETRY_SECONDS = float(os.getenv("COSAP_EXECUTOR_RETRY_SECONDS", "5"))
+    EXECUTOR_MAX_WAIT_SECONDS = float(
+        os.getenv("COSAP_EXECUTOR_MAX_WAIT_SECONDS", "300")
+    )
+    EXECUTOR_MAX_RUN_SECONDS = float(
+        os.getenv("COSAP_EXECUTOR_MAX_RUN_SECONDS", "86400")
+    )

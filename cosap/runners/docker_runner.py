@@ -1,7 +1,10 @@
 import os
 import re
 import shlex
+import socket
 import subprocess
+import time
+import uuid
 from abc import ABC, abstractmethod
 from logging import getLogger
 from shutil import which
@@ -569,6 +572,214 @@ class _ApptainerBackendRunner(_ContainerRunnerBase):
         return None
 
 
+class _ExecutorBackendRunner(_ContainerRunnerBase):
+    def __init__(self, device: str = "cpu") -> None:
+        super().__init__(device=device)
+        try:
+            import requests
+        except ImportError as exc:
+            raise RuntimeError(
+                "Executor backend selected, but the 'requests' package is not installed."
+            ) from exc
+
+        if not AppConfig.EXECUTOR_TOKEN:
+            raise RuntimeError("COSAP_EXECUTOR_TOKEN must be set for executor mode.")
+
+        self._requests = requests
+        self._session = requests.Session()
+        self._base_url = AppConfig.EXECUTOR_URL
+        self._headers = {
+            "Authorization": f"Bearer {AppConfig.EXECUTOR_TOKEN}",
+            "Content-Type": "application/json",
+        }
+        self._timeout = (
+            AppConfig.EXECUTOR_CONNECT_TIMEOUT,
+            AppConfig.EXECUTOR_READ_TIMEOUT,
+        )
+
+    def _request(self, method: str, path: str, *, deadline: float = None, **kwargs):
+        retry_deadline = time.monotonic() + AppConfig.EXECUTOR_MAX_WAIT_SECONDS
+        if deadline is not None:
+            retry_deadline = min(retry_deadline, deadline)
+        request_timeout = kwargs.pop("timeout", self._timeout)
+        while True:
+            try:
+                response = self._session.request(
+                    method,
+                    f"{self._base_url}{path}",
+                    headers=self._headers,
+                    timeout=request_timeout,
+                    **kwargs,
+                )
+            except self._requests.RequestException as exc:
+                if time.monotonic() >= retry_deadline:
+                    raise RuntimeError(f"COSAP executor request failed: {exc}") from exc
+                time.sleep(
+                    min(
+                        AppConfig.EXECUTOR_RETRY_SECONDS,
+                        max(0, retry_deadline - time.monotonic()),
+                    )
+                )
+                continue
+            retryable = response.status_code == 429 or response.status_code >= 500
+            if not retryable or time.monotonic() >= retry_deadline:
+                break
+            time.sleep(
+                min(
+                    AppConfig.EXECUTOR_RETRY_SECONDS,
+                    max(0, retry_deadline - time.monotonic()),
+                )
+            )
+
+        if not response.ok:
+            try:
+                detail = response.json().get("detail", response.text)
+            except ValueError:
+                detail = response.text
+            raise RuntimeError(
+                f"COSAP executor rejected request ({response.status_code}): {detail}"
+            )
+        return response
+
+    def _run_impl(
+        self,
+        image: str,
+        command: Union[str, list],
+        workdir: Optional[str],
+        bind_paths: List[Tuple[str, str, str]],
+        remove: bool,
+        run_as_root: bool,
+    ) -> int:
+        if run_as_root:
+            raise RuntimeError("Executor policy does not permit root tool containers.")
+
+        execution_id = str(uuid.uuid4())
+        payload = {
+            "execution_id": execution_id,
+            "owner": {"hostname": socket.gethostname(), "pid": os.getpid()},
+            "image": image,
+            "command": command,
+            "workdir": workdir,
+            "mounts": [
+                {"source": source, "target": target, "mode": mode}
+                for source, target, mode in bind_paths
+            ],
+            "device": self.device,
+            "lease_seconds": AppConfig.EXECUTOR_LEASE_SECONDS,
+        }
+        self._request("POST", "/v1/executions", json=payload)
+
+        cursor = 0
+        lease_interval = max(1, AppConfig.EXECUTOR_LEASE_SECONDS // 3)
+        next_lease = time.monotonic() + lease_interval
+        execution_deadline = time.monotonic() + AppConfig.EXECUTOR_MAX_RUN_SECONDS
+        terminal = False
+        try:
+            while True:
+                if time.monotonic() >= execution_deadline:
+                    raise RuntimeError(
+                        f"COSAP executor job exceeded {AppConfig.EXECUTOR_MAX_RUN_SECONDS:g} seconds"
+                    )
+                if time.monotonic() >= next_lease:
+                    lease_deadline = min(
+                        execution_deadline,
+                        time.monotonic() + max(1, AppConfig.EXECUTOR_LEASE_SECONDS // 2),
+                    )
+                    self._request(
+                        "POST",
+                        f"/v1/executions/{execution_id}/lease",
+                        json={"lease_seconds": AppConfig.EXECUTOR_LEASE_SECONDS},
+                        deadline=lease_deadline,
+                    )
+                    next_lease = time.monotonic() + lease_interval
+
+                poll_deadline = min(execution_deadline, next_lease)
+                try:
+                    logs = self._request(
+                        "GET",
+                        f"/v1/executions/{execution_id}/logs",
+                        params={"cursor": cursor},
+                        deadline=poll_deadline,
+                    ).json()
+                    for chunk in logs.get("chunks", logs.get("lines", [])):
+                        print(chunk, end="" if "chunks" in logs else "\n")
+                    cursor = logs.get("next_cursor", cursor)
+
+                    status = self._request(
+                        "GET",
+                        f"/v1/executions/{execution_id}",
+                        deadline=poll_deadline,
+                    ).json()
+                except RuntimeError:
+                    logger.warning(
+                        "Transient executor polling failure for job %s",
+                        execution_id,
+                        exc_info=True,
+                    )
+                    time.sleep(
+                        min(
+                            AppConfig.EXECUTOR_POLL_SECONDS,
+                            max(0, next_lease - time.monotonic()),
+                        )
+                    )
+                    continue
+                if status["status"] in {"succeeded", "failed", "cancelled"}:
+                    while True:
+                        if time.monotonic() >= execution_deadline:
+                            raise RuntimeError(
+                                "COSAP executor timed out while draining final logs"
+                            )
+                        final_logs = self._request(
+                            "GET",
+                            f"/v1/executions/{execution_id}/logs",
+                            params={"cursor": cursor},
+                            deadline=execution_deadline,
+                        ).json()
+                        chunks = final_logs.get(
+                            "chunks", final_logs.get("lines", [])
+                        )
+                        for chunk in chunks:
+                            print(
+                                chunk,
+                                end="" if "chunks" in final_logs else "\n",
+                            )
+                        next_cursor = final_logs.get("next_cursor", cursor)
+                        if not chunks or next_cursor == cursor:
+                            break
+                        cursor = next_cursor
+                    terminal = True
+                    exit_code = status.get("exit_code")
+                    if exit_code is None:
+                        exit_code = 0 if status["status"] == "succeeded" else 1
+                    return int(exit_code)
+
+                time.sleep(AppConfig.EXECUTOR_POLL_SECONDS)
+        finally:
+            if not terminal:
+                try:
+                    cancel_timeout = 5
+                    self._request(
+                        "DELETE",
+                        f"/v1/executions/{execution_id}",
+                        deadline=time.monotonic() + cancel_timeout,
+                        timeout=(
+                            min(AppConfig.EXECUTOR_CONNECT_TIMEOUT, cancel_timeout),
+                            min(AppConfig.EXECUTOR_READ_TIMEOUT, cancel_timeout),
+                        ),
+                    )
+                except RuntimeError:
+                    logger.exception("Failed to cancel executor job %s", execution_id)
+
+    @classmethod
+    def stop_all_cosap_handled_containers(cls, pids: tuple) -> None:
+        runner = cls()
+        runner._request(
+            "POST",
+            "/v1/executions/cancel-by-owner",
+            json={"hostname": socket.gethostname(), "pids": list(pids)},
+        )
+
+
 def get_container_runtime() -> str:
     runtime = AppConfig.CONTAINER_RUNTIME.lower()
     if runtime == "auto":
@@ -580,9 +791,9 @@ def get_container_runtime() -> str:
             return "apptainer"
         return "docker"
 
-    if runtime not in {"docker", "apptainer"}:
+    if runtime not in {"docker", "apptainer", "executor"}:
         raise ValueError(
-            "COSAP_CONTAINER_RUNTIME must be one of: docker, apptainer, auto"
+            "COSAP_CONTAINER_RUNTIME must be one of: docker, apptainer, executor, auto"
         )
     return runtime
 
@@ -597,6 +808,8 @@ class DockerRunner:
             self._runner = _DockerBackendRunner(device=device)
         elif self.runtime == "apptainer":
             self._runner = _ApptainerBackendRunner(device=device)
+        elif self.runtime == "executor":
+            self._runner = _ExecutorBackendRunner(device=device)
         else:
             raise ValueError(f"Unsupported container runtime: {self.runtime}")
 
@@ -623,6 +836,9 @@ class DockerRunner:
         runtime = get_container_runtime()
         if runtime == "docker":
             _DockerBackendRunner.stop_all_cosap_handled_containers(pids=pids)
+            return
+        if runtime == "executor":
+            _ExecutorBackendRunner.stop_all_cosap_handled_containers(pids=pids)
             return
         _ApptainerBackendRunner.stop_all_cosap_handled_containers(pids=pids)
 
