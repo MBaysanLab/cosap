@@ -85,7 +85,7 @@ class Exomiser(_Annotatable, _Annotator):
             },
         }
 
-        job_config_file = output_dir + f"exomiser_job_{sample_name}.yaml"
+        job_config_file = str(Path(output_dir) / f"exomiser_job_{sample_name}.yaml")
 
         try:
             with open(job_config_file, "w") as file:
